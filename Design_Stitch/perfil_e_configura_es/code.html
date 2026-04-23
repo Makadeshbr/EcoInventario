@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Perfil e Configurações - EcoInventário</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config from Design System -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#c8c6c5",
+                    "surface-tint": "#5f5e5e",
+                    "on-primary-fixed": "#1c1b1b",
+                    "background": "#f7faf5",
+                    "on-tertiary-fixed-variant": "#304f00",
+                    "inverse-on-surface": "#eff2ed",
+                    "on-secondary-container": "#536a53",
+                    "surface-bright": "#f7faf5",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#102000",
+                    "tertiary-fixed": "#b7f569",
+                    "on-secondary-fixed-variant": "#364c37",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "primary": "#000000",
+                    "primary-fixed": "#e5e2e1",
+                    "surface-container-high": "#e6e9e4",
+                    "on-secondary-fixed": "#0a200e",
+                    "on-background": "#191c1a",
+                    "surface-container": "#ecefea",
+                    "outline": "#747878",
+                    "inverse-surface": "#2d312e",
+                    "secondary": "#4d644d",
+                    "secondary-container": "#cfeacc",
+                    "outline-variant": "#c4c7c7",
+                    "primary-container": "#1c1b1b",
+                    "surface-variant": "#e0e3df",
+                    "on-primary-fixed-variant": "#474746",
+                    "tertiary-fixed-dim": "#9dd850",
+                    "surface-container-highest": "#e0e3df",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#5d9206",
+                    "secondary-fixed-dim": "#b3cdb1",
+                    "on-secondary": "#ffffff",
+                    "surface": "#f7faf5",
+                    "on-surface-variant": "#444748",
+                    "secondary-fixed": "#cfeacc",
+                    "surface-container-low": "#f1f4ef",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-primary": "#c8c6c5",
+                    "on-error-container": "#93000a",
+                    "on-surface": "#191c1a",
+                    "on-tertiary-fixed": "#102000",
+                    "on-primary-container": "#858383",
+                    "tertiary": "#000000",
+                    "surface-dim": "#d8dbd6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "xs": "4px",
+                    "lg": "40px",
+                    "xl": "64px",
+                    "base": "8px",
+                    "md": "24px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "label-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "display": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Custom Toggle Switch CSS for standard HTML rendering without JS */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #000000;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #000000;
+        }
+        .toggle-checkbox:checked + .toggle-label:after {
+            transform: translateX(100%);
+            border-color: #fff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md antialiased relative min-h-screen overflow-x-hidden selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- Floating Background Imagery (Level 1 Depth) -->
+<div class="fixed top-[-10%] left-[-10%] w-[60%] h-[60%] opacity-30 pointer-events-none z-0" data-alt="close up of a monstera deliciosa leaf with rich green tones and natural shadows" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB-X5JSMR2X-17IB-nq6i9iZRGmdb4bDw4zEoOF4PX6kcp1LfqgPSqlSYiNuMIpvJOz1jzkPSzR2wshl5pxHoqui7QGbIEN_jWM1h_B-XurkB58kPcxXF_i1Cyhz7ATkgWWkCA3CnFzX7HPt8GGqRUZARlRY7Cq0XeJvcyxTvAGYQZxv2lNT_Mpy9UmZnXrXY1C0MmyiYBfyGtJc9U3d2AWxywJuuK-u1LABQQZfjxSZdDCOsdohHSNYvyls1jmXLlqUvDmop7bbgSo'); background-size: cover; filter: blur(4px);">
+</div>
+<div class="fixed bottom-[-5%] right-[-15%] w-[50%] h-[70%] opacity-20 pointer-events-none z-0" data-alt="soft fern fronds emerging from a misty background with delicate lighting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAZWshF0G6Iq3qiXTuXidZ3GZF15UHOIfasYvEozydPTMVHiO0WgEX1PTvnaEtNtlOc-4RXqJ79rroOOGhPciibQEXjv3ZNKyerIMuh_1p4u1lvjF3b4domBX9SbUxPOBa6A3zrQ4yK1JOEVCJxEQPE_fPDormoB8EFtfY0UCrFmChelbvuP9AveYx3lEKWt74SvY9smGPkRa6Yts-eEnCcFD4J7qwjlb9faqApemy7q2C-bA4j3qMIbLvU2aibbsJGVTs-xhTlcM9m'); background-size: cover; filter: blur(6px);">
+</div>
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 bg-transparent fixed top-0 w-full z-40 relative">
+<button class="text-primary hover:opacity-70 transition-opacity p-2 rounded-full md:hidden flex items-center justify-center">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<!-- Desktop Nav Items (Hidden on Mobile) -->
+<nav class="hidden md:flex items-center space-x-lg flex-1 justify-center">
+<a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Início</a>
+<a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Inventário</a>
+<a class="font-label-lg text-label-lg text-on-surface-variant hover:text-primary transition-colors" href="#">Análises</a>
+</nav>
+<h1 class="font-display text-headline-md font-black tracking-tight text-primary md:absolute md:left-6">EcoInventário</h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-surface-container-lowest shadow-sm">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="portrait of a woman with a serene expression, soft natural lighting, light background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD02I0E1zoUXoBQoS6BcQFQbudXKV92VZa4tYUAaRz4rFFstN1vgi9a_JIXnfzXWNjX0fveJBeTUVdGfhm1Fbs8n9ZjRpFg_6fSzviD71N7d7JTBamdGIfADgz1h4f8BKvII3gQmzR0UsFaJDJDUPwCApUBMlTnYYTGWJms8gEU8eu-DyZf8VMiLo445AwyzS5mtxUtaAmt-tXLMyL_E1TTBYJeyaKvrV5sLjZorFiBuuYAJk7NyTYdsy7hlidybEuUvm3sn1DUUL8B"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative z-10 px-margin-mobile md:px-margin-desktop pt-md pb-[120px] max-w-2xl mx-auto flex flex-col gap-md">
+<!-- Profile Header Widget -->
+<section class="glass-panel rounded-xl p-md flex flex-col items-center justify-center mt-lg shadow-sm">
+<div class="w-24 h-24 rounded-full overflow-hidden border-4 border-surface-container-lowest shadow-md mb-sm relative">
+<img alt="Foto de Perfil" class="w-full h-full object-cover" data-alt="portrait of a woman with a serene expression, soft natural lighting, light background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDyPLDOH2hT7t4-Oo8aZnHsSUEPbfjWD6qjBiyJO9jS9fLVBHIHhjBP_aKBgR8zk6p4FqidongcM887Yg2s0Wy5dioIvF_lEsz84pxpwueEZ3XGYU3HRAWsNf20pbmWZzArxRGN0Mc6agBQD64vL58xG8zqH9ni72pFWAzy58MkrDHL0nE9VdL9FEof72QqeHRdapTHFmCmaMI0_o5gP4zbrlV0Z2BcLsfVZwtE98L_zLD8D63E8buCsMZfD6dNBIn0Ga4X__I9ElS1"/>
+<button class="absolute bottom-0 right-0 bg-primary text-on-primary rounded-full w-8 h-8 flex items-center justify-center border-2 border-surface-container-lowest hover:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[16px]">edit</span>
+</button>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary mb-xs">Ana Oliveira</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Bióloga Sênior • Setor Sul</p>
+</section>
+<!-- Links Section -->
+<section class="glass-panel rounded-xl overflow-hidden shadow-sm flex flex-col">
+<a class="flex items-center justify-between p-sm px-md border-b border-outline-variant/20 hover:bg-surface-container-lowest/30 transition-colors group" href="#">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-container/50 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">person</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">Dados Pessoais</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="flex items-center justify-between p-sm px-md border-b border-outline-variant/20 hover:bg-surface-container-lowest/30 transition-colors group" href="#">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-container/50 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">sync</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">Sincronização</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+<a class="flex items-center justify-between p-sm px-md hover:bg-surface-container-lowest/30 transition-colors group" href="#">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-container/50 flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">help</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">Ajuda</span>
+</div>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">chevron_right</span>
+</a>
+</section>
+<!-- Toggles Section -->
+<section class="glass-panel rounded-xl overflow-hidden shadow-sm flex flex-col">
+<div class="flex items-center justify-between p-sm px-md border-b border-outline-variant/20">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest/50 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">4k</span>
+</div>
+<div>
+<span class="font-label-lg text-label-lg text-primary block">Upload em 4K</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Requer mais dados móveis</span>
+</div>
+</div>
+<!-- Toggle Switch -->
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-surface-variant bg-surface-container z-10 transition-transform duration-200 ease-in-out" id="toggle-4k" name="toggle" style="top: 2px; left: 2px; border-width: 2px;" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-7 rounded-full bg-primary cursor-pointer border border-outline-variant/20 shadow-inner transition-colors duration-200 ease-in-out" for="toggle-4k"></label>
+</div>
+</div>
+<div class="flex items-center justify-between p-sm px-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest/50 flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<span class="font-label-lg text-label-lg text-primary">Notificações</span>
+</div>
+<!-- Toggle Switch -->
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer border-surface-variant bg-surface-container z-10 transition-transform duration-200 ease-in-out" id="toggle-notif" name="toggle" style="top: 2px; left: 2px; border-width: 2px; transform: translateX(0);" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-7 rounded-full bg-surface-variant cursor-pointer border border-outline-variant/20 shadow-inner transition-colors duration-200 ease-in-out" for="toggle-notif"></label>
+</div>
+</div>
+</section>
+<!-- Logout Action -->
+<button class="w-full mt-sm py-4 rounded-full bg-error-container/80 backdrop-blur-md text-on-error-container font-label-lg text-label-lg border border-error/20 hover:bg-error-container transition-colors shadow-sm active:scale-95 duration-200 flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+            Sair da Conta
+        </button>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full border border-white/20 bg-surface-container-lowest/40 backdrop-blur-[30px] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] z-50 flex justify-around items-center px-4 py-2">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:scale-110 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:scale-110 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">assignment</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:scale-110 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">center_focus_strong</span>
+</a>
+<!-- Active Tab: Profile -->
+<a class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-full p-3 hover:scale-110 transition-transform duration-200 shadow-md" href="#">
+<span class="material-symbols-outlined icon-fill">person</span>
+</a>
+</nav>
+</body></html>

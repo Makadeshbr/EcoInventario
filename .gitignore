@@ -1,0 +1,41 @@
+# Binários
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/bin/
+/server
+
+# Testes
+*.test
+*.out
+coverage.html
+coverage.txt
+
+# Dependências
+/vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+
+# Docker volumes
+postgres_data/
+minio_data/
+
+# Claude Code
+.claude/
+
+# Design (não precisa no build)
+# Design_Stitch/

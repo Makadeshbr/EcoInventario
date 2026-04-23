@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Resolução de Conflitos</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c8c6c5",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#f7faf5",
+                        "on-tertiary-fixed-variant": "#304f00",
+                        "inverse-on-surface": "#eff2ed",
+                        "on-secondary-container": "#536a53",
+                        "surface-bright": "#f7faf5",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#102000",
+                        "tertiary-fixed": "#b7f569",
+                        "on-secondary-fixed-variant": "#364c37",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "primary": "#000000",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e6e9e4",
+                        "on-secondary-fixed": "#0a200e",
+                        "on-background": "#191c1a",
+                        "surface-container": "#ecefea",
+                        "outline": "#747878",
+                        "inverse-surface": "#2d312e",
+                        "secondary": "#4d644d",
+                        "secondary-container": "#cfeacc",
+                        "outline-variant": "#c4c7c7",
+                        "primary-container": "#1c1b1b",
+                        "surface-variant": "#e0e3df",
+                        "on-primary-fixed-variant": "#474746",
+                        "tertiary-fixed-dim": "#9dd850",
+                        "surface-container-highest": "#e0e3df",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#5d9206",
+                        "secondary-fixed-dim": "#b3cdb1",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f7faf5",
+                        "on-surface-variant": "#444748",
+                        "secondary-fixed": "#cfeacc",
+                        "surface-container-low": "#f1f4ef",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#c8c6c5",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#191c1a",
+                        "on-tertiary-fixed": "#102000",
+                        "on-primary-container": "#858383",
+                        "tertiary": "#000000",
+                        "surface-dim": "#d8dbd6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "xs": "4px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "base": "8px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen relative overflow-x-hidden selection:bg-tertiary-fixed selection:text-tertiary-container">
+<!-- Ambient Background Element for Depth -->
+<div class="fixed top-0 right-0 w-[80vw] h-[707px] opacity-20 pointer-events-none -z-10 bg-no-repeat bg-right-top bg-contain" data-alt="Close up of overlapping tropical monstera leaves with soft diffuse lighting and deep green shadows, isolated on a clean background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAkxePNQOXSeioTxeNvdCj4mr0w5H9hAaM0SsomK9PheQJI9Q2nc245ZngkR8tSHGaEgz5uNXOGsdY6hiUB-G8hAkYM_orOvJ2u7O3qZXgFUKhJ8FlpUXVpVAIchALdvm5S5ZS-BY2NnltNoz46qW54iZVXL8ZyCLzqyjUlV03chsTvq7QD8dcL-oC6o3uSeiFBUQaMUJ70YkxaXVPcszUI9oIghs_r3V2gfmFH1nXyUNFJT2Cm28R-bIJGBV2vjaHWiSsSYFowiZiQ'); mask-image: radial-gradient(circle, black 0%, transparent 70%); -webkit-mask-image: radial-gradient(circle, black 0%, transparent 70%);">
+</div>
+<!-- TopAppBar Shared Component -->
+<header class="flex justify-between items-center w-full px-6 py-4 bg-transparent docked full-width top-0 z-50">
+<button aria-label="Menu" class="text-neutral-900 flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-plus-jakarta font-semibold text-lg text-neutral-900 tracking-tight">
+            EcoInventário
+        </h1>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Portrait of a young person with serene expression in soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_mr1IsWjGGaQoua1IOy0xl3dMW_nxroKqy--V1J1bRC20KQ4qzuuB9wdVt6BQxNIP4bJKyj5AnVBfYE13TXKeE0jtEcMQBENndFIU2YQDdT5JaxkVJX_mg9D4T5yNRymDLTgFCbKR28MgqaiEKiuSGs7czUKgIpsVsZaMW7nTC2a9-ank3QiZ_8BbZSEburvKyXs5EqHe0zU4rk3xsG721j_YoZ_08RCkSGelheeGZGsc_T73P-F26jSvZhHRWPmrP3b0yQr0tz49"/>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="max-w-6xl mx-auto px-margin-mobile md:px-margin-desktop pt-md pb-xl relative z-10">
+<!-- Page Header -->
+<div class="mb-lg flex flex-col items-center text-center">
+<div class="inline-flex items-center gap-base px-sm py-xs rounded-full bg-error-container text-on-error-container mb-md border border-error/20">
+<span class="material-symbols-outlined text-[16px]" data-icon="sync_problem" data-weight="fill" style="font-variation-settings: 'FILL' 1;">sync_problem</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Conflito de Sincronização</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-xs">
+                Resolução de Conflitos
+            </h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+                As alterações locais no registro botânico não coincidem com os dados salvos na nuvem. Revise as divergências abaixo para manter a integridade ecológica.
+            </p>
+</div>
+<!-- Split View Container -->
+<div class="flex flex-col md:flex-row gap-gutter relative">
+<!-- VS Badge (Desktop Center) -->
+<div class="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-surface rounded-full items-center justify-center shadow-[0_4px_16px_rgba(0,0,0,0.08)] border border-outline-variant">
+<span class="font-label-lg text-label-lg text-on-surface-variant">VS</span>
+</div>
+<!-- Left Panel: Local -->
+<div class="flex-1 flex flex-col gap-md">
+<div class="flex items-center gap-sm px-base">
+<span class="material-symbols-outlined text-secondary" data-icon="smartphone">smartphone</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Local</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant ml-auto bg-surface-container px-2 py-1 rounded-md">14:32 Hoje</span>
+</div>
+<!-- Glass Card -->
+<div class="bg-white/40 backdrop-blur-[30px] border border-white/60 rounded-xl p-md shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] flex flex-col gap-sm">
+<!-- Unchanged Data Row -->
+<div class="flex flex-col gap-xs py-sm border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Espécie Registrada</span>
+<span class="font-body-lg text-body-lg text-on-surface">Philodendron bipinnatifidum</span>
+</div>
+<!-- Unchanged Data Row -->
+<div class="flex flex-col gap-xs py-sm border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Setor</span>
+<span class="font-body-lg text-body-lg text-on-surface">Estufa Leste - Quadrante B</span>
+</div>
+<!-- Conflicting Data Row (Neon Highlight) -->
+<div class="flex flex-col gap-xs p-sm rounded-lg border border-tertiary-fixed bg-tertiary-fixed/5 relative overflow-hidden mt-xs shadow-[inset_4px_0_0_0_#b7f569]">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider flex items-center gap-xs">
+                            Índice de Umidade
+                            <span class="w-2 h-2 rounded-full bg-tertiary-fixed animate-pulse"></span>
+</span>
+<div class="flex items-end gap-sm">
+<span class="font-display text-display text-on-surface">68%</span>
+<span class="font-body-md text-body-md text-tertiary-fixed-dim pb-2 font-medium">Ajuste manual</span>
+</div>
+</div>
+<!-- Conflicting Data Row (Neon Highlight) -->
+<div class="flex flex-col gap-xs p-sm rounded-lg border border-tertiary-fixed bg-tertiary-fixed/5 relative overflow-hidden mt-xs shadow-[inset_4px_0_0_0_#b7f569]">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider flex items-center gap-xs">
+                            Status Fitosanitário
+                        </span>
+<span class="font-body-lg text-body-lg text-on-surface">Observação Necessária</span>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 border-l-2 border-outline-variant pl-2">
+                            "Leve amarelamento nas bordas foliares."
+                        </p>
+</div>
+</div>
+</div>
+<!-- Mobile Divider -->
+<div class="flex md:hidden w-full items-center justify-center py-sm">
+<div class="h-[1px] w-full bg-outline-variant/50"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant absolute bg-surface px-sm rounded-full border border-outline-variant/50">VS</span>
+</div>
+<!-- Right Panel: Cloud -->
+<div class="flex-1 flex flex-col gap-md opacity-90 hover:opacity-100 transition-opacity">
+<div class="flex items-center gap-sm px-base">
+<span class="material-symbols-outlined text-secondary" data-icon="cloud_done">cloud_done</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">Nuvem</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant ml-auto bg-surface-container px-2 py-1 rounded-md">12:15 Hoje</span>
+</div>
+<!-- Glass Card -->
+<div class="bg-surface-container/50 backdrop-blur-[20px] border border-outline-variant/30 rounded-xl p-md flex flex-col gap-sm">
+<!-- Unchanged Data Row -->
+<div class="flex flex-col gap-xs py-sm border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Espécie Registrada</span>
+<span class="font-body-lg text-body-lg text-on-surface">Philodendron bipinnatifidum</span>
+</div>
+<!-- Unchanged Data Row -->
+<div class="flex flex-col gap-xs py-sm border-b border-outline-variant/30">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Setor</span>
+<span class="font-body-lg text-body-lg text-on-surface">Estufa Leste - Quadrante B</span>
+</div>
+<!-- Conflicting Data Row -->
+<div class="flex flex-col gap-xs p-sm rounded-lg border border-transparent bg-transparent relative overflow-hidden mt-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                            Índice de Umidade
+                        </span>
+<div class="flex items-end gap-sm">
+<span class="font-display text-display text-on-surface opacity-70 line-through decoration-2">55%</span>
+<span class="font-body-md text-body-md text-on-surface-variant pb-2">Leitura automática</span>
+</div>
+</div>
+<!-- Conflicting Data Row -->
+<div class="flex flex-col gap-xs p-sm rounded-lg border border-transparent bg-transparent relative overflow-hidden mt-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+                            Status Fitosanitário
+                        </span>
+<span class="font-body-lg text-body-lg text-on-surface opacity-70 line-through decoration-2">Saudável</span>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 italic">
+                            Sem observações recentes.
+                        </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Action Area -->
+<div class="mt-xl flex flex-col-reverse md:flex-row items-center justify-center gap-md">
+<!-- Secondary Button (Glass/Outline) -->
+<button class="w-full md:w-auto flex items-center justify-center gap-sm px-xl py-4 rounded-full border border-secondary text-primary font-label-lg text-label-lg bg-white/20 backdrop-blur-md hover:bg-white/40 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="save_as">save_as</span>
+                Manter Local
+            </button>
+<!-- Primary Button (Black Pill) -->
+<button class="w-full md:w-auto flex items-center justify-center gap-sm px-xl py-4 rounded-full bg-primary text-on-primary font-label-lg text-label-lg shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="cloud_sync">cloud_sync</span>
+                Aceitar Servidor
+            </button>
+</div>
+</main>
+</body></html>

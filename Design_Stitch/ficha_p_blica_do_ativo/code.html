@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EcoInventário - Ficha Pública do Ativo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c8c6c5",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#f7faf5",
+                        "on-tertiary-fixed-variant": "#304f00",
+                        "inverse-on-surface": "#eff2ed",
+                        "on-secondary-container": "#536a53",
+                        "surface-bright": "#f7faf5",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#102000",
+                        "tertiary-fixed": "#b7f569",
+                        "on-secondary-fixed-variant": "#364c37",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "primary": "#000000",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e6e9e4",
+                        "on-secondary-fixed": "#0a200e",
+                        "on-background": "#191c1a",
+                        "surface-container": "#ecefea",
+                        "outline": "#747878",
+                        "inverse-surface": "#2d312e",
+                        "secondary": "#4d644d",
+                        "secondary-container": "#cfeacc",
+                        "outline-variant": "#c4c7c7",
+                        "primary-container": "#1c1b1b",
+                        "surface-variant": "#e0e3df",
+                        "on-primary-fixed-variant": "#474746",
+                        "tertiary-fixed-dim": "#9dd850",
+                        "surface-container-highest": "#e0e3df",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#5d9206",
+                        "secondary-fixed-dim": "#b3cdb1",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f7faf5",
+                        "on-surface-variant": "#444748",
+                        "secondary-fixed": "#cfeacc",
+                        "surface-container-low": "#f1f4ef",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#c8c6c5",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#191c1a",
+                        "on-tertiary-fixed": "#102000",
+                        "on-primary-container": "#858383",
+                        "tertiary": "#000000",
+                        "surface-dim": "#d8dbd6",
+                        "neon-green": "#b7f569",
+                        "sage-light": "#b3cdb1",
+                        "dark-green": "#102000"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "xs": "4px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "base": "8px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .ambient-shadow {
+            filter: drop-shadow(0 20px 20px rgba(45, 58, 45, 0.15));
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-secondary-fixed text-on-surface min-h-screen relative overflow-x-hidden antialiased">
+<!-- Top Navigation Area (Contextual, No TopAppBar shell from JSON since this is a specific detail view, but keeping the visual anchor) -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop py-4 bg-transparent">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:scale-95 transition-transform">
+<span class="material-symbols-outlined text-dark-green">arrow_back</span>
+</button>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:scale-95 transition-transform">
+<span class="material-symbols-outlined text-dark-green">share</span>
+</button>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:scale-95 transition-transform">
+<span class="material-symbols-outlined text-dark-green">favorite</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas Area -->
+<main class="relative min-h-screen w-full flex flex-col items-center justify-center pt-20 pb-[530px] md:pb-[353px]">
+<!-- Floating Tree Asset -->
+<div class="relative z-10 ambient-shadow w-full max-w-lg mx-auto flex items-center justify-center mt-8">
+<img alt="Detailed yellow ipe tree" class="w-full h-auto object-contain max-h-[442px] mask-image-tree" data-alt="isolated high resolution detailed cutout of a blooming yellow ipe tree with lush bright yellow flowers, standing upright, studio lighting style, transparent style background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsWDm8Po7Vs-8H18wVLieZJ5O-4gFGxC-gzze2aZ69-g-Sv6Xj-TR-dKndnxKHuBv9zv5vCKCKbP517H0QNNAV32hiB5oooYRvWxIsX08N6lOPT-ne-cmZlUdCJFPwgqk7X_qv2T5h0mI4oC0SjM3qgM_JpEemfYaH4YOqTpvkU5H0OogVaiZH3c2mmCILSWF0pmbuJsHl11WzwqhgnxcrmPJmMMDnMrEwrjnVowkbSebA-0Wc5nZx4m1hrsgEklMt1j5qcYRwCoU9" style="-webkit-mask-image: radial-gradient(circle, black 80%, transparent 100%); mask-image: radial-gradient(circle, black 80%, transparent 100%); mix-blend-mode: multiply;"/>
+<!-- Orbiting Badges -->
+<!-- Health Badge (Left) -->
+<div class="absolute left-margin-mobile md:left-4 top-1/4 glass-panel rounded-full p-2 flex flex-col items-center gap-2 shadow-sm transform -translate-x-4 animate-float" style="animation: float 6s ease-in-out infinite;">
+<div class="relative w-12 h-12 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-white/30" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-neon-green" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="90, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute text-label-sm font-label-sm text-dark-green font-bold">90%</span>
+</div>
+<div class="flex flex-col items-center pb-2">
+<span class="material-symbols-outlined text-[16px] text-dark-green mb-1">monitor_heart</span>
+<span class="text-[10px] font-label-sm text-dark-green uppercase tracking-wider">Saúde</span>
+</div>
+</div>
+<!-- Phase Badge (Right) -->
+<div class="absolute right-margin-mobile md:right-4 top-1/2 glass-panel rounded-full p-3 flex flex-col items-center gap-2 shadow-sm transform translate-x-4 animate-float-delayed" style="animation: float 7s ease-in-out infinite 1s;">
+<div class="w-10 h-10 rounded-full bg-white/50 flex items-center justify-center border border-white/60">
+<span class="material-symbols-outlined text-dark-green">psychiatry</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-label-sm text-dark-green uppercase tracking-wider mb-0.5">Fase</span>
+<span class="text-label-sm font-label-sm text-dark-green font-bold">Adulta</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Bottom Sheet -->
+<div class="fixed bottom-margin-mobile left-margin-mobile right-margin-mobile md:left-auto md:right-margin-desktop md:w-[400px] z-40 glass-panel rounded-[32px] p-6 shadow-[0_12px_40px_-12px_rgba(16,32,0,0.2)]">
+<!-- Handle -->
+<div class="w-12 h-1.5 bg-dark-green/20 rounded-full mx-auto mb-6"></div>
+<!-- Header Info -->
+<div class="mb-6">
+<h1 class="text-display font-display text-dark-green mb-2">Ipê Amarelo</h1>
+<p class="text-body-md font-body-md text-surface-tint italic mb-4">Handroanthus albus</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full border border-dark-green/20 text-label-sm font-label-sm text-dark-green bg-white/20">Nativa</span>
+<span class="px-3 py-1 rounded-full border border-dark-green/20 text-label-sm font-label-sm text-dark-green bg-white/20">Floração</span>
+</div>
+</div>
+<!-- Horizontal Scroll List: Histórico de Manejos -->
+<div class="mb-8">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-label-lg font-label-lg text-dark-green">Histórico de Manejos</h2>
+<span class="material-symbols-outlined text-surface-tint text-sm cursor-pointer hover:text-dark-green transition-colors">arrow_forward</span>
+</div>
+<div class="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory scrollbar-hide -mx-2 px-2">
+<!-- Card 1 -->
+<div class="min-w-[140px] snap-center rounded-2xl overflow-hidden glass-panel border-white/40">
+<div class="h-24 bg-gray-200 relative">
+<img alt="Poda" class="w-full h-full object-cover" data-alt="close up of pruning shears cutting a small green branch off a tree, bright daylight, focused" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4khKcpBKkhAyG_7h3tQO0a5D-pmVFko5sMoBUA_yBDI2NUsO_uRJ5B_a4-XqZOGLotazQyi2eMwWDJWNFcFZqZ43syUUGDjqNRVU6gf2EsJdJIhNWlIzVVV7h9dfmDF0kEJrxGcj_2qX-izPJ8HONfTkbEFpS9WL3_aUKTflep8-u7Mn-x2Wy9gycWh-pt8Awfuc-eXzu1-XTtiJLM40mUA6QswsU_hbCFJG8xuyjZfVKyN-5ycrkJdTswAdKDGf3y5_EMT6alEWu"/>
+<div class="absolute top-2 right-2 bg-black/60 rounded-full p-1 backdrop-blur-sm">
+<span class="material-symbols-outlined text-white text-[12px]">content_cut</span>
+</div>
+</div>
+<div class="p-3 bg-white/50">
+<p class="text-label-sm font-label-sm text-dark-green font-bold">Poda Leve</p>
+<p class="text-[10px] font-label-sm text-surface-tint">12 Out 2023</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[140px] snap-center rounded-2xl overflow-hidden glass-panel border-white/40">
+<div class="h-24 bg-gray-200 relative">
+<img alt="Inspeção" class="w-full h-full object-cover" data-alt="person examining tree bark up close with a magnifying glass or small tool, natural lighting, outdoor setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHSCjVymf_1ItRiRyJkkyWdJOmXXbT3aR7A2WRO8jb3uLppunIHoIg-LiPZcCODqIuZidI0q5WROtjzxroxE2rWkOVROszSfgBqJvAFWY1GO8Z4trvx2MAK0rpnVioWm9gbT1LNTd9_BykOKQqpA7BAI9K6Wr-3OLxjGmNAUIg4oGOhPhPxrZO6SDsHsALNi_VRrNTWu2WOpa-6mLG2SpQ5DmNqe9l6hBLb4BOCi0eZKJk7lureLYrqBk49YnGP2N6rxcCHw57Ypyp"/>
+<div class="absolute top-2 right-2 bg-black/60 rounded-full p-1 backdrop-blur-sm">
+<span class="material-symbols-outlined text-white text-[12px]">fact_check</span>
+</div>
+</div>
+<div class="p-3 bg-white/50">
+<p class="text-label-sm font-label-sm text-dark-green font-bold">Inspeção</p>
+<p class="text-[10px] font-label-sm text-surface-tint">05 Ago 2023</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="min-w-[140px] snap-center rounded-2xl overflow-hidden glass-panel border-white/40">
+<div class="h-24 bg-gray-200 relative">
+<img alt="Adubação" class="w-full h-full object-cover" data-alt="hands applying organic fertilizer or soil around the base of a tree trunk, earthy tones, natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWpUxazWThFncIZdh2tZbsXuzcxS0ze9_QF6kaJXhlOMMuP8KDBLLF0FVV2s6v9r24tAB7dJ08NL60izXJW329TpkGpElqlLih17T7zTRhhd2zOBEvjN_XWiBbKscfx20GOpuODtOAEWrCvPioK6odrGw2jWYmtnl1IG3CXHBz3sKCOdXs7Lb5TPQP_UXC7z75e6-uo4dAlS_Zvj-vSvWkRkGeiyxOyLmg0z123j8kG7Uw0aS-Am6V5EOLyYqMx-CqYQVIp7UPeist"/>
+<div class="absolute top-2 right-2 bg-black/60 rounded-full p-1 backdrop-blur-sm">
+<span class="material-symbols-outlined text-white text-[12px]">compost</span>
+</div>
+</div>
+<div class="p-3 bg-white/50">
+<p class="text-label-sm font-label-sm text-dark-green font-bold">Adubação</p>
+<p class="text-[10px] font-label-sm text-surface-tint">22 Fev 2023</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Fixed Footer Action -->
+<button class="w-full bg-primary text-on-primary rounded-full py-4 px-6 flex items-center justify-center gap-2 hover:scale-[0.98] transition-transform shadow-md">
+<span class="material-symbols-outlined text-[20px]">directions</span>
+<span class="text-label-lg font-label-lg">Como chegar</span>
+</button>
+</div>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px) translateX(-16px); }
+            50% { transform: translateY(-10px) translateX(-16px); }
+            100% { transform: translateY(0px) translateX(-16px); }
+        }
+        
+        @keyframes float-delayed {
+            0% { transform: translateY(0px) translateX(16px); }
+            50% { transform: translateY(10px) translateX(16px); }
+            100% { transform: translateY(0px) translateX(16px); }
+        }
+    </style>
+</body></html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EcoInventário - Scanner QR</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c8c6c5",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#f7faf5",
+                        "on-tertiary-fixed-variant": "#304f00",
+                        "inverse-on-surface": "#eff2ed",
+                        "on-secondary-container": "#536a53",
+                        "surface-bright": "#f7faf5",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#102000",
+                        "tertiary-fixed": "#b7f569",
+                        "on-secondary-fixed-variant": "#364c37",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "primary": "#000000",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e6e9e4",
+                        "on-secondary-fixed": "#0a200e",
+                        "on-background": "#191c1a",
+                        "surface-container": "#ecefea",
+                        "outline": "#747878",
+                        "inverse-surface": "#2d312e",
+                        "secondary": "#4d644d",
+                        "secondary-container": "#cfeacc",
+                        "outline-variant": "#c4c7c7",
+                        "primary-container": "#1c1b1b",
+                        "surface-variant": "#e0e3df",
+                        "on-primary-fixed-variant": "#474746",
+                        "tertiary-fixed-dim": "#9dd850",
+                        "surface-container-highest": "#e0e3df",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#5d9206",
+                        "secondary-fixed-dim": "#b3cdb1",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f7faf5",
+                        "on-surface-variant": "#444748",
+                        "secondary-fixed": "#cfeacc",
+                        "surface-container-low": "#f1f4ef",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#c8c6c5",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#191c1a",
+                        "on-tertiary-fixed": "#102000",
+                        "on-primary-container": "#858383",
+                        "tertiary": "#000000",
+                        "surface-dim": "#d8dbd6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "xs": "4px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "base": "8px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>.camera-feed {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCidG01hZegHgr_VRiBWz8aKLKBuCPJrnsdoxbY8536gsLjypkNijesjDUvumOHR8lXyMxN9EXFi3V9pwhBfwN3QID0LGu_N5klbEWQHrxCmp5adxY0uG6glQoVUfY6C9SkPqAZdbRUBEyJse5LueJyiedPhBG97tqFBctX_9_q5dQ6UCm9d_yf4Mbgv79eSwybVZXRunqi2xnL1kIqPjQFo8nQhzsJ9FhFkb5-Fh4f15draoFiIT6KGPXD2nCqlaGnXO1S_WpSKgw4);
+    background-size: cover;
+    background-position: center
+    }
+/* Custom cutout logic using mask */
+.scanner-overlay {
+    -webkit-mask-image: radial-gradient(rounded-rectangle(240px 240px at center, 24px), transparent 100%, black 100%);
+    mask-image: radial-gradient(rounded-rectangle(240px 240px at center, 24px), transparent 100%, black 100%)
+    }
+/* Fallback cutout for broader support */
+@supports not (mask-image: radial-gradient(rounded-rectangle(1px 1px at center, 1px), transparent 100%, black 100%)) {
+    . scanner-overlay {
+        background: radial-gradient(circle at center, transparent 140px, rgba(255, 255, 255, 0.4) 141px);
+        backdrop-filter: blur(30px);
+        }
+    }
+.corner-marker {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+    border-color: #b7f569;
+    /* tertiary-fixed */
+    border-style: solid
+    }
+.top-left {
+    top: 0;
+    left: 0;
+    border-width: 4px 0 0 4px;
+    border-radius: 24px 0 0 0
+    }
+.top-right {
+    top: 0;
+    right: 0;
+    border-width: 4px 4px 0 0;
+    border-radius: 0 24px 0 0
+    }
+.bottom-left {
+    bottom: 0;
+    left: 0;
+    border-width: 0 0 4px 4px;
+    border-radius: 0 0 0 24px
+    }
+.bottom-right {
+    bottom: 0;
+    right: 0;
+    border-width: 0 4px 4px 0;
+    border-radius: 0 0 24px 0
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background h-screen w-screen overflow-hidden relative font-body-md antialiased selection:bg-tertiary-fixed selection:text-tertiary-container">
+<!-- Top App Bar (Hidden on Desktop, minimal for scanner) -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center w-full px-6 py-4 bg-transparent flat no shadows hidden md:flex">
+<div class="flex items-center gap-4">
+<button aria-label="Close" class="text-on-error bg-primary/20 backdrop-blur-md p-2 rounded-full hover:bg-primary/40 transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+<h1 class="text-on-error font-display text-headline-lg font-black tracking-tight drop-shadow-md">EcoInventário</h1>
+</div>
+</header>
+<!-- Mobile Close Button (Since TopAppBar is hidden md:flex based on guidance, but scanner needs a close) -->
+<div class="md:hidden fixed top-6 left-6 z-50">
+<button aria-label="Fechar Scanner" class="w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-primary shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] hover:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<!-- Camera Feed Background -->
+<div class="absolute inset-0 camera-feed" data-alt="close up view of a forest environment with trees and green foliage slightly blurred in the background, simulating a camera view finding a qr code on a tree trunk"></div>
+<!-- Frosted Glass Overlay with Cutout -->
+<!-- Using a simpler border hack for the cutout to ensure it works across browsers without complex masks -->
+<div class="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
+<!-- Top blurred area -->
+<div class="w-full flex-grow bg-white/40 backdrop-blur-[30px]"></div>
+<!-- Middle section with cutout -->
+<div class="w-full flex justify-center items-stretch h-[280px]">
+<!-- Left blurred area -->
+<div class="flex-grow bg-white/40 backdrop-blur-[30px]"></div>
+<!-- Clear Cutout Area -->
+<div class="w-[280px] relative">
+<!-- The clear center -->
+<div class="absolute inset-0 bg-transparent rounded-[24px] shadow-[0_0_0_9999px_rgba(255,255,255,0.4)] backdrop-blur-[30px]"></div>
+<!-- Remove blur from the cutout itself by overlaying an inset shadow trick or using the fallback above -->
+</div>
+<!-- Right blurred area -->
+<div class="flex-grow bg-white/40 backdrop-blur-[30px]"></div>
+</div>
+<!-- Bottom blurred area -->
+<div class="w-full flex-grow bg-white/40 backdrop-blur-[30px] flex flex-col items-center pt-8">
+<div class="bg-primary/80 backdrop-blur-md px-6 py-3 rounded-full text-on-primary font-label-lg text-label-lg shadow-lg">
+                Aponte para o QR Code da árvore
+            </div>
+</div>
+</div>
+<!-- Target Markers (Inside the clear area) -->
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] z-20 pointer-events-none">
+<div class="corner-marker top-left"></div>
+<div class="corner-marker top-right"></div>
+<div class="corner-marker bottom-left"></div>
+<div class="corner-marker bottom-right"></div>
+<!-- Scanning line animation simulation (static for this output) -->
+<div class="absolute top-1/2 left-0 right-0 h-0.5 bg-tertiary-fixed shadow-[0_0_8px_rgba(183,245,105,0.8)] opacity-70"></div>
+</div>
+<!-- Bottom Navigation Bar (Visible only on mobile destinations, but scanner is transactional, so it should technically be hidden. However, the prompt says "Menu inferior flutuante de vidro", so we must include it as requested by the specific user prompt, potentially overriding the general "suppress if transactional" if the user explicitly asks for it in the canvas description.) -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full border border-white/20 bg-white/40 backdrop-blur-[30px] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] z-50 flex justify-around items-center px-4 py-2 md:hidden">
+<button aria-label="home" class="text-neutral-600 p-3 hover:scale-110 transition-transform flex flex-col items-center justify-center group">
+<span class="material-symbols-outlined text-[24px] group-active:scale-95 duration-200" data-icon="home">home</span>
+</button>
+<button aria-label="assignment" class="text-neutral-600 p-3 hover:scale-110 transition-transform flex flex-col items-center justify-center group">
+<span class="material-symbols-outlined text-[24px] group-active:scale-95 duration-200" data-icon="assignment">assignment</span>
+</button>
+<button aria-label="center_focus_strong" class="bg-neutral-900 text-white rounded-full p-3 hover:scale-110 transition-transform flex flex-col items-center justify-center group shadow-md">
+<span class="material-symbols-outlined text-[24px] group-active:scale-95 duration-200" data-icon="center_focus_strong" data-weight="fill" style="font-variation-settings: 'FILL' 1;">center_focus_strong</span>
+</button>
+<button aria-label="person" class="text-neutral-600 p-3 hover:scale-110 transition-transform flex flex-col items-center justify-center group">
+<span class="material-symbols-outlined text-[24px] group-active:scale-95 duration-200" data-icon="person">person</span>
+</button>
+</nav>
+<!-- Additional Decorative Elements (Digital Botany) -->
+<div class="fixed right-0 top-1/3 -translate-y-1/2 translate-x-1/4 opacity-40 z-30 pointer-events-none mix-blend-overlay">
+<img class="w-64 h-64 object-cover rounded-full blur-[2px]" data-alt="abstract close up of a bright green monstera leaf showing natural patterns and veins on a dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuApjofH_CYxvkLBLUXnzZk3lwFVhAsIW4PD_IHkhbPaXMK2UUWo2Gi6PqTUHPnElsz97lLOY6pAj9Y2IkZoFpMI00zB-ka8FWFYMXrpzvLTzDKnlOckKhDlgKmQTti1zfl-IHMyG5ljaFm2UZowHkuQ5ETHyxqKDTb7hbxGsuNYU2odYT1kBnyW_gc02IrgMaY-Ga1EZ1qjnc2BakcyqD0RrSIC0rOAlo9ROXcu-TnV_hMAmOge_u6510MArKH8Mr4lGr8Rx5hBT1ov"/>
+</div>
+</body></html>

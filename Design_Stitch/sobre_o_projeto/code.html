@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>EcoInventário - Sobre</title>
+<!-- Google Fonts: Plus Jakarta Sans -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed-dim": "#c8c6c5",
+                        "surface-tint": "#5f5e5e",
+                        "on-primary-fixed": "#1c1b1b",
+                        "background": "#f7faf5",
+                        "on-tertiary-fixed-variant": "#304f00",
+                        "inverse-on-surface": "#eff2ed",
+                        "on-secondary-container": "#536a53",
+                        "surface-bright": "#f7faf5",
+                        "on-error": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#102000",
+                        "tertiary-fixed": "#b7f569",
+                        "on-secondary-fixed-variant": "#364c37",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "primary": "#000000",
+                        "primary-fixed": "#e5e2e1",
+                        "surface-container-high": "#e6e9e4",
+                        "on-secondary-fixed": "#0a200e",
+                        "on-background": "#191c1a",
+                        "surface-container": "#ecefea",
+                        "outline": "#747878",
+                        "inverse-surface": "#2d312e",
+                        "secondary": "#4d644d",
+                        "secondary-container": "#cfeacc",
+                        "outline-variant": "#c4c7c7",
+                        "primary-container": "#1c1b1b",
+                        "surface-variant": "#e0e3df",
+                        "on-primary-fixed-variant": "#474746",
+                        "tertiary-fixed-dim": "#9dd850",
+                        "surface-container-highest": "#e0e3df",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#5d9206",
+                        "secondary-fixed-dim": "#b3cdb1",
+                        "on-secondary": "#ffffff",
+                        "surface": "#f7faf5",
+                        "on-surface-variant": "#444748",
+                        "secondary-fixed": "#cfeacc",
+                        "surface-container-low": "#f1f4ef",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-primary": "#c8c6c5",
+                        "on-error-container": "#93000a",
+                        "on-surface": "#191c1a",
+                        "on-tertiary-fixed": "#102000",
+                        "on-primary-container": "#858383",
+                        "tertiary": "#000000",
+                        "surface-dim": "#d8dbd6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "48px",
+                        "xs": "4px",
+                        "lg": "40px",
+                        "xl": "64px",
+                        "base": "8px",
+                        "md": "24px",
+                        "sm": "12px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "label-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined[data-weight="fill"] {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Custom floating shadow for imagery as per style guide */
+        .shadow-floating-img {
+            filter: drop-shadow(0 20px 25px rgba(45, 58, 45, 0.15));
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container text-on-surface min-h-screen relative overflow-x-hidden font-body-md text-body-md pb-32">
+<!-- Decorative Background Elements -->
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
+<div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-secondary-fixed-dim/30 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[20%] left-[-10%] w-80 h-80 bg-tertiary-fixed-dim/20 rounded-full blur-[80px]"></div>
+</div>
+<!-- TopAppBar -->
+<header class="flex justify-between items-center w-full px-6 py-4 bg-transparent sticky top-0 z-40">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-surface-variant transition-colors text-primary hover:opacity-70 scale-98 transition-all">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-xl font-black tracking-tight text-primary font-headline-md text-headline-md">
+            EcoInventário
+        </h1>
+<button class="w-10 h-10 rounded-full overflow-hidden border-2 border-surface-variant bg-surface-container-highest hover:opacity-70 scale-98 transition-all flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</header>
+<!-- Floating Badge (Right Edge) -->
+<div class="hidden md:flex fixed right-0 top-1/3 flex-col items-center justify-center p-sm bg-white/40 backdrop-blur-[30px] border border-white/20 rounded-l-lg shadow-sm z-30">
+<div class="w-8 h-8 rounded-full border-2 border-tertiary-fixed border-t-transparent animate-spin mb-xs"></div>
+<span class="material-symbols-outlined text-primary mb-xs" data-icon="eco">eco</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant rotate-180" style="writing-mode: vertical-rl;">Sync Ativo</span>
+</div>
+<!-- Main Content Canvas -->
+<main class="w-full max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop mt-lg">
+<!-- Hero Magazine Layout -->
+<section class="relative grid grid-cols-1 md:grid-cols-12 gap-gutter mb-xl items-center">
+<div class="md:col-span-7 z-10">
+<p class="font-label-lg text-label-lg text-secondary mb-xs uppercase tracking-widest">Nossa Missão</p>
+<h2 class="font-display text-display text-primary leading-tight mb-md">
+                    Conectando tecnologia à preservação natural.
+                </h2>
+<div class="w-16 h-1 bg-tertiary-fixed mb-md"></div>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
+                    O EcoInventário nasceu da urgência em documentar, analisar e proteger a biodiversidade global através de um ecossistema digital limpo, preciso e colaborativo. Acreditamos que a clareza dos dados é o primeiro passo para a conservação efetiva.
+                </p>
+</div>
+<!-- Overlapping Floating Imagery -->
+<div class="md:col-span-5 relative mt-lg md:mt-0 h-[400px] w-full flex items-center justify-center">
+<img class="absolute object-cover w-[120%] max-w-[500px] h-auto rounded-[40px] shadow-floating-img rotate-3 md:translate-x-12" data-alt="close up of delicate green fern leaves with soft natural backlighting on a light background, organic shapes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtaS6-XHuITWJVHdai5EI1Dfn804Cvn7Upb-VJqscf_HBPTvIvKgSblbxSUXotyc4_uXRZZqKkWix6DI3zos92j9g1KYspGXz5233tS5dcABmfsH_AeIQm-wUTq97GmUDxHa97kScAR9dM0YOTDqtn7AcawHPtn5G1Kgs8lBaehg753jPnt1MDZXCKH5kq0wvQNch5fqMHUsHWuOnb7oBaKw-S6wVyUDdT0cstmUKO9-_N6YbuRIOc_Cb8rlTuKUPalT6Nn6u2ZJNr"/>
+<!-- Glass panel overlaying image -->
+<div class="absolute bottom-4 left-4 md:-left-12 bg-white/60 backdrop-blur-[40px] border border-white/40 p-md rounded-xl max-w-[200px] shadow-lg">
+<span class="material-symbols-outlined text-secondary mb-xs block text-3xl" data-icon="travel_explore">travel_explore</span>
+<p class="font-label-lg text-label-lg text-primary">Precisão Global</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Mapeamento em tempo real.</p>
+</div>
+</div>
+</section>
+<!-- Asymmetric Bento Grid for Impact & Team -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-md mb-xl relative z-10">
+<!-- Card Impacto -->
+<div class="md:col-span-7 bg-white/40 backdrop-blur-[30px] border border-white/50 rounded-xl p-lg flex flex-col justify-between shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] hover:bg-white/50 transition-colors">
+<div>
+<div class="flex items-center mb-md">
+<span class="material-symbols-outlined text-secondary mr-sm text-3xl" data-icon="public">public</span>
+<h3 class="font-headline-lg text-headline-lg text-primary">Impacto</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-md max-w-md">
+                        Nossa plataforma já auxiliou centenas de pesquisadores a catalogar espécies em áreas de risco, gerando relatórios cruciais para políticas ambientais.
+                    </p>
+</div>
+<div class="grid grid-cols-2 gap-sm mt-md">
+<div class="border-t border-outline-variant pt-sm">
+<p class="font-display text-display text-primary">45k+</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Espécies Catalogadas</p>
+</div>
+<div class="border-t border-outline-variant pt-sm">
+<p class="font-display text-display text-primary">120</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Biólogos Ativos</p>
+</div>
+</div>
+</div>
+<!-- Card Equipe -->
+<div class="md:col-span-5 bg-white/40 backdrop-blur-[30px] border border-white/50 rounded-xl p-lg shadow-[0_8px_32px_0_rgba(0,0,0,0.04)] relative overflow-hidden flex flex-col justify-between">
+<!-- Decorative background image in card -->
+<div class="absolute inset-0 opacity-20 bg-[url('https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&amp;w=600&amp;auto=format&amp;fit=crop')] bg-cover bg-center mix-blend-overlay" data-alt="abstract pattern of overlapping green tropical leaves in soft focus"></div>
+<div class="relative z-10">
+<div class="flex items-center mb-md">
+<span class="material-symbols-outlined text-secondary mr-sm text-3xl" data-icon="groups">groups</span>
+<h3 class="font-headline-lg text-headline-lg text-primary">Equipe</h3>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant mb-lg">
+                        Um coletivo multidisciplinar de botânicos, cientistas de dados e designers unidos pelo propósito de democratizar o acesso à informação ecológica.
+                    </p>
+</div>
+<div class="relative z-10 flex -space-x-4">
+<img class="w-12 h-12 rounded-full border-2 border-surface object-cover" data-alt="portrait of a young female scientist smiling softly with natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwdsYyKX9cYPC5z3upSK3tbx7x2vAMa36lfaszXYoZwSNVsFBSFAOt5iX78MEC2nxQFVw8gYh3e1t3xfOyiUHPmSAMi8rIF5uwr3Ka7FEo9fM5mFO-4BG6f2Jk7jJ7HGNEgT4pfYTJKNekkPSON7UJHLBVZq5Nyg_ZXVaOk3INae-hBO90Krx8KCz8qknpB5lLP2MHsZjDTJ6mRxJxE4wJqMRL9Gp7rVKgtU8gZP9SeF0rjidnUG-9rzlV1QUp_72kWYTSVWPW8fTg"/>
+<img class="w-12 h-12 rounded-full border-2 border-surface object-cover" data-alt="portrait of a male researcher looking focused in an outdoor setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3dbQjgjlIfgtndTYOhuvBJ2sTloTS_eMcK_e0EAVGie6fPBJy1UFk3kOdrRiZEUNWC4cEDEy56XwIVjlLSxjoc9ozJqfDy4T1CI8LVBAup25fwucy7T8WL2aq6E1JMqRBLPYkC3mbDMi8oUDli1IM2tnSVfr-RTPLJr8ACbNCq_YzuThwnZ3RYg6kFxRtgSXgBsqveMs8b-K2Hi-Bh_Yy6zyVJOHTS8OUCY-v_AjPPShy7fYDiyTjhmkbBy-salkUUBWD_pnNjtdL"/>
+<img class="w-12 h-12 rounded-full border-2 border-surface object-cover" data-alt="close up portrait of a woman with curly hair looking directly at camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChiwd3njW_68wIAmrx59HOS9NqnWvhm8bZEPBa0bEtvBrNdLlSOuKuZ7KPp82gff6DPY8Ksr_HcxkH1PpEImis6PGgnlidwFBjKUULiGK_z_H55u3xG3B9yNIOQob_tYtb7uT8c5xyv3UvWzl4BPRSMo6JBVdjuGDvoxrLA-BmRaH8uIdkWdFImPtqwRPDNKLDaJLZh-YNuzBLyAGKad_zfyt_dO8WtobiVCIznU7zf2a09aukaJm4R2ME85-UDtPJ3cEoY1xzbb4_"/>
+<div class="w-12 h-12 rounded-full border-2 border-surface bg-secondary-fixed flex items-center justify-center font-label-sm text-label-sm text-on-secondary-fixed-variant">
+                        +8
+                    </div>
+</div>
+</div>
+</section>
+<!-- Call to Action / Login Profissional -->
+<section class="flex flex-col items-center justify-center text-center mt-xl mb-xl">
+<p class="font-body-md text-body-md text-on-surface-variant mb-sm">Faz parte de uma instituição parceira?</p>
+<button class="bg-primary text-on-primary rounded-full px-lg py-sm font-label-lg text-label-lg shadow-lg hover:scale-95 transition-transform flex items-center">
+<span class="material-symbols-outlined mr-sm" data-icon="login">login</span>
+                Login Profissional
+            </button>
+</section>
+</main>
+<!-- BottomNavBar -->
+<!-- Displayed on mobile, hidden on web as per instructions, but since prompt asked for it, we render it at bottom -->
+<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full border border-white/20 bg-white/40 dark:bg-black/40 backdrop-blur-[30px] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] flex justify-around items-center px-4 md:hidden z-50">
+<!-- Inactive items -->
+<a class="text-on-primary-container p-3 hover:scale-110 transition-transform flex flex-col items-center scale-95 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+</a>
+<a class="text-on-primary-container p-3 hover:scale-110 transition-transform flex flex-col items-center scale-95 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+</a>
+<a class="text-on-primary-container p-3 hover:scale-110 transition-transform flex flex-col items-center scale-95 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="center_focus_strong">center_focus_strong</span>
+</a>
+<!-- Making Person 'active' as it slightly relates to team/profile/about intent -->
+<a class="bg-primary text-on-primary rounded-full p-3 hover:scale-110 transition-transform flex flex-col items-center scale-95 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="person" data-weight="fill">person</span>
+</a>
+</nav>
+</body></html>

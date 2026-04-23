@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="light" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Técnico - EcoInventário</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config from Design System -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed-dim": "#c8c6c5",
+                    "surface-tint": "#5f5e5e",
+                    "on-primary-fixed": "#1c1b1b",
+                    "background": "#f7faf5",
+                    "on-tertiary-fixed-variant": "#304f00",
+                    "inverse-on-surface": "#eff2ed",
+                    "on-secondary-container": "#536a53",
+                    "surface-bright": "#f7faf5",
+                    "on-error": "#ffffff",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#102000",
+                    "tertiary-fixed": "#b7f569",
+                    "on-secondary-fixed-variant": "#364c37",
+                    "error": "#ba1a1a",
+                    "error-container": "#ffdad6",
+                    "primary": "#000000",
+                    "primary-fixed": "#e5e2e1",
+                    "surface-container-high": "#e6e9e4",
+                    "on-secondary-fixed": "#0a200e",
+                    "on-background": "#191c1a",
+                    "surface-container": "#ecefea",
+                    "outline": "#747878",
+                    "inverse-surface": "#2d312e",
+                    "secondary": "#4d644d",
+                    "secondary-container": "#cfeacc",
+                    "outline-variant": "#c4c7c7",
+                    "primary-container": "#1c1b1b",
+                    "surface-variant": "#e0e3df",
+                    "on-primary-fixed-variant": "#474746",
+                    "tertiary-fixed-dim": "#9dd850",
+                    "surface-container-highest": "#e0e3df",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#5d9206",
+                    "secondary-fixed-dim": "#b3cdb1",
+                    "on-secondary": "#ffffff",
+                    "surface": "#f7faf5",
+                    "on-surface-variant": "#444748",
+                    "secondary-fixed": "#cfeacc",
+                    "surface-container-low": "#f1f4ef",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-primary": "#c8c6c5",
+                    "on-error-container": "#93000a",
+                    "on-surface": "#191c1a",
+                    "on-tertiary-fixed": "#102000",
+                    "on-primary-container": "#858383",
+                    "tertiary": "#000000",
+                    "surface-dim": "#d8dbd6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "48px",
+                    "xs": "4px",
+                    "lg": "40px",
+                    "xl": "64px",
+                    "base": "8px",
+                    "md": "24px",
+                    "sm": "12px",
+                    "margin-mobile": "20px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "body-md": ["Plus Jakarta Sans"],
+                    "label-lg": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "display": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "label-sm": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background min-h-screen text-on-background pb-32">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-40 bg-transparent flex justify-between items-center px-6 py-4">
+<button class="material-symbols-outlined text-neutral-900 dark:text-white text-2xl hover:opacity-70 scale-98 transition-all">menu</button>
+<h1 class="font-plus-jakarta font-black tracking-tight text-xl text-neutral-900 dark:text-white">EcoInventário</h1>
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden border border-white/40">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close up portrait of a professional man with short dark hair smiling subtly against a bright minimal background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYkaQULTZvmpZymMgYcuGGPaqIjz6D9KuAaqTdLqiKAdOT-SM8edSCwldyBZ9HUzjZJUtiODkyqLpGvQXmTemscb7KrThnHsy6CtmoyNVRgJ3fxPwrU2DilSQDRTCteYgf6GFEaXPrS_dSMusMDR5dSUhkzXRuhVncE3H4ewaCKbMzcHN-J6ebAulVBNsTr5n9uICtIvDM0Lt14G0YDpRkPQk7IVnJVvkFGM_0I2da6938Eu1LopANqOTsu_YroG2qSumDyNBazHc2"/>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="pt-28 px-margin-mobile md:px-margin-desktop max-w-7xl mx-auto">
+<!-- Greeting -->
+<section class="mb-10">
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">Olá, Ricardo</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Visão geral do sistema de botânica digital.</p>
+</section>
+<!-- Stats Cards with Organic Borders -->
+<section class="grid grid-cols-2 gap-4 mb-12">
+<!-- Card Ativos -->
+<div class="relative overflow-hidden bg-white/40 backdrop-blur-[30px] border border-white/50 p-6 flex flex-col items-start justify-center min-h-[160px]" style="border-radius: 40px 16px 48px 16px; box-shadow: 0 12px 32px rgba(45, 58, 45, 0.05);">
+<div class="absolute -right-4 -bottom-4 w-28 h-28 opacity-20 pointer-events-none mix-blend-multiply">
+<img class="w-full h-full object-cover rounded-full blur-[2px]" data-alt="abstract close up of lush monstera leaf texture soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcFSFTYHGKuuOqX-Vj3zmNw4YFA6Cnv9ML5SABTTdwdcxhBj7eHn3uGvANWx25nSoaQvDk6Q4jc9EGDQyQbL385AMjBeVKCUbNAsOSl9vHUOCdhfstvEdK_CQvhPsl1P1y9sHX8Wl5BW0pFqkLx9N8-6c81Ew6Ply4CeBwKN-rUEPi8BoXNXWoJQl4poi51ypuTBe8jtKyEqsJUtunF-3AMz3Rpb23Hjp9mhCpyVynMEZF8ZyJZnfwqdjh48sth3k9ZBpBYog97Wn9"/>
+</div>
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-[32px] mb-3">park</span>
+<h3 class="font-display text-display text-primary m-0">124</h3>
+<p class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider">Ativos</p>
+</div>
+<!-- Card Pendentes -->
+<div class="relative overflow-hidden bg-surface-container-low/40 backdrop-blur-[30px] border border-white/30 p-6 flex flex-col items-start justify-center min-h-[160px]" style="border-radius: 16px 48px 16px 40px; box-shadow: 0 12px 32px rgba(45, 58, 45, 0.03);">
+<span class="material-symbols-outlined text-secondary text-[32px] mb-3">pending_actions</span>
+<h3 class="font-display text-display text-primary m-0">12</h3>
+<p class="font-label-lg text-label-lg text-on-surface-variant uppercase tracking-wider">Pendentes</p>
+</div>
+</section>
+<!-- Últimos Cadastros List -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<h3 class="font-headline-md text-headline-md text-primary">Últimos Cadastros</h3>
+<button class="font-label-lg text-label-lg text-secondary hover:opacity-70 transition-opacity">Ver todos</button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- List Item 1 -->
+<div class="flex items-center p-4 bg-white/40 backdrop-blur-[30px] border border-white/60 rounded-[24px] shadow-[0_8px_24px_rgba(45,58,45,0.04)]">
+<div class="w-16 h-16 rounded-[16px] overflow-hidden bg-surface-container-high shrink-0 mr-4">
+<img class="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-500" data-alt="close up of broad green monstera leaf on a clean light background studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8eU9ZtK7jSdO042bStxjoed5HXaz8yrBQxy1wVSzK0XY1MYk6SDqLS4T2wejYl3vrcH3cGtc8u7fsKbwAKXopN_x8CWyeDmg5l0Lqts60HzK14TCGHLETNc8ERhEo2eyv57kcafE1gBIufKRJ3QfVuIwmFVGHXbEzmgtsV8njl2bDj54s0a_fnFnWJTW_AHG2Tu5RILNDsC3cJr3t6xvlAV_C6liNlwxRgV7QC3zmRv_c2dzSVVvUKZfBv4LcsqXqgVCoxSPIIW8d"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-label-lg text-label-lg text-primary">Monstera Deliciosa</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Setor Norte • Estufa A</p>
+</div>
+<div class="flex flex-col items-end shrink-0 pl-2">
+<span class="px-3 py-1 bg-[#b7f569]/30 text-on-tertiary-fixed font-label-sm text-label-sm rounded-full">Ativo</span>
+<span class="font-body-md text-body-md text-outline-variant text-[11px] mt-1">10 min</span>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="flex items-center p-4 bg-white/40 backdrop-blur-[30px] border border-white/60 rounded-[24px] shadow-[0_8px_24px_rgba(45,58,45,0.04)]">
+<div class="w-16 h-16 rounded-[16px] overflow-hidden bg-surface-container-high shrink-0 mr-4">
+<img class="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-500" data-alt="small elegant succulent plant in a minimalist white ceramic pot top down view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATEmTozJ3g_mu8cEL8rDH0BaMFq_7mG6UoT5iUAp68AUbk17f4Wb3l2L0CUXByhwzoAM2HuAokTBEBVtucW2yYKtKIwb1YXArru1hLDTxjmksyQeGUk67l9UaG4nl11HxsgLhTSLQ5llK-KUR3oni1oWfciYa9URSYsu6CLc1UGXqmA95AY-LeTHq0cdHkeLOpAAOocX08tLa-0kyP839DcxZyiwa7R_265hkp4NX5VweSG8GRHUd8_wGZJ70HiX4o-wCG-sL5n4oN"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-label-lg text-label-lg text-primary">Echeveria Elegans</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Setor Sul • Mesa 4</p>
+</div>
+<div class="flex flex-col items-end shrink-0 pl-2">
+<span class="px-3 py-1 bg-surface-variant text-on-surface-variant font-label-sm text-label-sm rounded-full">Pendente</span>
+<span class="font-body-md text-body-md text-outline-variant text-[11px] mt-1">2 horas</span>
+</div>
+</div>
+<!-- List Item 3 -->
+<div class="flex items-center p-4 bg-white/40 backdrop-blur-[30px] border border-white/60 rounded-[24px] shadow-[0_8px_24px_rgba(45,58,45,0.04)]">
+<div class="w-16 h-16 rounded-[16px] overflow-hidden bg-surface-container-high shrink-0 mr-4">
+<img class="w-full h-full object-cover scale-110 hover:scale-100 transition-transform duration-500" data-alt="vibrant green fern frond isolated on a soft neutral background crisp focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFYK6atOYiIWla4VLvlnO-inqWnTyNCbXZyw_9MJOryegHr529JIAuPeSvc2G6rPBJHnof3arSsAHnCjQu0bOXquVNYL3rayd0YvelcU153lmuySeSRPOsRc5Dcuu8aiBAXQPv-zP6j2_RnG6FGBJRdNpedoFyahPDqojHrFyKpfuCvMpU-mOy3cucpaoXeL1o_iwa8LP5GPi1tLz6Teus2m03XK4zaB46CmLAelNGOTuvrCDOXUPXmcHbY6xUOJaMhmPpqG9HLFE2"/>
+</div>
+<div class="flex-grow">
+<h4 class="font-label-lg text-label-lg text-primary">Nephrolepis Exaltata</h4>
+<p class="font-body-md text-body-md text-on-surface-variant line-clamp-1">Lobby Principal</p>
+</div>
+<div class="flex flex-col items-end shrink-0 pl-2">
+<span class="px-3 py-1 bg-[#b7f569]/30 text-on-tertiary-fixed font-label-sm text-label-sm rounded-full">Ativo</span>
+<span class="font-body-md text-body-md text-outline-variant text-[11px] mt-1">Ontem</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-white/40 dark:bg-black/40 backdrop-blur-[30px] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md rounded-full border border-white/20 z-50 flex justify-around items-center px-4 py-2">
+<!-- Active: home -->
+<button class="bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-full p-3 hover:scale-110 transition-transform scale-95 duration-200 flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+</button>
+<!-- Inactive: assignment -->
+<button class="text-neutral-600 dark:text-neutral-400 p-3 hover:scale-110 transition-transform scale-95 duration-200 flex items-center justify-center">
+<span class="material-symbols-outlined">assignment</span>
+</button>
+<!-- Inactive: center_focus_strong -->
+<button class="text-neutral-600 dark:text-neutral-400 p-3 hover:scale-110 transition-transform scale-95 duration-200 flex items-center justify-center">
+<span class="material-symbols-outlined">center_focus_strong</span>
+</button>
+<!-- Inactive: person -->
+<button class="text-neutral-600 dark:text-neutral-400 p-3 hover:scale-110 transition-transform scale-95 duration-200 flex items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</button>
+</nav>
+</body></html>
