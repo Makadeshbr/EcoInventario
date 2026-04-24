@@ -1,17 +1,21 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/allan/ecoinventario/internal/asset"
 	"github.com/allan/ecoinventario/internal/assettype"
 	"github.com/allan/ecoinventario/internal/audit"
 	"github.com/allan/ecoinventario/internal/auth"
 	"github.com/allan/ecoinventario/internal/config"
+	"github.com/allan/ecoinventario/internal/media"
 	"github.com/allan/ecoinventario/internal/middleware"
 	"github.com/allan/ecoinventario/internal/organization"
 	"github.com/allan/ecoinventario/internal/shared"
@@ -19,6 +23,34 @@ import (
 	"github.com/go-chi/chi/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
+
+// assetTypeAdapter adapta assettype.Repository à interface estreita exigida
+// pelo service de asset (asset.AssetTypeChecker) — evita import cíclico.
+type assetTypeAdapter struct {
+	repo assettype.Repository
+}
+
+func (a *assetTypeAdapter) ExistsInOrg(ctx context.Context, id, orgID string) (bool, error) {
+	at, err := a.repo.FindByID(ctx, id, orgID)
+	if err != nil {
+		return false, err
+	}
+	return at != nil, nil
+}
+
+// assetExistsAdapter adapta asset.Repository à interface estreita exigida
+// pelo service de media (media.AssetChecker) — evita import cíclico.
+type assetExistsAdapter struct {
+	repo asset.Repository
+}
+
+func (a *assetExistsAdapter) ExistsInOrg(ctx context.Context, id, orgID string) (bool, error) {
+	item, err := a.repo.FindByID(ctx, id, orgID)
+	if err != nil {
+		return false, err
+	}
+	return item != nil, nil
+}
 
 func main() {
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -43,6 +75,8 @@ func main() {
 	orgRepo := organization.NewRepository(db)
 	userRepo := user.NewRepository(db)
 	assetTypeRepo := assettype.NewRepository(db)
+	assetRepo := asset.NewRepository(db)
+	mediaRepo := media.NewRepository(db)
 
 	// Services
 	auditSvc := audit.NewService(auditRepo)
@@ -71,10 +105,28 @@ func main() {
 	userSvc := user.NewService(userRepo, auditSvc, cfg.PasswordPepper)
 	assetTypeSvc := assettype.NewService(assetTypeRepo, auditSvc)
 
+	// S3 client — useSSL=false para MinIO local; em produção AWS use true.
+	useSSL := !strings.EqualFold(cfg.S3UsePathStyle, "true")
+	s3Client, err := media.NewS3Client(cfg.S3Endpoint, cfg.S3AccessKey, cfg.S3SecretKey, useSSL)
+	if err != nil {
+		log.Fatal("falha ao inicializar cliente S3:", err)
+	}
+
+	mediaSvc := media.NewService(mediaRepo, s3Client, &assetExistsAdapter{repo: assetRepo}, auditSvc, cfg.S3Bucket)
+
+	assetSvc := asset.NewService(
+		assetRepo,
+		&assetTypeAdapter{repo: assetTypeRepo},
+		mediaSvc, // satisfaz asset.MediaChecker via HasUploadedMedia
+		auditSvc,
+	)
+
 	// Handlers
 	authHandler := auth.NewHandler(authSvc)
 	userHandler := user.NewHandler(userSvc)
 	assetTypeHandler := assettype.NewHandler(assetTypeSvc)
+	assetHandler := asset.NewHandler(assetSvc)
+	mediaHandler := media.NewHandler(mediaSvc)
 
 	// Router
 	r := chi.NewRouter()
@@ -118,10 +170,45 @@ func main() {
 				r.With(middleware.RequireRole(shared.RoleAdmin)).Post("/", assetTypeHandler.HandleCreate)
 				r.With(middleware.RequireRole(shared.RoleAdmin)).Patch("/{id}", assetTypeHandler.HandleUpdate)
 			})
+
+			// Assets — leitura para todos (viewer filtra approved no service).
+			// Escrita: tech ou admin. Aprovação/rejeição: apenas admin.
+			r.Route("/assets", func(r chi.Router) {
+				r.Get("/", assetHandler.HandleList)
+				r.Get("/nearby", assetHandler.HandleNearby)
+				r.Get("/{id}", assetHandler.HandleGet)
+				r.Get("/{id}/history", assetHandler.HandleHistory)
+
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireRole(shared.RoleAdmin, shared.RoleTech))
+					r.Post("/", assetHandler.HandleCreate)
+					r.Patch("/{id}", assetHandler.HandleUpdate)
+					r.Delete("/{id}", assetHandler.HandleDelete)
+					r.Post("/{id}/submit", assetHandler.HandleSubmit)
+				})
+
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireRole(shared.RoleAdmin))
+					r.Post("/{id}/approve", assetHandler.HandleApprove)
+					r.Post("/{id}/reject", assetHandler.HandleReject)
+				})
+			})
+
+			// Media — TECH e ADMIN fazem upload/delete; todos autenticados podem ver.
+			r.Route("/media", func(r chi.Router) {
+				r.Get("/{id}", mediaHandler.HandleGet)
+
+				r.Group(func(r chi.Router) {
+					r.Use(middleware.RequireRole(shared.RoleAdmin, shared.RoleTech))
+					r.Post("/upload-url", mediaHandler.HandleUploadURL)
+					r.Post("/{id}/confirm", mediaHandler.HandleConfirm)
+					r.Delete("/{id}", mediaHandler.HandleDelete)
+				})
+			})
 		})
 	})
 
-	// TODO: registrar rotas de assets, manejos, monitoramentos, etc. nas próximas tasks
+	// TODO: registrar rotas de manejos, monitoramentos, sync, etc. nas próximas tasks
 
 	slog.Info("servidor iniciando", "port", cfg.Port, "env", cfg.Env)
 	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
