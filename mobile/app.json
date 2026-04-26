@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "EcoInventário",
+    "icon": "./assets/icon.png",
+    "slug": "eco-inventario",
+    "version": "1.0.0",
+    "scheme": "eco-inventario",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 3000,
+      "url": "https://u.expo.dev/a93d90ea-1093-4dea-98f5-d4321f2c2709"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ecoinventario.app"
+    },
+    "android": {
+      "usesCleartextTraffic": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.ecoinventario.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-updates",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "O app precisa da câmera para escanear QR codes e registrar fotos dos ativos."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O app precisa da localização para registrar a posição GPS dos ativos."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a93d90ea-1093-4dea-98f5-d4321f2c2709"
+      }
+    },
+    "owner": "nataliasouza"
+  }
+}

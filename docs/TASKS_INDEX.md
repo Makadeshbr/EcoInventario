@@ -28,15 +28,15 @@
 - [x] **T01** Setup + Migrations + Config + Shared + Middleware
 - [x] **T02** Auth completo (Argon2id, JWT, login/refresh/logout, RBAC)
 - [x] **T03** Organizations + Users + Asset Types (CRUD admin)
-- [ ] **T04** Assets completo (CRUD + aprovação + versionamento + nearby)
-- [ ] **T05** Media (presigned URL + upload + confirm)
-- [ ] **T06** Manejos + Monitoramentos (CRUD + aprovação)
-- [ ] **T07** Sync Engine (push + pull + idempotência + conflito)
-- [ ] **T08** Public API + Health Check + Rate Limiting
+- [x] **T04** Assets completo (CRUD + aprovação + versionamento + nearby)
+- [x] **T05** Media (presigned URL + upload + confirm)
+- [x] **T06** Manejos + Monitoramentos (CRUD + aprovação)
+- [x] **T07** Sync Engine (push + pull + idempotência + conflito)
+- [x] **T08** Public API + Health Check + Rate Limiting
 
 ## Mobile (T09–T14)
-- [ ] **T09** Setup + Tipos + API Client + Auth Store + Navegação
-- [ ] **T10** Splash + Welcome + Login
+- [x] **T09** Setup + Tipos + API Client + Auth Store + Navegação
+- [x] **T10** Splash + Welcome + Login
 - [ ] **T11** Modo Visitante (mapa + ficha + scanner + sobre)
 - [ ] **T12** Profissional: Home + Assets (lista + criar + detalhes + editar)
 - [ ] **T13** Profissional: Criar Manejo + Criar Monitoramento
