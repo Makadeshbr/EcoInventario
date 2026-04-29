@@ -1,0 +1,40 @@
+# Blueprint para Infraestrutura as Code no Render
+databases:
+  - name: ecoinventario-db
+    plan: free # Grátis por 90 dias
+    databaseName: ecoinventario
+    user: admin
+
+services:
+  - type: web
+    name: ecoinventario-api
+    env: docker # Usa o nosso Dockerfile
+    plan: free # Grátis para sempre
+    region: ohio
+    # O Render injeta a string de conexão do banco criado acima automaticamente
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ecoinventario-db
+          property: connectionString
+      - key: PORT
+        value: "8080"
+      - key: ENVIRONMENT
+        value: "production"
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*" # Liberado para mobile, depois restringimos para o PWA
+      # Variáveis que você vai preencher lá no painel (não ficam no git)
+      - key: JWT_SECRET
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_PUBLIC_URL
+        sync: false
