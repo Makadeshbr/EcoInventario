@@ -67,11 +67,16 @@ func (r *syncRepository) PullChanges(ctx context.Context, p PullParams) ([]Chang
 // pullAssets retorna assets alterados (incluindo soft-deleted) desde since.
 func (r *syncRepository) pullAssets(ctx context.Context, orgID string, since time.Time) ([]Change, error) {
 	query := `
-		SELECT id, organization_id, asset_type_id, status, version, notes,
-		       updated_at, created_at, deleted_at
-		FROM assets
-		WHERE organization_id = $1
-		  AND (updated_at > $2 OR (deleted_at IS NOT NULL AND deleted_at > $2))
+		SELECT a.id, a.organization_id, a.asset_type_id, at.name AS asset_type_name,
+		       ST_Y(a.location::geometry) AS latitude,
+		       ST_X(a.location::geometry) AS longitude,
+		       a.gps_accuracy_m, a.qr_code, a.status, a.version, a.parent_id,
+		       a.rejection_reason, a.notes, a.created_by, a.approved_by,
+		       a.updated_at, a.created_at, a.deleted_at
+		FROM assets a
+		JOIN asset_types at ON at.id = a.asset_type_id
+		WHERE a.organization_id = $1
+		  AND (a.updated_at > $2 OR (a.deleted_at IS NOT NULL AND a.deleted_at > $2))
 	`
 	rows, err := r.db.QueryContext(ctx, query, orgID, since)
 	if err != nil {
@@ -82,50 +87,80 @@ func (r *syncRepository) pullAssets(ctx context.Context, orgID string, since tim
 	var changes []Change
 	for rows.Next() {
 		var (
-			id, orgID2, atID, status string
-			version                  int
-			notes                    *string
-			updatedAt, createdAt     time.Time
-			deletedAt                *time.Time
+			id, orgID2, atID, atName, qrCode, status, createdBy string
+			latitude, longitude                                 float64
+			version                                             int
+			gpsAccuracyM                                        *float32
+			parentID, rejectionReason, notes, approvedBy        *string
+			updatedAt, createdAt                                time.Time
+			deletedAt                                           *time.Time
 		)
-		if err := rows.Scan(&id, &orgID2, &atID, &status, &version, &notes,
+		if err := rows.Scan(&id, &orgID2, &atID, &atName,
+			&latitude, &longitude, &gpsAccuracyM, &qrCode, &status, &version,
+			&parentID, &rejectionReason, &notes, &createdBy, &approvedBy,
 			&updatedAt, &createdAt, &deletedAt); err != nil {
 			return nil, fmt.Errorf("lendo asset para sync: %w", err)
 		}
-		changes = append(changes, buildAssetChange(id, orgID2, atID, status, version, notes, updatedAt, createdAt, deletedAt))
+		changes = append(changes, buildAssetChange(assetChangeData{
+			id: id, orgID: orgID2, assetTypeID: atID, assetTypeName: atName,
+			latitude: latitude, longitude: longitude, gpsAccuracyM: gpsAccuracyM,
+			qrCode: qrCode, status: status, version: version, parentID: parentID,
+			rejectionReason: rejectionReason, notes: notes, createdBy: createdBy,
+			approvedBy: approvedBy, updatedAt: updatedAt, createdAt: createdAt,
+			deletedAt: deletedAt,
+		}))
 	}
 	return changes, rows.Err()
 }
 
-func buildAssetChange(id, orgID, atID, status string, version int, notes *string,
-	updatedAt, createdAt time.Time, deletedAt *time.Time) Change {
+type assetChangeData struct {
+	id, orgID, assetTypeID, assetTypeName string
+	latitude, longitude                   float64
+	gpsAccuracyM                          *float32
+	qrCode, status, createdBy             string
+	version                               int
+	parentID, rejectionReason, notes      *string
+	approvedBy                            *string
+	updatedAt, createdAt                  time.Time
+	deletedAt                             *time.Time
+}
 
-	changeAt := updatedAt
+func buildAssetChange(a assetChangeData) Change {
+	changeAt := a.updatedAt
 	action := ChangeUpdate
-	if deletedAt != nil {
+	if a.deletedAt != nil {
 		action = ChangeDelete
-		changeAt = *deletedAt
-	} else if createdAt.Equal(updatedAt) {
+		changeAt = *a.deletedAt
+	} else if a.createdAt.Equal(a.updatedAt) {
 		action = ChangeCreate
 	}
 
 	var data json.RawMessage
-	if deletedAt != nil {
-		data, _ = json.Marshal(map[string]string{"id": id})
+	if a.deletedAt != nil {
+		data, _ = json.Marshal(map[string]string{"id": a.id})
 	} else {
 		data, _ = json.Marshal(map[string]any{
-			"id":              id,
-			"organization_id": orgID,
-			"asset_type_id":   atID,
-			"status":          status,
-			"version":         version,
-			"notes":           notes,
-			"updated_at":      updatedAt,
-			"created_at":      createdAt,
+			"id":               a.id,
+			"organization_id":  a.orgID,
+			"asset_type_id":    a.assetTypeID,
+			"asset_type_name":  a.assetTypeName,
+			"latitude":         a.latitude,
+			"longitude":        a.longitude,
+			"gps_accuracy_m":   a.gpsAccuracyM,
+			"qr_code":          a.qrCode,
+			"status":           a.status,
+			"version":          a.version,
+			"parent_id":        a.parentID,
+			"rejection_reason": a.rejectionReason,
+			"notes":            a.notes,
+			"created_by":       a.createdBy,
+			"approved_by":      a.approvedBy,
+			"updated_at":       a.updatedAt,
+			"created_at":       a.createdAt,
 		})
 	}
 
-	return Change{EntityType: "asset", EntityID: id, Action: action, Data: data, UpdatedAt: changeAt}
+	return Change{EntityType: "asset", EntityID: a.id, Action: action, Data: data, UpdatedAt: changeAt}
 }
 
 // pullManejos retorna manejos alterados (incluindo soft-deleted) desde since.

@@ -2,6 +2,14 @@ import type * as SQLite from 'expo-sqlite';
 
 export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
   await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS asset_types (
+      id               TEXT PRIMARY KEY,
+      organization_id  TEXT NOT NULL,
+      name             TEXT NOT NULL,
+      description      TEXT,
+      is_active        INTEGER NOT NULL DEFAULT 1
+    );
+
     CREATE TABLE IF NOT EXISTS assets (
       id               TEXT PRIMARY KEY,
       organization_id  TEXT NOT NULL,

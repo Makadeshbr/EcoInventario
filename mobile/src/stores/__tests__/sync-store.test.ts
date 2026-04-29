@@ -47,6 +47,20 @@ describe('sync store — setStatus', () => {
     useSyncStore.getState().setStatus({ state: 'offline', pendingCount: 7 });
     expect(useSyncStore.getState().status).toEqual({ state: 'offline', pendingCount: 7 });
   });
+
+  test('atualiza para synced com lastSyncAt e pendingCount zero', () => {
+    const ts = '2026-04-29T14:00:00Z';
+    useSyncStore.getState().setStatus({ state: 'synced', lastSyncAt: ts, pendingCount: 0 });
+    expect(useSyncStore.getState().status).toEqual({ state: 'synced', lastSyncAt: ts, pendingCount: 0 });
+  });
+
+  test('atualiza para synced com pendentes remanescentes', () => {
+    const ts = '2026-04-29T14:00:00Z';
+    useSyncStore.getState().setStatus({ state: 'synced', lastSyncAt: ts, pendingCount: 3 });
+    const status = useSyncStore.getState().status;
+    if (status.state !== 'synced') throw new Error('estado inesperado');
+    expect(status.pendingCount).toBe(3);
+  });
 });
 
 describe('sync store — setLastSyncAt', () => {

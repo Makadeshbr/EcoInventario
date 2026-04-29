@@ -19,7 +19,22 @@ jest.mock('@/stores/auth-store', () => ({
   }),
 }));
 
+// Substituição local de HTTPError para que instanceof funcione no teste.
+// Parâmetro nomeado "mockResp" (prefixo "mock") para passar a checagem de
+// escopo do jest.mock — sem o prefixo, o babel-jest rejeita como out-of-scope.
+jest.mock('ky', () => {
+  class HTTPError extends Error {
+    constructor(mockResp) {
+      super('HTTP Error');
+      this.name = 'HTTPError';
+      this.response = mockResp;
+    }
+  }
+  return { HTTPError };
+});
+
 import { renderHook, act, waitFor } from '@testing-library/react-native';
+import { HTTPError } from 'ky';
 import { login } from '@/features/auth/api';
 import { useLogin } from '../use-login';
 import type { User } from '@/types/domain';
@@ -91,8 +106,11 @@ describe('useLogin — bloqueio de roles não-tech', () => {
 });
 
 describe('useLogin — erro de API', () => {
-  test('exibe mensagem do erro retornado', async () => {
-    (login as jest.Mock).mockRejectedValueOnce(new Error('Credenciais inválidas.'));
+  test('HTTPError: exibe mensagem retornada pelo servidor', async () => {
+    const mockResponse = {
+      json: () => Promise.resolve({ error: { message: 'Credenciais inválidas.' } }),
+    };
+    (login as jest.Mock).mockRejectedValueOnce(new HTTPError(mockResponse));
 
     const { result } = renderHook(() => useLogin());
 
@@ -104,7 +122,35 @@ describe('useLogin — erro de API', () => {
     expect(mockRouterReplace).not.toHaveBeenCalled();
   });
 
-  test('erro genérico (sem message): exibe mensagem padrão', async () => {
+  test('HTTPError sem message no body: exibe fallback de servidor', async () => {
+    const mockResponse = {
+      json: () => Promise.resolve({}),
+    };
+    (login as jest.Mock).mockRejectedValueOnce(new HTTPError(mockResponse));
+
+    const { result } = renderHook(() => useLogin());
+
+    await act(async () => {
+      await result.current.handleLogin({ email: 'user@eco.com', password: 'wrongpass1' });
+    });
+
+    expect(result.current.error).toBe('Credenciais inválidas ou erro no servidor.');
+  });
+
+  test('erro de rede (Error comum): exibe mensagem de falha na conexão', async () => {
+    (login as jest.Mock).mockRejectedValueOnce(new Error('Network timeout'));
+
+    const { result } = renderHook(() => useLogin());
+
+    await act(async () => {
+      await result.current.handleLogin({ email: 'user@eco.com', password: 'wrongpass1' });
+    });
+
+    expect(result.current.error).toBe('Falha na conexão. Verifique sua internet.');
+    expect(mockRouterReplace).not.toHaveBeenCalled();
+  });
+
+  test('erro desconhecido (sem message): exibe mensagem genérica', async () => {
     (login as jest.Mock).mockRejectedValueOnce({});
 
     const { result } = renderHook(() => useLogin());
@@ -113,7 +159,7 @@ describe('useLogin — erro de API', () => {
       await result.current.handleLogin({ email: 'user@eco.com', password: 'wrongpass1' });
     });
 
-    expect(result.current.error).toBeTruthy();
+    expect(result.current.error).toBe('Erro inesperado. Tente novamente.');
   });
 });
 

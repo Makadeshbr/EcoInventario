@@ -81,8 +81,7 @@ func (r *repository) ListAssetsByBounds(ctx context.Context, p BoundsParams) ([]
 		JOIN asset_types at ON at.id = a.asset_type_id
 		WHERE a.status = 'approved'
 		  AND a.deleted_at IS NULL
-		  AND ST_Within(a.location::geometry,
-		        ST_MakeEnvelope($1, $2, $3, $4, 4326))
+		  AND a.location && ST_MakeEnvelope($1, $2, $3, $4, 4326)::geography
 		  %s
 		LIMIT $5
 	`, typeFilter)

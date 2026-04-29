@@ -126,6 +126,28 @@ func (d *syncDispatcher) Create(ctx context.Context, entityType string, payload 
 func (d *syncDispatcher) Update(ctx context.Context, entityType, entityID string, payload json.RawMessage) (time.Time, json.RawMessage, error) {
 	switch entityType {
 	case "asset":
+		var raw map[string]json.RawMessage
+		if err := json.Unmarshal(payload, &raw); err != nil {
+			return time.Time{}, nil, err
+		}
+		if statusRaw, ok := raw["status"]; ok {
+			var status string
+			if err := json.Unmarshal(statusRaw, &status); err != nil {
+				return time.Time{}, nil, err
+			}
+			if status == "pending" {
+				resp, err := d.assetSvc.Submit(ctx, entityID)
+				if err != nil {
+					return time.Time{}, nil, err
+				}
+				current, err := d.assetSvc.GetByID(ctx, entityID)
+				if err != nil {
+					return time.Time{}, nil, err
+				}
+				data, _ := json.Marshal(resp)
+				return current.UpdatedAt, data, nil
+			}
+		}
 		var req asset.UpdateRequest
 		if err := json.Unmarshal(payload, &req); err != nil {
 			return time.Time{}, nil, err
@@ -317,8 +339,8 @@ func main() {
 	healthHandler := health.NewHandler(db, &s3Pinger{client: s3Client, bucket: cfg.S3Bucket})
 
 	// Rate limiters (sliding window in-memory)
-	loginLimiter  := middleware.NewRateLimiter(5, time.Minute)
-	syncLimiter   := middleware.NewRateLimiter(30, time.Minute)
+	loginLimiter := middleware.NewRateLimiter(5, time.Minute)
+	syncLimiter := middleware.NewRateLimiter(30, time.Minute)
 	uploadLimiter := middleware.NewRateLimiter(60, time.Minute)
 	publicLimiter := middleware.NewRateLimiter(60, time.Minute)
 	defaultLimiter := middleware.NewRateLimiter(120, time.Minute)

@@ -67,6 +67,9 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (*Response, err
 		Notes:          req.Notes,
 		CreatedBy:      callerID,
 	}
+	if req.ID != nil {
+		a.ID = *req.ID
+	}
 	if err := s.repo.Insert(ctx, a); err != nil {
 		return nil, fmt.Errorf("inserindo asset: %w", err)
 	}

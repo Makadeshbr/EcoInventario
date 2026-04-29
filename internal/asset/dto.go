@@ -4,6 +4,7 @@ import "time"
 
 // CreateRequest é o payload de POST /api/v1/assets.
 type CreateRequest struct {
+	ID           *string  `json:"id"             validate:"omitempty,uuid"`
 	AssetTypeID  string   `json:"asset_type_id"  validate:"required,uuid"`
 	Latitude     float64  `json:"latitude"       validate:"gte=-90,lte=90"`
 	Longitude    float64  `json:"longitude"      validate:"gte=-180,lte=180"`

@@ -37,10 +37,10 @@
 ## Mobile (T09–T14)
 - [x] **T09** Setup + Tipos + API Client + Auth Store + Navegação
 - [x] **T10** Splash + Welcome + Login
-- [ ] **T11** Modo Visitante (mapa + ficha + scanner + sobre)
-- [ ] **T12** Profissional: Home + Assets (lista + criar + detalhes + editar)
-- [ ] **T13** Profissional: Criar Manejo + Criar Monitoramento
-- [ ] **T14** Sync Engine + Media Queue + Conflitos + Perfil + Config
+- [x] **T11** Modo Visitante (mapa + ficha + scanner + sobre)
+- [x] **T12** Profissional: Home + Assets (lista + criar + detalhes + editar)
+- [x] **T13** Profissional: Criar Manejo + Criar Monitoramento
+- [x] **T14** Sync Engine + Media Queue + Conflitos + Perfil + Config
 
 ## Dashboard (T15–T18)
 - [ ] **T15** Setup + Layout + Auth + Home

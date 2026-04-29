@@ -4,7 +4,7 @@ import { API_BASE_URL } from '@/constants/config';
 
 export const api = ky.create({
   prefixUrl: API_BASE_URL,
-  timeout: 30_000,
+  timeout: 10_000,
   hooks: {
     beforeRequest: [
       (req) => {
@@ -13,11 +13,22 @@ export const api = ky.create({
       },
     ],
     afterResponse: [
-      async (_req, _opts, res) => {
-        if (res.status === 401) {
+      async (req, _opts, res) => {
+        // Se for 401 e não for rota de auth, tenta refresh
+        const isAuthRoute = req.url.includes('/auth/login') || req.url.includes('/auth/refresh');
+        if (res.status === 401 && !isAuthRoute) {
           const ok = await useAuthStore.getState().refreshAccessToken();
           if (!ok) useAuthStore.getState().logout();
         }
+      },
+    ],
+    beforeError: [
+      (error) => {
+        const { response } = error;
+        if (!response) {
+          console.error('[API] Erro de rede ou servidor inacessível');
+        }
+        return error;
       },
     ],
   },

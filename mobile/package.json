@@ -28,13 +28,16 @@
     "expo-system-ui": "~6.0.9",
     "expo-updates": "~29.0.16",
     "ky": "^1.7.4",
+    "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-get-random-values": "~1.11.0",
+    "react-native-maps": "1.20.1",
     "react-native-mmkv": "^3.1.0",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "supercluster": "^8.0.1",
     "uuid": "^9.0.1",
     "zod": "^3.23.8",
     "zustand": "^5.0.3"
@@ -42,6 +45,8 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@testing-library/react-native": "^12.4.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "~19.1.10",
     "@types/uuid": "^9.0.8",
     "babel-plugin-module-resolver": "^5.0.2",
@@ -53,7 +58,7 @@
   "jest": {
     "preset": "jest-expo",
     "transformIgnorePatterns": [
-      "node_modules/(?!(?:react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|uuid))"
+      "node_modules/(?!(?:react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|uuid|ky))"
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"

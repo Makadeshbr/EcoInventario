@@ -1,6 +1,7 @@
 package public
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -32,17 +33,17 @@ func (h *Handler) HandleListAssetTypes(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, map[string]any{"data": items})
 }
 
-// HandleListAssets processa GET /api/v1/public/assets?bounds=sw_lat,sw_lng,ne_lat,ne_lng.
+// HandleListAssets processa GET /api/v1/public/assets?bounds=sw_lng,sw_lat,ne_lng,ne_lat.
 func (h *Handler) HandleListAssets(w http.ResponseWriter, r *http.Request) {
 	boundsRaw := r.URL.Query().Get("bounds")
 	if boundsRaw == "" {
-		response.BadRequest(w, r, "parâmetro 'bounds' é obrigatório (sw_lat,sw_lng,ne_lat,ne_lng)")
+		response.BadRequest(w, r, "parâmetro 'bounds' é obrigatório (sw_lng,sw_lat,ne_lng,ne_lat)")
 		return
 	}
 
 	parts := strings.Split(boundsRaw, ",")
 	if len(parts) != 4 {
-		response.BadRequest(w, r, "'bounds' deve ter 4 coordenadas separadas por vírgula")
+		response.BadRequest(w, r, "'bounds' deve ter exatamente 4 coordenadas")
 		return
 	}
 
@@ -50,7 +51,7 @@ func (h *Handler) HandleListAssets(w http.ResponseWriter, r *http.Request) {
 	for i, p := range parts {
 		v, err := strconv.ParseFloat(strings.TrimSpace(p), 64)
 		if err != nil {
-			response.BadRequest(w, r, "'bounds' contém valor não numérico")
+			response.BadRequest(w, r, fmt.Sprintf("coordenada inválida na posição %d", i))
 			return
 		}
 		coords[i] = v
@@ -64,10 +65,10 @@ func (h *Handler) HandleListAssets(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p := BoundsParams{
-		SWLat:  coords[0],
-		SWLng:  coords[1],
-		NELat:  coords[2],
-		NELng:  coords[3],
+		SWLng:  coords[0],
+		SWLat:  coords[1],
+		NELng:  coords[2],
+		NELat:  coords[3],
 		TypeID: r.URL.Query().Get("type_id"),
 		Limit:  limit,
 	}
@@ -77,6 +78,7 @@ func (h *Handler) HandleListAssets(w http.ResponseWriter, r *http.Request) {
 		response.HandleError(w, r, err)
 		return
 	}
+
 	if items == nil {
 		items = []AssetSummary{}
 	}

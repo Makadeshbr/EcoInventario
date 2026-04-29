@@ -11,8 +11,10 @@ export const colors = {
   secondaryFixedDim: '#b3cdb1',
   tertiaryFixed: '#b7f569',
   tertiaryFixedDim: '#9dd850',
+  darkGreen: '#102000',
   surface: '#f7faf5',
   surfaceContainer: '#ecefea',
+  surfaceContainerLow: '#f1f4ef',
   surfaceContainerHigh: '#e6e9e4',
   surfaceContainerLowest: '#ffffff',
   onSurface: '#191c1a',
@@ -22,6 +24,8 @@ export const colors = {
   error: '#ba1a1a',
   errorContainer: '#ffdad6',
   onErrorContainer: '#93000a',
+  surfaceVariant: '#e0e3df',
+  surfaceContainerHighest: '#dbe3d8',
 } as const;
 
 export const spacing = {
@@ -36,6 +40,8 @@ export const spacing = {
 } as const;
 
 export const radius = {
+  sm: 8,
+  md: 12,
   default: 16,
   lg: 32,
   xl: 48,
@@ -60,6 +66,26 @@ export const typography = {
     fontSize: 24,
     lineHeight: 32,
   },
+  headlineSm: {
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 20,
+    lineHeight: 28,
+  },
+  titleLg: {
+    fontFamily: 'PlusJakartaSans_700Bold',
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  titleMd: {
+    fontFamily: 'PlusJakartaSans_700Bold',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  titleSm: {
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 14,
+    lineHeight: 20,
+  },
   bodyLg: {
     fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 18,
@@ -70,11 +96,21 @@ export const typography = {
     fontSize: 16,
     lineHeight: 24,
   },
+  bodySm: {
+    fontFamily: 'PlusJakartaSans_400Regular',
+    fontSize: 13,
+    lineHeight: 20,
+  },
   labelLg: {
     fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 14,
     lineHeight: 20,
     letterSpacing: 0.28,
+  },
+  labelMd: {
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 12,
+    lineHeight: 16,
   },
   labelSm: {
     fontFamily: 'PlusJakartaSans_400Regular',

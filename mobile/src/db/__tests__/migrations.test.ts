@@ -14,9 +14,10 @@ describe('runMigrations', () => {
     expect(mockDb.execAsync).toHaveBeenCalledTimes(1);
   });
 
-  test('cria tabelas de domínio: assets, media, manejos, monitoramentos', async () => {
+  test('cria tabelas de domínio: asset_types, assets, media, manejos, monitoramentos', async () => {
     await runMigrations(mockDb as any);
     const sql: string = mockDb.execAsync.mock.calls[0][0];
+    expect(sql).toContain('CREATE TABLE IF NOT EXISTS asset_types');
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS assets');
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS media');
     expect(sql).toContain('CREATE TABLE IF NOT EXISTS manejos');

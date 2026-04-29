@@ -44,7 +44,9 @@ func (m *mockRepo) Insert(_ context.Context, a *asset.Asset) error {
 	if m.insertErr != nil {
 		return m.insertErr
 	}
-	a.ID = "new-asset-id"
+	if a.ID == "" {
+		a.ID = "new-asset-id"
+	}
 	m.insertedAssets = append(m.insertedAssets, a)
 	// Simula o comportamento do DB: registro recém-inserido fica visível para FindByID.
 	// Copia para evitar aliasing com slices de inserted (o service pode mutar depois).
@@ -163,6 +165,29 @@ func TestCreate(t *testing.T) {
 		}
 		if inserted.CreatedBy != "tech-1" {
 			t.Errorf("created_by: got %q", inserted.CreatedBy)
+		}
+	})
+
+	t.Run("preserva ID enviado pelo cliente no sync offline", func(t *testing.T) {
+		repo := &mockRepo{}
+		svc := newSvc(repo, &mockTypeChecker{exists: true})
+		clientID := "aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa"
+
+		resp, err := svc.Create(ctx, asset.CreateRequest{
+			ID:          &clientID,
+			AssetTypeID: "11111111-1111-1111-1111-111111111111",
+			Latitude:    -23.5505,
+			Longitude:   -46.6333,
+			QRCode:      "offline-client-id",
+		})
+		if err != nil {
+			t.Fatalf("erro inesperado: %v", err)
+		}
+		if resp.ID != clientID {
+			t.Fatalf("id: got %q, want %q", resp.ID, clientID)
+		}
+		if repo.insertedAssets[0].ID != clientID {
+			t.Fatalf("inserted id: got %q", repo.insertedAssets[0].ID)
 		}
 	})
 

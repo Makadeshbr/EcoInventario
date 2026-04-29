@@ -69,6 +69,7 @@ export interface SyncConflict {
 export type SyncStatus =
   | { state: 'idle' }
   | { state: 'syncing'; progress: number }
+  | { state: 'synced'; lastSyncAt: string; pendingCount: number }
   | { state: 'error'; message: string }
   | { state: 'conflict'; count: number }
   | { state: 'offline'; pendingCount: number };

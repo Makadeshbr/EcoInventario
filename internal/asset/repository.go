@@ -92,16 +92,18 @@ func (r *repository) Insert(ctx context.Context, a *Asset) error {
 	// ATENÇÃO: em ST_MakePoint a LONGITUDE vem primeiro (eixo X), depois latitude (eixo Y).
 	query := `
 		INSERT INTO assets (
-			organization_id, asset_type_id, location, gps_accuracy_m, qr_code,
+			id, organization_id, asset_type_id, location, gps_accuracy_m, qr_code,
 			status, version, parent_id, notes, created_by
 		)
 		VALUES (
-			$1, $2, ST_MakePoint($3, $4)::geography, $5, $6,
-			$7, $8, $9, $10, $11
+			COALESCE(NULLIF($1, '')::uuid, gen_random_uuid()),
+			$2, $3, ST_MakePoint($4, $5)::geography, $6, $7,
+			$8, $9, $10, $11, $12
 		)
 		RETURNING id, created_at, updated_at
 	`
 	return r.db.QueryRowContext(ctx, query,
+		a.ID,
 		a.OrganizationID, a.AssetTypeID,
 		a.Longitude, a.Latitude,
 		a.GPSAccuracyM, a.QRCode,
