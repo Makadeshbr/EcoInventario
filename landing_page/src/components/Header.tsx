@@ -50,7 +50,7 @@ export default function Header() {
     <header
       ref={headerRef}
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-        scrolled
+        scrolled || menuOpen
           ? 'bg-forest/95 backdrop-blur-md border-b border-white/[0.07] shadow-xl shadow-black/20'
           : 'bg-transparent'
       }`}
