@@ -32,5 +32,6 @@ COPY --from=builder /app/migrations ./migrations
 
 EXPOSE 8080
 
-# Aplica migrations e sobe o servidor
-CMD ["sh", "-c", "migrate -path /app/migrations -database \"$DATABASE_URL\" up && /app/server"]
+# Aplica migrations (externalConnectionString do Render já inclui SSL)
+# e sobe o servidor
+CMD ["sh", "-c", "migrate -path /app/migrations -database \"${DATABASE_URL}\" up && /app/server"]

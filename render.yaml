@@ -2,9 +2,10 @@
 # Deploy: Render Dashboard → New → Blueprint → aponta para este repo
 databases:
   - name: ecoinventario-db
-    plan: free        # Grátis por 90 dias → depois migrar para Starter (US$7/mês)
+    plan: free
     databaseName: ecoinventario
     user: admin
+    region: ohio  # mesmo region do web service
 
 services:
   - type: web
@@ -13,11 +14,11 @@ services:
     plan: free        # Free dorme após 15min — use Starter para produção real
     region: ohio
     envVars:
-      # ── Banco ── injetado automaticamente pelo Render a partir do DB acima
+      # Usa externalConnectionString: hostname completo com região (necessário para Docker)
       - key: DATABASE_URL
         fromDatabase:
           name: ecoinventario-db
-          property: connectionString
+          property: externalConnectionString
 
       # ── Servidor ──
       - key: PORT
