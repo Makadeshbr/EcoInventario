@@ -5,8 +5,10 @@ RUN apk add --no-cache git tzdata
 
 WORKDIR /app
 
-# Baixa dependências primeiro (cache layer separado)
+# Baixa as dependências limitando a memória para evitar OOM Killed no Render Free Tier
 COPY go.mod go.sum ./
+ENV GOMEMLIMIT=300MiB
+ENV GOMAXPROCS=1
 RUN go mod download
 
 # Copia e compila apenas o binário do servidor
