@@ -83,36 +83,36 @@ export default function Hero() {
           src="/images/plantas-inicial.png"
           alt=""
           fill
-          className="object-fill"
+          className="object-cover object-bottom opacity-70 sm:opacity-100"
           priority
           sizes="100vw"
           aria-hidden="true"
         />
       </div>
 
-      {/* Lateral esquerda — pequena, canto inferior-esquerdo */}
-      <div className="absolute bottom-0 -left-2 z-[3] pointer-events-none select-none
-                      w-24 sm:w-28 lg:w-32">
+      {/* Lateral esquerda — oculta no mobile para não sobrepor texto */}
+      <div className="absolute bottom-0 -left-2 z-[3] pointer-events-none select-none hidden lg:block
+                      lg:w-32">
         <Image
           src="/images/lateral-amarela.png"
           alt=""
           width={500}
           height={650}
-          className="w-full h-auto object-contain"
+          className="w-full h-auto object-contain object-bottom"
           sizes="128px"
           aria-hidden="true"
         />
       </div>
 
-      {/* Lateral direita — canto superior-direito */}
-      <div className="absolute top-10 -right-2 z-[3] pointer-events-none select-none
-                      w-24 sm:w-28 lg:w-36">
+      {/* Lateral direita — oculta no mobile */}
+      <div className="absolute top-10 -right-2 z-[3] pointer-events-none select-none hidden lg:block
+                      lg:w-36">
         <Image
           src="/images/lateral-amarelo-verde.png"
           alt=""
           width={500}
           height={650}
-          className="w-full h-auto object-contain"
+          className="w-full h-auto object-contain object-top"
           sizes="144px"
           aria-hidden="true"
         />
@@ -200,17 +200,15 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="mt-12 lg:hidden">
-              <div className="relative mx-auto w-full max-w-sm" style={{ aspectRatio: '1 / 1.08' }}>
-                <Image
-                  src="/images/ype-amarelo.png"
-                  alt="Ipê amarelo em estilo bonsai, símbolo da Comunidade Plantaê"
-                  fill
-                  className="object-contain"
-                  priority
-                  sizes="90vw"
-                />
-              </div>
+            <div className="mt-6 mb-2 lg:hidden flex justify-center w-full">
+              <Image
+                src="/images/ype-amarelo.png"
+                alt="Ipê amarelo em estilo bonsai, símbolo da Comunidade Plantaê"
+                width={500}
+                height={540}
+                className="w-full max-w-[260px] h-auto object-contain"
+                priority
+              />
             </div>
           </div>
 
