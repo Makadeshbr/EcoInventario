@@ -8,6 +8,7 @@ export type Project = {
   location: string
   year: string
   highlights: string[]
+  gallery?: string[]
 }
 
 export const projects: Project[] = [
@@ -26,6 +27,12 @@ export const projects: Project[] = [
       'Vivência educativa com linguagem acessível para crianças.',
       'Fortalecimento do vínculo entre escola, comunidade e meio ambiente.',
     ],
+    gallery: [
+      '/images/projetos/plantando_crianca.png',
+      '/images/projetos/regando_crianca.png',
+      '/images/projetos/abelha_crianca.png',
+      '/images/projetos/manejo_crianca.png'
+    ],
   },
   {
     slug: 'vivencia-de-campo-e-biodiversidade',
@@ -41,6 +48,9 @@ export const projects: Project[] = [
       'Observação orientada de elementos naturais do território.',
       'Discussão sobre biodiversidade, solo e restauração ecológica.',
       'Construção de repertório ambiental a partir da experiência prática.',
+    ],
+    gallery: [
+      '/images/projetos/apreciando_natureza.png'
     ],
   },
   {

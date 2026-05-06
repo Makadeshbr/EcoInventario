@@ -166,6 +166,33 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
             </div>
           </div>
         </section>
+        
+        {project.gallery && project.gallery.length > 0 && (
+          <section className="bg-cream py-16 lg:py-24 border-t border-dark/[0.04]">
+            <div className="max-w-7xl mx-auto px-6 lg:px-10">
+              <div className="mb-12 flex items-center justify-center gap-3">
+                <span className="h-px w-8 bg-olive/40" />
+                <h3 className="font-serif text-2xl text-dark text-center">Registros da Atividade</h3>
+                <span className="h-px w-8 bg-olive/40" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {project.gallery.map((imgSrc, i) => (
+                  <div key={i} className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg shadow-black/5 group">
+                    <Image
+                      src={imgSrc}
+                      alt={`${project.title} - Registro ${i + 1}`}
+                      fill
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 40vw"
+                    />
+                    <div className="absolute inset-0 bg-forest/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
       </main>
       <Footer />
     </SmoothScroll>
