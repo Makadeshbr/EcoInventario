@@ -90,9 +90,9 @@ export default function Hero() {
         />
       </div>
 
-      {/* Lateral esquerda — oculta no mobile para não sobrepor texto */}
-      <div className="absolute bottom-0 -left-2 z-[3] pointer-events-none select-none hidden lg:block
-                      lg:w-32">
+      {/* Lateral esquerda — adaptada no mobile (menor e translúcida) para não sobrepor texto */}
+      <div className="absolute bottom-0 -left-4 z-[3] pointer-events-none select-none opacity-20 lg:opacity-100
+                      w-20 sm:w-28 lg:w-32 lg:-left-2">
         <Image
           src="/images/lateral-amarela.png"
           alt=""
@@ -104,9 +104,9 @@ export default function Hero() {
         />
       </div>
 
-      {/* Lateral direita — oculta no mobile */}
-      <div className="absolute top-10 -right-2 z-[3] pointer-events-none select-none hidden lg:block
-                      lg:w-36">
+      {/* Lateral direita — adaptada no mobile */}
+      <div className="absolute top-10 -right-4 z-[3] pointer-events-none select-none opacity-20 lg:opacity-100
+                      w-20 sm:w-28 lg:w-36 lg:-right-2">
         <Image
           src="/images/lateral-amarelo-verde.png"
           alt=""

@@ -54,14 +54,14 @@ export default function Footer() {
       {/* ── Floral canto inferior direito — Lateral_inferior_Direito.png ──
           Fundo transparente: flores de ipê emergem naturalmente do rodapé */}
       <div className="absolute right-0 bottom-0 pointer-events-none select-none z-0
-                      w-44 sm:w-52 md:w-60 lg:w-72 xl:w-80">
+                      w-24 sm:w-40 md:w-60 lg:w-72 xl:w-80 opacity-15 sm:opacity-30 lg:opacity-100">
         <Image
           src="/images/lateral-inf-direito.png"
           alt=""
           width={600}
           height={600}
           className="w-full h-auto object-contain object-bottom-right"
-          sizes="(max-width: 640px) 176px, (max-width: 1024px) 240px, 320px"
+          sizes="(max-width: 640px) 96px, (max-width: 1024px) 240px, 320px"
           aria-hidden="true"
         />
       </div>
