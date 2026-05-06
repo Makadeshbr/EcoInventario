@@ -63,6 +63,16 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, resp)
 }
 
+func (h *Handler) HandleListByAsset(w http.ResponseWriter, r *http.Request) {
+	assetID := chi.URLParam(r, "asset_id")
+	resp, err := h.svc.ListByAsset(r.Context(), assetID)
+	if err != nil {
+		response.HandleError(w, r, err)
+		return
+	}
+	response.JSON(w, http.StatusOK, map[string]any{"data": resp})
+}
+
 // HandleDelete processa DELETE /api/v1/media/{id}. Soft delete.
 func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")

@@ -13,12 +13,12 @@ import (
 // --- mocks ---
 
 type mockAssetTypeRepo struct {
-	stored      *assettype.AssetType
-	findErr     error
-	insertErr   error
-	updateErr   error
-	nameExists  bool
-	list        []*assettype.AssetType
+	stored     *assettype.AssetType
+	findErr    error
+	insertErr  error
+	updateErr  error
+	nameExists bool
+	list       []*assettype.AssetType
 }
 
 func (m *mockAssetTypeRepo) FindByID(_ context.Context, id, orgID string) (*assettype.AssetType, error) {
@@ -48,6 +48,10 @@ func (m *mockAssetTypeRepo) List(_ context.Context, orgID string) ([]*assettype.
 type noopAudit struct{}
 
 func (n *noopAudit) Insert(_ context.Context, _ *audit.LogEntry) error { return nil }
+
+func (n *noopAudit) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
+}
 
 func newTestSvc(repo assettype.Repository) *assettype.Service {
 	auditSvc := audit.NewService(&noopAudit{})

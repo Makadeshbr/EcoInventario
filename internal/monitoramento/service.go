@@ -26,14 +26,15 @@ var validHealthStatuses = map[string]bool{
 
 // Service implementa a lógica de negócio para monitoramentos.
 type Service struct {
-	repo  Repository
-	asset AssetChecker
-	audit *audit.Service
+	repo   Repository
+	asset  AssetChecker
+	audit  *audit.Service
+	policy monitoramentoMutationPolicy
 }
 
 // NewService cria o serviço de monitoramentos.
 func NewService(repo Repository, asset AssetChecker, auditSvc *audit.Service) *Service {
-	return &Service{repo: repo, asset: asset, audit: auditSvc}
+	return &Service{repo: repo, asset: asset, audit: auditSvc, policy: monitoramentoMutationPolicy{}}
 }
 
 // Create cria um novo monitoramento em status draft.
@@ -80,7 +81,6 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (*Response, err
 }
 
 // GetByID retorna um monitoramento com referências populadas.
-// Viewer só enxerga monitoramentos com status=approved.
 func (s *Service) GetByID(ctx context.Context, id string) (*Response, error) {
 	orgID := shared.GetOrgID(ctx)
 	role := shared.GetRole(ctx)
@@ -92,15 +92,14 @@ func (s *Service) GetByID(ctx context.Context, id string) (*Response, error) {
 	if m == nil {
 		return nil, apperror.NewNotFound("monitoramento", id)
 	}
-	if role == shared.RoleViewer && m.Status != shared.StatusApproved {
-		return nil, apperror.NewNotFound("monitoramento", id)
+	if err := s.policy.ValidateViewerAccess(role, m, id); err != nil {
+		return nil, err
 	}
 	resp := m.toResponse()
 	return &resp, nil
 }
 
 // Update aplica correções a um monitoramento. Apenas draft e rejected são editáveis.
-// Monitoramentos aprovados são imutáveis (sem versionamento).
 func (s *Service) Update(ctx context.Context, id string, req UpdateRequest) (*Response, error) {
 	orgID := shared.GetOrgID(ctx)
 	callerID := shared.GetUserID(ctx)
@@ -113,16 +112,8 @@ func (s *Service) Update(ctx context.Context, id string, req UpdateRequest) (*Re
 	if current == nil {
 		return nil, apperror.NewNotFound("monitoramento", id)
 	}
-
-	switch current.Status {
-	case shared.StatusPending, shared.StatusApproved:
-		return nil, apperror.NewInvalidStatusTransition(current.Status, "editing")
-	case shared.StatusDraft, shared.StatusRejected:
-		if role == shared.RoleTech && current.CreatedBy != callerID {
-			return nil, apperror.NewForbidden("Você só pode editar seus próprios monitoramentos")
-		}
-	default:
-		return nil, apperror.NewInvalidStatusTransition(current.Status, "editing")
+	if err := s.policy.ValidateUpdate(current, role, callerID); err != nil {
+		return nil, err
 	}
 
 	if req.HealthStatus != nil && !validHealthStatuses[*req.HealthStatus] {
@@ -174,15 +165,8 @@ func (s *Service) SoftDelete(ctx context.Context, id string) error {
 	if m == nil {
 		return apperror.NewNotFound("monitoramento", id)
 	}
-	if m.Status != shared.StatusDraft {
-		return &apperror.AppError{
-			Code:    "UNPROCESSABLE_ENTITY",
-			Message: "Apenas monitoramentos em draft podem ser deletados",
-			Status:  422,
-		}
-	}
-	if role == shared.RoleTech && m.CreatedBy != callerID {
-		return apperror.NewForbidden("Você só pode deletar seus próprios monitoramentos")
+	if err := s.policy.ValidateSoftDelete(m, role, callerID); err != nil {
+		return err
 	}
 
 	if err := s.repo.SoftDelete(ctx, id, orgID); err != nil {
@@ -212,11 +196,8 @@ func (s *Service) Submit(ctx context.Context, id string) (*StatusResponse, error
 	if m == nil {
 		return nil, apperror.NewNotFound("monitoramento", id)
 	}
-	if m.Status != shared.StatusDraft {
-		return nil, apperror.NewInvalidStatusTransition(m.Status, shared.StatusPending)
-	}
-	if role == shared.RoleTech && m.CreatedBy != callerID {
-		return nil, apperror.NewForbidden("Você só pode submeter seus próprios monitoramentos")
+	if err := s.policy.ValidateSubmit(m, role, callerID); err != nil {
+		return nil, err
 	}
 
 	m.Status = shared.StatusPending
@@ -248,8 +229,8 @@ func (s *Service) Approve(ctx context.Context, id string) (*StatusResponse, erro
 	if m == nil {
 		return nil, apperror.NewNotFound("monitoramento", id)
 	}
-	if m.Status != shared.StatusPending {
-		return nil, apperror.NewInvalidStatusTransition(m.Status, shared.StatusApproved)
+	if err := s.policy.ValidateApprove(m); err != nil {
+		return nil, err
 	}
 
 	approver := callerID
@@ -283,8 +264,8 @@ func (s *Service) Reject(ctx context.Context, id string, req RejectRequest) (*Re
 	if m == nil {
 		return nil, apperror.NewNotFound("monitoramento", id)
 	}
-	if m.Status != shared.StatusPending {
-		return nil, apperror.NewInvalidStatusTransition(m.Status, shared.StatusRejected)
+	if err := s.policy.ValidateReject(m); err != nil {
+		return nil, err
 	}
 
 	reason := req.Reason

@@ -14,9 +14,9 @@ import (
 // --- stubs ---
 
 type stubRepo struct {
-	media           map[string]*media.Media // id → media
-	byIdempotency   map[string]*media.Media // idempotency_key → media
-	uploadedCounts  map[string]int          // asset_id → count
+	media          map[string]*media.Media // id → media
+	byIdempotency  map[string]*media.Media // idempotency_key → media
+	uploadedCounts map[string]int          // asset_id → count
 }
 
 func newStubRepo() *stubRepo {
@@ -127,6 +127,10 @@ func (s *stubAssetChecker) ExistsInOrg(_ context.Context, _, _ string) (bool, er
 type stubAuditRepo struct{}
 
 func (s *stubAuditRepo) Insert(_ context.Context, _ *audit.LogEntry) error { return nil }
+
+func (s *stubAuditRepo) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
+}
 
 // ctx com user_id e org_id preenchidos.
 func ctxWithClaims(userID, orgID string) context.Context {

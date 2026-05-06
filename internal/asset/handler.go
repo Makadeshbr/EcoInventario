@@ -33,6 +33,7 @@ func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 		Status:    r.URL.Query().Get("status"),
 		TypeID:    r.URL.Query().Get("type_id"),
 		CreatedBy: r.URL.Query().Get("created_by"),
+		QRCode:    r.URL.Query().Get("qr_code"),
 	}
 
 	result, err := h.svc.List(r.Context(), f)

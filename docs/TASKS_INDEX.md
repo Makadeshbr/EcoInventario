@@ -43,7 +43,7 @@
 - [x] **T14** Sync Engine + Media Queue + Conflitos + Perfil + Config
 
 ## Dashboard (T15–T18)
-- [ ] **T15** Setup + Layout + Auth + Home
-- [ ] **T16** Aprovação + Assets (lista + detalhes) + Mapa
-- [ ] **T17** Manejos + Monitoramentos (listas)
-- [ ] **T18** Usuários + Tipos + Auditoria + Mapa Público
+- [x] **T15** Setup + Layout + Auth + Home
+- [x] **T16** Aprovação + Assets (lista + detalhes) + Mapa
+- [x] **T17** Manejos + Monitoramentos (listas)
+- [x] **T18** Usuários + Tipos + Auditoria + Mapa Público

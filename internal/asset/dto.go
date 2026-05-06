@@ -34,6 +34,7 @@ type ListFilters struct {
 	Status       string
 	TypeID       string
 	CreatedBy    string
+	QRCode       string
 	OnlyApproved bool
 	Cursor       string
 	Limit        int

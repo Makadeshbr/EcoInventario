@@ -25,6 +25,7 @@ type mockRepo struct {
 	deleteErr     error
 	deleteCalls   int
 	listResult    []*monitoramento.Monitoramento
+	listFilters   monitoramento.ListFilters
 }
 
 func (m *mockRepo) FindByID(_ context.Context, _, _ string) (*monitoramento.Monitoramento, error) {
@@ -58,7 +59,8 @@ func (m *mockRepo) SoftDelete(_ context.Context, _, _ string) error {
 	return m.deleteErr
 }
 
-func (m *mockRepo) List(_ context.Context, _ monitoramento.ListFilters) ([]*monitoramento.Monitoramento, error) {
+func (m *mockRepo) List(_ context.Context, filters monitoramento.ListFilters) ([]*monitoramento.Monitoramento, error) {
+	m.listFilters = filters
 	return m.listResult, nil
 }
 
@@ -71,6 +73,10 @@ func (m *mockAsset) ExistsInOrg(_ context.Context, _, _ string) (bool, error) {
 type noopAuditRepo struct{}
 
 func (n *noopAuditRepo) Insert(_ context.Context, _ *audit.LogEntry) error { return nil }
+
+func (n *noopAuditRepo) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
+}
 
 func newSvc(repo monitoramento.Repository) *monitoramento.Service {
 	return monitoramento.NewService(repo, &mockAsset{exists: true}, audit.NewService(&noopAuditRepo{}))
@@ -371,6 +377,37 @@ func TestList(t *testing.T) {
 		}
 		if len(result.Data) != 2 {
 			t.Errorf("len: got %d", len(result.Data))
+		}
+	})
+
+	t.Run("propaga filtros operacionais para o repositorio", func(t *testing.T) {
+		repo := &mockRepo{listResult: []*monitoramento.Monitoramento{}}
+		svc := newSvc(repo)
+
+		_, err := svc.List(adminCtx("admin-1", "org-1"), monitoramento.ListFilters{
+			AssetID:      "a-1",
+			Status:       shared.StatusPending,
+			HealthStatus: shared.HealthWarning,
+			CreatedBy:    "tech-1",
+			CreatedFrom:  "2026-05-03",
+			CreatedTo:    "2026-05-03",
+			Cursor:       "mon-0",
+			Limit:        20,
+		})
+		if err != nil {
+			t.Fatalf("erro: %v", err)
+		}
+		if repo.listFilters.OrgID != "org-1" || repo.listFilters.AssetID != "a-1" {
+			t.Fatalf("filtros base: %+v", repo.listFilters)
+		}
+		if repo.listFilters.Status != shared.StatusPending || repo.listFilters.HealthStatus != shared.HealthWarning {
+			t.Fatalf("filtros de status: %+v", repo.listFilters)
+		}
+		if repo.listFilters.CreatedBy != "tech-1" || repo.listFilters.CreatedFrom != "2026-05-03" || repo.listFilters.CreatedTo != "2026-05-03" {
+			t.Fatalf("filtros operacionais: %+v", repo.listFilters)
+		}
+		if repo.listFilters.Cursor != "mon-0" || repo.listFilters.Limit != 21 {
+			t.Fatalf("paginacao: %+v", repo.listFilters)
 		}
 	})
 }

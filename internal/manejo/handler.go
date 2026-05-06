@@ -3,6 +3,7 @@ package manejo
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/allan/ecoinventario/internal/shared/pagination"
 	"github.com/allan/ecoinventario/internal/shared/response"
@@ -26,17 +27,56 @@ func NewHandler(svc *Service) *Handler {
 func (h *Handler) HandleList(w http.ResponseWriter, r *http.Request) {
 	assetID := chi.URLParam(r, "asset_id")
 	p := pagination.ParseCursorParams(r)
+	q := r.URL.Query()
+	createdFrom, createdTo, err := parseDateFilters(q.Get("date"), q.Get("from"), q.Get("to"))
+	if err != nil {
+		response.BadRequest(w, r, "Filtro de data invalido")
+		return
+	}
 
 	result, err := h.svc.List(r.Context(), ListFilters{
-		AssetID: assetID,
-		Cursor:  p.Cursor,
-		Limit:   p.Limit,
+		AssetID:     firstNonEmpty(assetID, q.Get("asset_id")),
+		Status:      q.Get("status"),
+		CreatedBy:   q.Get("created_by"),
+		CreatedFrom: createdFrom,
+		CreatedTo:   createdTo,
+		Cursor:      p.Cursor,
+		Limit:       p.Limit,
 	})
 	if err != nil {
 		response.HandleError(w, r, err)
 		return
 	}
 	response.JSON(w, http.StatusOK, result)
+}
+
+func parseDateFilters(dateValue, fromValue, toValue string) (string, string, error) {
+	if dateValue != "" {
+		if _, err := time.Parse("2006-01-02", dateValue); err != nil {
+			return "", "", err
+		}
+		return dateValue, dateValue, nil
+	}
+	if fromValue != "" {
+		if _, err := time.Parse("2006-01-02", fromValue); err != nil {
+			return "", "", err
+		}
+	}
+	if toValue != "" {
+		if _, err := time.Parse("2006-01-02", toValue); err != nil {
+			return "", "", err
+		}
+	}
+	return fromValue, toValue, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 // HandleGet processa GET /api/v1/manejos/{id}.

@@ -25,6 +25,7 @@ type mockRepo struct {
 	deleteErr     error
 	deleteCalls   int
 	listResult    []*manejo.Manejo
+	listFilters   manejo.ListFilters
 }
 
 func (m *mockRepo) FindByID(_ context.Context, _, _ string) (*manejo.Manejo, error) {
@@ -58,7 +59,8 @@ func (m *mockRepo) SoftDelete(_ context.Context, _, _ string) error {
 	return m.deleteErr
 }
 
-func (m *mockRepo) List(_ context.Context, _ manejo.ListFilters) ([]*manejo.Manejo, error) {
+func (m *mockRepo) List(_ context.Context, filters manejo.ListFilters) ([]*manejo.Manejo, error) {
+	m.listFilters = filters
 	return m.listResult, nil
 }
 
@@ -77,6 +79,10 @@ func (m *mockMedia) BelongsToAsset(_ context.Context, _, _, _ string) (bool, err
 type noopAuditRepo struct{}
 
 func (n *noopAuditRepo) Insert(_ context.Context, _ *audit.LogEntry) error { return nil }
+
+func (n *noopAuditRepo) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
+}
 
 func newSvc(repo manejo.Repository) *manejo.Service {
 	return manejo.NewService(repo, &mockAsset{exists: true}, &mockMedia{belongs: true}, audit.NewService(&noopAuditRepo{}))
@@ -406,6 +412,36 @@ func TestList(t *testing.T) {
 		}
 		if len(result.Data) != 2 {
 			t.Errorf("len: got %d", len(result.Data))
+		}
+	})
+
+	t.Run("propaga filtros operacionais para o repositorio", func(t *testing.T) {
+		repo := &mockRepo{listResult: []*manejo.Manejo{}}
+		svc := newSvc(repo)
+
+		_, err := svc.List(adminCtx("admin-1", "org-1"), manejo.ListFilters{
+			AssetID:     "a-1",
+			Status:      shared.StatusPending,
+			CreatedBy:   "tech-1",
+			CreatedFrom: "2026-05-03",
+			CreatedTo:   "2026-05-03",
+			Cursor:      "m-0",
+			Limit:       20,
+		})
+		if err != nil {
+			t.Fatalf("erro: %v", err)
+		}
+		if repo.listFilters.OrgID != "org-1" || repo.listFilters.AssetID != "a-1" {
+			t.Fatalf("filtros base: %+v", repo.listFilters)
+		}
+		if repo.listFilters.Status != shared.StatusPending || repo.listFilters.CreatedBy != "tech-1" {
+			t.Fatalf("filtros operacionais: %+v", repo.listFilters)
+		}
+		if repo.listFilters.CreatedFrom != "2026-05-03" || repo.listFilters.CreatedTo != "2026-05-03" {
+			t.Fatalf("filtro de data: %+v", repo.listFilters)
+		}
+		if repo.listFilters.Cursor != "m-0" || repo.listFilters.Limit != 21 {
+			t.Fatalf("paginacao: %+v", repo.listFilters)
 		}
 	})
 }

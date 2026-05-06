@@ -103,6 +103,10 @@ type noopAuditRepo struct{}
 
 func (n *noopAuditRepo) Insert(_ context.Context, _ *audit.LogEntry) error { return nil }
 
+func (n *noopAuditRepo) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
+}
+
 func newSvc(repo asset.Repository, types asset.AssetTypeChecker) *asset.Service {
 	auditSvc := audit.NewService(&noopAuditRepo{})
 	// Default: possui mídia — não bloqueia submit nos testes existentes.
@@ -429,6 +433,15 @@ func TestApprove(t *testing.T) {
 		_, err := svc.Approve(adminCtx("admin-1", "org-1"), "a-1")
 		assertStatus(t, err, 409)
 	})
+
+	t.Run("TECH não pode aprovar mesmo com asset pending", func(t *testing.T) {
+		existing := &asset.Asset{ID: "a-1", Status: shared.StatusPending}
+		repo := &mockRepo{stored: existing}
+		svc := newSvc(repo, &mockTypeChecker{exists: true})
+
+		_, err := svc.Approve(techCtx("tech-1", "org-1"), "a-1")
+		assertStatus(t, err, 403)
+	})
 }
 
 func TestReject(t *testing.T) {
@@ -456,6 +469,15 @@ func TestReject(t *testing.T) {
 
 		_, err := svc.Reject(adminCtx("admin-1", "org-1"), "a-1", asset.RejectRequest{Reason: "x"})
 		assertStatus(t, err, 409)
+	})
+
+	t.Run("TECH não pode rejeitar mesmo com asset pending", func(t *testing.T) {
+		existing := &asset.Asset{ID: "a-1", Status: shared.StatusPending}
+		repo := &mockRepo{stored: existing}
+		svc := newSvc(repo, &mockTypeChecker{exists: true})
+
+		_, err := svc.Reject(techCtx("tech-1", "org-1"), "a-1", asset.RejectRequest{Reason: "x"})
+		assertStatus(t, err, 403)
 	})
 }
 

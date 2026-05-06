@@ -55,6 +55,10 @@ type noopAuditRepo struct{}
 
 func (n *noopAuditRepo) Insert(_ context.Context, _ *audit.LogEntry) error { return nil }
 
+func (n *noopAuditRepo) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
+}
+
 func newTestService(t *testing.T, repo auth.Repository) *auth.Service {
 	t.Helper()
 	pub, priv, _ := ed25519.GenerateKey(rand.Reader)

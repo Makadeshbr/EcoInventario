@@ -197,6 +197,11 @@ func (r *repository) List(ctx context.Context, f ListFilters) ([]*Asset, error) 
 	if f.CreatedBy != "" {
 		conditions = append(conditions, fmt.Sprintf("a.created_by = $%d", n))
 		args = append(args, f.CreatedBy)
+		n++
+	}
+	if f.QRCode != "" {
+		conditions = append(conditions, fmt.Sprintf("a.qr_code ILIKE $%d", n))
+		args = append(args, "%"+f.QRCode+"%")
 	}
 
 	query := selectWithRefs + fmt.Sprintf(`

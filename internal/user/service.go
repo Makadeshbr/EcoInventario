@@ -18,11 +18,12 @@ type Service struct {
 	repo   Repository
 	audit  *audit.Service
 	pepper string
+	policy adminMutationPolicy
 }
 
 // NewService cria o serviço de usuários.
 func NewService(repo Repository, auditSvc *audit.Service, pepper string) *Service {
-	return &Service{repo: repo, audit: auditSvc, pepper: pepper}
+	return &Service{repo: repo, audit: auditSvc, pepper: pepper, policy: adminMutationPolicy{}}
 }
 
 // Create cria um novo usuário na organização do admin autenticado.
@@ -98,6 +99,10 @@ func (s *Service) Update(ctx context.Context, id string, req UpdateRequest) (*Us
 		return nil, apperror.NewNotFound("user", id)
 	}
 
+	if err := s.ensureAdminUpdateAllowed(ctx, orgID, callerID, u, req); err != nil {
+		return nil, err
+	}
+
 	changes := map[string]any{}
 	if req.Name != nil {
 		changes["name"] = map[string]string{"old": u.Name, "new": *req.Name}
@@ -142,6 +147,10 @@ func (s *Service) SoftDelete(ctx context.Context, id string) error {
 		return apperror.NewNotFound("user", id)
 	}
 
+	if err := s.ensureAdminDeleteAllowed(ctx, orgID, callerID, u); err != nil {
+		return err
+	}
+
 	if err := s.repo.SoftDelete(ctx, id, orgID); err != nil {
 		return fmt.Errorf("deletando usuário: %w", err)
 	}
@@ -182,6 +191,36 @@ func (s *Service) List(ctx context.Context, f ListFilters) (response.Paginated[U
 	return response.NewPaginated(resps, f.Limit, func(u UserResponse) string {
 		return u.ID
 	}), nil
+}
+
+func (s *Service) ensureAdminUpdateAllowed(ctx context.Context, orgID, callerID string, u *User, req UpdateRequest) error {
+	if err := s.policy.ValidateSelfUpdate(callerID, u, req); err != nil {
+		return err
+	}
+	if !s.policy.UpdateRequiresOtherActiveAdmin(u, req) {
+		return nil
+	}
+
+	hasOtherAdmin, err := s.repo.HasOtherActiveAdmin(ctx, orgID, u.ID)
+	if err != nil {
+		return fmt.Errorf("verificando admins ativos: %w", err)
+	}
+	return s.policy.ValidateOrganizationKeepsAdmin(hasOtherAdmin)
+}
+
+func (s *Service) ensureAdminDeleteAllowed(ctx context.Context, orgID, callerID string, u *User) error {
+	if err := s.policy.ValidateSelfDelete(callerID, u); err != nil {
+		return err
+	}
+	if !s.policy.DeleteRequiresOtherActiveAdmin(u) {
+		return nil
+	}
+
+	hasOtherAdmin, err := s.repo.HasOtherActiveAdmin(ctx, orgID, u.ID)
+	if err != nil {
+		return fmt.Errorf("verificando admins ativos: %w", err)
+	}
+	return s.policy.ValidateOrganizationKeepsAdmin(hasOtherAdmin)
 }
 
 func mustMarshal(v any) json.RawMessage {

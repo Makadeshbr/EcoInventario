@@ -168,10 +168,11 @@ func (s *Service) Logout(ctx context.Context, req LogoutRequest) error {
 	}
 
 	s.audit.Log(ctx, audit.Entry{
-		EntityType:  "user",
-		EntityID:    rt.UserID,
-		Action:      "logout",
-		PerformedBy: rt.UserID,
+		OrganizationID: shared.GetOrgID(ctx),
+		EntityType:     "user",
+		EntityID:       rt.UserID,
+		Action:         "logout",
+		PerformedBy:    rt.UserID,
 	})
 
 	return nil

@@ -26,6 +26,10 @@ type RejectRequest struct {
 type ListFilters struct {
 	OrgID        string
 	AssetID      string
+	Status       string
+	CreatedBy    string
+	CreatedFrom  string
+	CreatedTo    string
 	OnlyApproved bool
 	Cursor       string
 	Limit        int

@@ -15,6 +15,7 @@ type Repository interface {
 	Insert(ctx context.Context, u *User) error
 	Update(ctx context.Context, u *User) error
 	SoftDelete(ctx context.Context, id, orgID string) error
+	HasOtherActiveAdmin(ctx context.Context, orgID, excludeUserID string) (bool, error)
 	List(ctx context.Context, f ListFilters) ([]*User, error)
 }
 
@@ -86,6 +87,26 @@ func (r *repository) SoftDelete(ctx context.Context, id, orgID string) error {
 		return fmt.Errorf("usuário não encontrado")
 	}
 	return nil
+}
+
+func (r *repository) HasOtherActiveAdmin(ctx context.Context, orgID, excludeUserID string) (bool, error) {
+	query := `
+		SELECT EXISTS (
+			SELECT 1
+			FROM users
+			WHERE organization_id = $1
+				AND id <> $2
+				AND role = 'admin'
+				AND is_active = true
+				AND deleted_at IS NULL
+		)
+	`
+
+	var exists bool
+	if err := r.db.QueryRowContext(ctx, query, orgID, excludeUserID).Scan(&exists); err != nil {
+		return false, fmt.Errorf("verificando outro admin ativo: %w", err)
+	}
+	return exists, nil
 }
 
 func (r *repository) List(ctx context.Context, f ListFilters) ([]*User, error) {

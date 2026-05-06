@@ -13,13 +13,15 @@ import (
 // --- mocks ---
 
 type mockUserRepo struct {
-	stored     *user.User
-	findErr    error
-	insertErr  error
-	updateErr  error
-	deleteErr  error
-	emailExists bool
-	list       []*user.User
+	stored              *user.User
+	findErr             error
+	insertErr           error
+	updateErr           error
+	deleteErr           error
+	emailExists         bool
+	hasOtherActiveAdmin bool
+	hasOtherAdminErr    error
+	list                []*user.User
 }
 
 func (m *mockUserRepo) FindByID(_ context.Context, id, orgID string) (*user.User, error) {
@@ -46,6 +48,10 @@ func (m *mockUserRepo) SoftDelete(_ context.Context, id, orgID string) error {
 	return m.deleteErr
 }
 
+func (m *mockUserRepo) HasOtherActiveAdmin(_ context.Context, orgID, excludeUserID string) (bool, error) {
+	return m.hasOtherActiveAdmin, m.hasOtherAdminErr
+}
+
 func (m *mockUserRepo) List(_ context.Context, f user.ListFilters) ([]*user.User, error) {
 	return m.list, nil
 }
@@ -53,6 +59,10 @@ func (m *mockUserRepo) List(_ context.Context, f user.ListFilters) ([]*user.User
 type noopAudit struct{}
 
 func (n *noopAudit) Insert(_ context.Context, _ *audit.LogEntry) error { return nil }
+
+func (n *noopAudit) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
+}
 
 func newTestSvc(repo user.Repository) *user.Service {
 	auditSvc := audit.NewService(&noopAudit{})
@@ -128,6 +138,7 @@ func TestUserServiceGetByID(t *testing.T) {
 		}
 		assertAppError(t, err, 404)
 	})
+
 }
 
 func TestUserServiceUpdate(t *testing.T) {
@@ -159,6 +170,66 @@ func TestUserServiceUpdate(t *testing.T) {
 		}
 		assertAppError(t, err, 404)
 	})
+
+	t.Run("bloqueia admin auto desativar", func(t *testing.T) {
+		repo := &mockUserRepo{
+			stored: &user.User{ID: "admin-id", Name: "Admin", Email: "admin@t.com", Role: shared.RoleAdmin, IsActive: true},
+		}
+		svc := newTestSvc(repo)
+
+		inactive := false
+		_, err := svc.Update(ctx, "admin-id", user.UpdateRequest{IsActive: &inactive})
+		if err == nil {
+			t.Fatal("esperava erro")
+		}
+		assertAppError(t, err, 403)
+	})
+
+	t.Run("bloqueia admin auto rebaixar role", func(t *testing.T) {
+		repo := &mockUserRepo{
+			stored: &user.User{ID: "admin-id", Name: "Admin", Email: "admin@t.com", Role: shared.RoleAdmin, IsActive: true},
+		}
+		svc := newTestSvc(repo)
+
+		role := shared.RoleTech
+		_, err := svc.Update(ctx, "admin-id", user.UpdateRequest{Role: &role})
+		if err == nil {
+			t.Fatal("esperava erro")
+		}
+		assertAppError(t, err, 403)
+	})
+
+	t.Run("bloqueia desativar ultimo admin ativo da org", func(t *testing.T) {
+		repo := &mockUserRepo{
+			stored:              &user.User{ID: "other-admin", Name: "Admin", Email: "admin@t.com", Role: shared.RoleAdmin, IsActive: true},
+			hasOtherActiveAdmin: false,
+		}
+		svc := newTestSvc(repo)
+
+		inactive := false
+		_, err := svc.Update(ctx, "other-admin", user.UpdateRequest{IsActive: &inactive})
+		if err == nil {
+			t.Fatal("esperava erro")
+		}
+		assertAppError(t, err, 403)
+	})
+
+	t.Run("permite desativar admin quando existe outro admin ativo", func(t *testing.T) {
+		repo := &mockUserRepo{
+			stored:              &user.User{ID: "other-admin", Name: "Admin", Email: "admin@t.com", Role: shared.RoleAdmin, IsActive: true},
+			hasOtherActiveAdmin: true,
+		}
+		svc := newTestSvc(repo)
+
+		inactive := false
+		resp, err := svc.Update(ctx, "other-admin", user.UpdateRequest{IsActive: &inactive})
+		if err != nil {
+			t.Fatalf("erro inesperado: %v", err)
+		}
+		if resp.IsActive {
+			t.Fatal("esperava usuario inativo")
+		}
+	})
 }
 
 func TestUserServiceSoftDelete(t *testing.T) {
@@ -182,6 +253,31 @@ func TestUserServiceSoftDelete(t *testing.T) {
 			t.Fatal("esperava erro")
 		}
 		assertAppError(t, err, 404)
+	})
+
+	t.Run("bloqueia admin deletar a si mesmo", func(t *testing.T) {
+		repo := &mockUserRepo{stored: &user.User{ID: "admin-id", Role: shared.RoleAdmin, IsActive: true}}
+		svc := newTestSvc(repo)
+
+		err := svc.SoftDelete(ctx, "admin-id")
+		if err == nil {
+			t.Fatal("esperava erro")
+		}
+		assertAppError(t, err, 403)
+	})
+
+	t.Run("bloqueia deletar ultimo admin ativo da org", func(t *testing.T) {
+		repo := &mockUserRepo{
+			stored:              &user.User{ID: "other-admin", Role: shared.RoleAdmin, IsActive: true},
+			hasOtherActiveAdmin: false,
+		}
+		svc := newTestSvc(repo)
+
+		err := svc.SoftDelete(ctx, "other-admin")
+		if err == nil {
+			t.Fatal("esperava erro")
+		}
+		assertAppError(t, err, 403)
 	})
 }
 

@@ -194,6 +194,42 @@ func (s *Service) GetByID(ctx context.Context, id string) (*GetResponse, error) 
 	}, nil
 }
 
+func (s *Service) ListByAsset(ctx context.Context, assetID string) ([]GetResponse, error) {
+	orgID := shared.GetOrgID(ctx)
+
+	exists, err := s.assetRepo.ExistsInOrg(ctx, assetID, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("verificando asset: %w", err)
+	}
+	if !exists {
+		return nil, apperror.NewNotFound("asset", assetID)
+	}
+
+	items, err := s.repo.ListByAsset(ctx, assetID, orgID)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]GetResponse, 0, len(items))
+	for _, m := range items {
+		url, err := s.s3.GeneratePresignedGetURL(ctx, m.StorageBucket, m.StorageKey)
+		if err != nil {
+			return nil, fmt.Errorf("gerando URL de acesso: %w", err)
+		}
+		out = append(out, GetResponse{
+			ID:           m.ID,
+			AssetID:      m.AssetID,
+			Type:         m.Type,
+			MimeType:     m.MimeType,
+			SizeBytes:    m.SizeBytes,
+			UploadStatus: m.UploadStatus,
+			URL:          url,
+			CreatedAt:    m.CreatedAt,
+		})
+	}
+	return out, nil
+}
+
 // SoftDelete marca a media como deletada e registra no audit log.
 func (s *Service) SoftDelete(ctx context.Context, id string) error {
 	orgID := shared.GetOrgID(ctx)

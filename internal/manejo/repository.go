@@ -129,6 +129,21 @@ func (r *repository) List(ctx context.Context, f ListFilters) ([]*Manejo, error)
 		args = append(args, f.AssetID)
 		n++
 	}
+	if f.CreatedBy != "" {
+		conditions = append(conditions, fmt.Sprintf("m.created_by = $%d", n))
+		args = append(args, f.CreatedBy)
+		n++
+	}
+	if f.CreatedFrom != "" {
+		conditions = append(conditions, fmt.Sprintf("m.created_at >= $%d::date", n))
+		args = append(args, f.CreatedFrom)
+		n++
+	}
+	if f.CreatedTo != "" {
+		conditions = append(conditions, fmt.Sprintf("m.created_at < ($%d::date + INTERVAL '1 day')", n))
+		args = append(args, f.CreatedTo)
+		n++
+	}
 	if f.Cursor != "" {
 		conditions = append(conditions, fmt.Sprintf(
 			"(m.created_at, m.id) < (SELECT created_at, id FROM manejos WHERE id = $%d AND organization_id = $2 AND deleted_at IS NULL)",
@@ -139,9 +154,12 @@ func (r *repository) List(ctx context.Context, f ListFilters) ([]*Manejo, error)
 	}
 	if f.OnlyApproved {
 		conditions = append(conditions, "m.status = 'approved'")
+	} else if f.Status != "" {
+		conditions = append(conditions, fmt.Sprintf("m.status = $%d", n))
+		args = append(args, f.Status)
+		n++
 	}
 
-	_ = n
 	query := selectWithRefs + fmt.Sprintf(`
 		WHERE %s
 		ORDER BY m.created_at DESC, m.id DESC
