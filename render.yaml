@@ -1,40 +1,54 @@
 # Blueprint para Infraestrutura as Code no Render
+# Deploy: Render Dashboard → New → Blueprint → aponta para este repo
 databases:
   - name: ecoinventario-db
-    plan: free # Grátis por 90 dias
+    plan: free        # Grátis por 90 dias → depois migrar para Starter (US$7/mês)
     databaseName: ecoinventario
     user: admin
 
 services:
   - type: web
     name: ecoinventario-api
-    env: docker # Usa o nosso Dockerfile
-    plan: free # Grátis para sempre
+    env: docker       # Usa o Dockerfile na raiz do projeto
+    plan: free        # Free dorme após 15min — use Starter para produção real
     region: ohio
-    # O Render injeta a string de conexão do banco criado acima automaticamente
     envVars:
+      # ── Banco ── injetado automaticamente pelo Render a partir do DB acima
       - key: DATABASE_URL
         fromDatabase:
           name: ecoinventario-db
           property: connectionString
+
+      # ── Servidor ──
       - key: PORT
         value: "8080"
-      - key: ENVIRONMENT
+      - key: ENV                 # CORRIGIDO: era ENVIRONMENT (não lido pelo config.go)
         value: "production"
       - key: CORS_ALLOWED_ORIGINS
-        value: "*" # Liberado para mobile, depois restringimos para o PWA
-      # Variáveis que você vai preencher lá no painel (não ficam no git)
-      - key: JWT_SECRET
+        value: "*"               # Restringir após ter domínio fixo
+
+      # ── Segredos — preencher no painel Render (não entram no git) ──
+      - key: PASSWORD_PEPPER     # NOVO: era obrigatório no config.go mas faltava
         sync: false
+      - key: JWT_PRIVATE_KEY     # CORRIGIDO: era JWT_SECRET (nome errado)
+        sync: false
+      - key: JWT_PUBLIC_KEY      # NOVO: segundo campo JWT necessário
+        sync: false
+
+      # ── Cloudflare R2 — Storage de fotos ──
+      - key: S3_ENDPOINT
+        value: "https://a0dfe69527698ceea44f843cada5a1bc.r2.cloudflarestorage.com"
       - key: S3_BUCKET
-        sync: false
+        value: "ecoinventario-fotos"
       - key: S3_REGION
-        sync: false
+        value: "auto"
+      - key: S3_USE_PATH_STYLE
+        value: "true"
+      # Chaves secretas do R2 — preencher no painel Render
       - key: S3_ACCESS_KEY
         sync: false
       - key: S3_SECRET_KEY
         sync: false
-      - key: S3_ENDPOINT
-        sync: false
+      # URL pública das fotos (gerada pelo R2 Public Development URL)
       - key: S3_PUBLIC_URL
-        sync: false
+        value: "https://pub-e667c7b07d814a0fbfc119e9772b7cf0.r2.dev"
