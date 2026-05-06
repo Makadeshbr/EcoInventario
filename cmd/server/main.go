@@ -25,6 +25,7 @@ import (
 	"github.com/allan/ecoinventario/internal/organization"
 	"github.com/allan/ecoinventario/internal/public"
 	"github.com/allan/ecoinventario/internal/shared"
+	"github.com/allan/ecoinventario/internal/stats"
 	syncsvc "github.com/allan/ecoinventario/internal/sync"
 	"github.com/allan/ecoinventario/internal/user"
 	"github.com/go-chi/chi/v5"
@@ -268,6 +269,7 @@ func main() {
 	idempotencyRepo := syncsvc.NewIdempotencyRepository(db)
 	syncRepo := syncsvc.NewSyncRepository(db)
 	publicRepo := public.NewRepository(db)
+	statsRepo := stats.NewRepository(db)
 
 	// Services
 	auditSvc := audit.NewService(auditRepo)
@@ -296,8 +298,12 @@ func main() {
 	userSvc := user.NewService(userRepo, auditSvc, cfg.PasswordPepper)
 	assetTypeSvc := assettype.NewService(assetTypeRepo, auditSvc)
 
-	// S3 client — useSSL=false para MinIO local; em produção AWS use true.
-	useSSL := !strings.EqualFold(cfg.S3UsePathStyle, "true")
+	// S3 client — sempre use SSL em produção. Desabilite apenas para MinIO local se necessário.
+	// Cloudflare R2 e AWS usam HTTPS obrigatório.
+	useSSL := true // força SSL para Cloudflare R2
+	if cfg.Env == "development" && strings.Contains(cfg.S3Endpoint, "localhost") {
+		useSSL = false
+	}
 	s3Client, err := media.NewS3Client(cfg.S3Endpoint, cfg.S3AccessKey, cfg.S3SecretKey, useSSL)
 	if err != nil {
 		log.Fatal("falha ao inicializar cliente S3:", err)
@@ -336,6 +342,7 @@ func main() {
 	)
 
 	publicSvc := public.NewService(publicRepo, s3Client, cfg.S3Bucket)
+	statsSvc := stats.NewService(statsRepo)
 	healthHandler := health.NewHandler(db, &s3Pinger{client: s3Client, bucket: cfg.S3Bucket})
 
 	// Rate limiters (sliding window in-memory)
@@ -363,6 +370,7 @@ func main() {
 
 	// Handlers
 	authHandler := auth.NewHandler(authSvc)
+	auditHandler := audit.NewHandler(auditSvc)
 	userHandler := user.NewHandler(userSvc)
 	assetTypeHandler := assettype.NewHandler(assetTypeSvc)
 	assetHandler := asset.NewHandler(assetSvc)
@@ -371,6 +379,7 @@ func main() {
 	monitoramentoHandler := monitoramento.NewHandler(monitoramentoSvc)
 	syncHandler := syncsvc.NewHandler(syncSvc)
 	publicHandler := public.NewHandler(publicSvc)
+	statsHandler := stats.NewHandler(statsSvc)
 
 	// Router
 	r := chi.NewRouter()
@@ -422,6 +431,7 @@ func main() {
 				r.Get("/nearby", assetHandler.HandleNearby)
 				r.Get("/{id}", assetHandler.HandleGet)
 				r.Get("/{id}/history", assetHandler.HandleHistory)
+				r.Get("/{asset_id}/media", mediaHandler.HandleListByAsset)
 				r.Get("/{asset_id}/manejos", manejoHandler.HandleList)
 				r.Get("/{asset_id}/monitoramentos", monitoramentoHandler.HandleList)
 
@@ -440,8 +450,10 @@ func main() {
 				})
 			})
 
+			r.Get("/manejos", manejoHandler.HandleList)
 			// Manejos — leitura para todos, escrita para tech/admin, aprovação para admin.
 			r.Route("/manejos", func(r chi.Router) {
+				r.Get("/", manejoHandler.HandleList)
 				r.Get("/{id}", manejoHandler.HandleGet)
 
 				r.Group(func(r chi.Router) {
@@ -459,8 +471,10 @@ func main() {
 				})
 			})
 
+			r.Get("/monitoramentos", monitoramentoHandler.HandleList)
 			// Monitoramentos — leitura para todos, escrita para tech/admin, aprovação para admin.
 			r.Route("/monitoramentos", func(r chi.Router) {
+				r.Get("/", monitoramentoHandler.HandleList)
 				r.Get("/{id}", monitoramentoHandler.HandleGet)
 
 				r.Group(func(r chi.Router) {
@@ -498,6 +512,12 @@ func main() {
 					r.Delete("/{id}", mediaHandler.HandleDelete)
 				})
 			})
+
+			// Stats: home do dashboard; service restringe viewer a approved.
+			r.Get("/stats", statsHandler.HandleDashboard)
+
+			// Audit logs — ADMIN only.
+			r.With(middleware.RequireRole(shared.RoleAdmin)).Get("/audit-logs", auditHandler.HandleList)
 		})
 
 		// Health check — público, sem auth.
