@@ -1,7 +1,7 @@
 import { getDb } from '@/db/database';
 import { generateUUID } from '@/utils/uuid';
 import { enqueueSyncItem } from '@/features/assets/repository';
-import type { SyncAction } from '@/types/sync';
+import type * as SQLite from 'expo-sqlite';
 import { SyncEngine } from './sync-engine';
 
 export interface ConflictRecord {
@@ -91,7 +91,12 @@ export async function resolveConflictForceLocal(conflictId: string): Promise<voi
   SyncEngine.sync({ force: true });
 }
 
-async function markConflictResolved(db: any, conflictId: string, entityType: string, entityId: string) {
+async function markConflictResolved(
+  db: SQLite.SQLiteDatabase,
+  conflictId: string,
+  entityType: string,
+  entityId: string,
+): Promise<void> {
   // Marca o conflito como resolvido
   await db.runAsync(`UPDATE sync_conflicts SET resolved_at = ? WHERE id = ?`, [new Date().toISOString(), conflictId]);
   

@@ -7,6 +7,7 @@ import {
   getRecentAssets,
   getAssets,
   getAssetById,
+  getAssetByQR,
   countAssetsByStatus,
   countUnsyncedAssets,
   insertAsset,
@@ -24,6 +25,10 @@ const mockDb = {
   getFirstAsync: jest.fn(),
   runAsync: jest.fn(),
 };
+
+function expectExplicitProjection(sql: string): void {
+  expect(sql).not.toMatch(/\bSELECT\s+\*/i);
+}
 
 const assetRow = {
   id: 'a-1',
@@ -57,6 +62,7 @@ describe('getRecentAssets', () => {
     mockDb.getAllAsync.mockResolvedValue([]);
     await getRecentAssets(5);
     const [sql, params] = mockDb.getAllAsync.mock.calls[0];
+    expectExplicitProjection(sql);
     expect(sql).toContain('ORDER BY created_at DESC LIMIT');
     expect(params).toContain(5);
   });
@@ -82,6 +88,7 @@ describe('getAssets', () => {
     mockDb.getAllAsync.mockResolvedValue([]);
     await getAssets();
     const [sql, params] = mockDb.getAllAsync.mock.calls[0];
+    expectExplicitProjection(sql);
     expect(sql).toContain('deleted_at IS NULL');
     expect(params).toHaveLength(0);
   });
@@ -128,7 +135,20 @@ describe('getAssetById', () => {
     mockDb.getFirstAsync.mockResolvedValue(null);
     await getAssetById('a-1');
     const [sql] = mockDb.getFirstAsync.mock.calls[0];
+    expectExplicitProjection(sql);
     expect(sql).toContain('deleted_at IS NULL');
+  });
+});
+
+describe('getAssetByQR', () => {
+  test('usa projecao explicita e filtra por qr_code', async () => {
+    mockDb.getFirstAsync.mockResolvedValue(null);
+    await getAssetByQR('qr-1');
+    const [sql, params] = mockDb.getFirstAsync.mock.calls[0];
+    expectExplicitProjection(sql);
+    expect(sql).toContain('qr_code = ?');
+    expect(sql).toContain('deleted_at IS NULL');
+    expect(params).toContain('qr-1');
   });
 });
 
@@ -209,6 +229,7 @@ describe('getAssetTypes', () => {
     mockDb.getAllAsync.mockResolvedValue([]);
     await getAssetTypes();
     const [sql] = mockDb.getAllAsync.mock.calls[0];
+    expectExplicitProjection(sql);
     expect(sql).toContain('is_active = 1');
     expect(sql).toContain('ORDER BY name ASC');
   });
@@ -277,6 +298,7 @@ describe('getMediaForAsset', () => {
     mockDb.getAllAsync.mockResolvedValue([]);
     await getMediaForAsset('a-1');
     const [sql, params] = mockDb.getAllAsync.mock.calls[0];
+    expectExplicitProjection(sql);
     expect(sql).toContain('asset_id = ?');
     expect(sql).toContain('deleted_at IS NULL');
     expect(params).toContain('a-1');

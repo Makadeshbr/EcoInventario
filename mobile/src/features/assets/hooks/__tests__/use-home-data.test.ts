@@ -5,8 +5,10 @@ jest.mock('expo-router', () => ({
 
 jest.mock('@/db/database', () => ({ getDb: jest.fn() }));
 
-jest.mock('../../sync-lite', () => ({
-  syncPullLite: jest.fn().mockResolvedValue(undefined),
+jest.mock('@/sync/sync-engine', () => ({
+  SyncEngine: {
+    sync: jest.fn().mockResolvedValue(undefined),
+  },
 }));
 
 const mockAssets = [

@@ -13,11 +13,14 @@ import { MapFilters } from '@/components/map/MapFilters';
 import { MapMarker } from '@/components/map/MapMarker';
 import { useMapClusters, type ClusterItem } from '@/hooks/use-map-clusters';
 
+// Região inicial cobre o Sudeste do Brasil — delta grande garante que a
+// primeira query inclui assets cadastrados na região SP/RJ/MG antes de
+// centralizar no GPS do usuário.
 const INITIAL_REGION: Region = {
-  latitude: -15.77,
-  longitude: -47.93,
-  latitudeDelta: 0.1, // Zoom maior inicialmente para ver Brasília melhor
-  longitudeDelta: 0.1,
+  latitude: -22.0,
+  longitude: -47.5,
+  latitudeDelta: 8.0,
+  longitudeDelta: 8.0,
 };
 
 const BOUNDS_DEBOUNCE_MS = 400; // Reduzido para ser mais responsivo
@@ -86,11 +89,13 @@ export default function MapExplorarScreen() {
     Location.requestForegroundPermissionsAsync().then(({ status }) => {
       if (status !== 'granted') return;
       Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).then((loc) => {
+        // Não sobrescreve se fitToCoordinates já centralizou nos assets.
+        if (hasAutoCentered.current) return;
         const userRegion = {
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
-          latitudeDelta: 0.1,
-          longitudeDelta: 0.1,
+          latitudeDelta: 2.0,
+          longitudeDelta: 2.0,
         };
         setCurrentRegion(userRegion);
         mapRef.current?.animateToRegion(userRegion, 800);

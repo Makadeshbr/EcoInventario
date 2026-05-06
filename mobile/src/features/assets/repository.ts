@@ -3,6 +3,50 @@ import type { Asset, AssetType, Media } from '@/types/domain';
 
 type AssetStatusCount = Record<'draft' | 'pending' | 'approved' | 'rejected', number>;
 
+const ASSET_COLUMNS = `
+  id,
+  organization_id,
+  asset_type_id,
+  asset_type_name,
+  latitude,
+  longitude,
+  gps_accuracy_m,
+  qr_code,
+  status,
+  version,
+  parent_id,
+  rejection_reason,
+  notes,
+  created_by,
+  approved_by,
+  created_at,
+  updated_at,
+  deleted_at,
+  is_synced
+`;
+
+const ASSET_TYPE_COLUMNS = `
+  id,
+  organization_id,
+  name,
+  description,
+  is_active
+`;
+
+const MEDIA_COLUMNS = `
+  id,
+  organization_id,
+  asset_id,
+  local_file_path,
+  storage_key,
+  mime_type,
+  size_bytes,
+  type,
+  upload_status,
+  created_by,
+  created_at
+`;
+
 function rowToAsset(row: Record<string, unknown>): Asset {
   return {
     id: row.id as string,
@@ -56,7 +100,7 @@ function rowToMedia(row: Record<string, unknown>): Media {
 export async function getRecentAssets(limit = 5): Promise<Asset[]> {
   const db = getDb();
   const rows = await db.getAllAsync<Record<string, unknown>>(
-    `SELECT * FROM assets WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT ?`,
+    `SELECT ${ASSET_COLUMNS} FROM assets WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT ?`,
     [limit],
   );
   return rows.map(rowToAsset);
@@ -81,7 +125,7 @@ export async function getAssets(filter?: {
 
   const where = conditions.join(' AND ');
   const rows = await db.getAllAsync<Record<string, unknown>>(
-    `SELECT * FROM assets WHERE ${where} ORDER BY created_at DESC`,
+    `SELECT ${ASSET_COLUMNS} FROM assets WHERE ${where} ORDER BY created_at DESC`,
     params,
   );
   return rows.map(rowToAsset);
@@ -90,7 +134,7 @@ export async function getAssets(filter?: {
 export async function getAssetById(id: string): Promise<Asset | null> {
   const db = getDb();
   const row = await db.getFirstAsync<Record<string, unknown>>(
-    `SELECT * FROM assets WHERE id = ? AND deleted_at IS NULL`,
+    `SELECT ${ASSET_COLUMNS} FROM assets WHERE id = ? AND deleted_at IS NULL`,
     [id],
   );
   return row ? rowToAsset(row) : null;
@@ -99,7 +143,7 @@ export async function getAssetById(id: string): Promise<Asset | null> {
 export async function getAssetByQR(qrCode: string): Promise<Asset | null> {
   const db = getDb();
   const row = await db.getFirstAsync<Record<string, unknown>>(
-    `SELECT * FROM assets WHERE qr_code = ? AND deleted_at IS NULL`,
+    `SELECT ${ASSET_COLUMNS} FROM assets WHERE qr_code = ? AND deleted_at IS NULL`,
     [qrCode],
   );
   return row ? rowToAsset(row) : null;
@@ -180,7 +224,7 @@ export async function updateAsset(id: string, params: UpdateAssetParams): Promis
 export async function getAssetTypes(): Promise<AssetType[]> {
   const db = getDb();
   const rows = await db.getAllAsync<Record<string, unknown>>(
-    `SELECT * FROM asset_types WHERE is_active = 1 ORDER BY name ASC`,
+    `SELECT ${ASSET_TYPE_COLUMNS} FROM asset_types WHERE is_active = 1 ORDER BY name ASC`,
   );
   return rows.map(rowToAssetType);
 }
@@ -227,7 +271,7 @@ export async function insertMedia(params: InsertMediaParams): Promise<void> {
 export async function getMediaForAsset(assetId: string): Promise<Media[]> {
   const db = getDb();
   const rows = await db.getAllAsync<Record<string, unknown>>(
-    `SELECT * FROM media WHERE asset_id = ? AND deleted_at IS NULL ORDER BY created_at ASC`,
+    `SELECT ${MEDIA_COLUMNS} FROM media WHERE asset_id = ? AND deleted_at IS NULL ORDER BY created_at ASC`,
     [assetId],
   );
   return rows.map(rowToMedia);

@@ -1,7 +1,7 @@
 import { useMemo, useRef } from 'react';
 import Supercluster from 'supercluster';
 import type { Region } from 'react-native-maps';
-import type { ClusterFeature, PointFeature } from 'supercluster';
+import type { ClusterProperties } from 'supercluster';
 import type { PublicAssetMarker } from '@/features/public/types';
 
 export interface AssetProps {
@@ -30,9 +30,9 @@ export function useMapClusters(
     if (!assets || assets.length === 0) return null;
     scRef.current.load(
       assets.map((a) => ({
-        type: 'Feature',
+        type: 'Feature' as const,
         geometry: {
-          type: 'Point',
+          type: 'Point' as const,
           coordinates: [a.longitude, a.latitude] as [number, number],
         },
         properties: { id: a.id, assetTypeId: a.asset_type.id },
@@ -53,22 +53,23 @@ export function useMapClusters(
       currentRegion.latitude + currentRegion.latitudeDelta / 2,
     ];
 
-    return scRef.current
-      .getClusters(bbox, zoom)
-      .map((f: ClusterFeature<AssetProps> | PointFeature<AssetProps>) => {
-        if (f.properties.cluster) {
-          const coords = (f.geometry as GeoJSON.Point).coordinates;
-          return {
-            kind: 'cluster',
-            id: f.properties.cluster_id,
-            count: f.properties.point_count,
-            lat: coords[1],
-            lng: coords[0],
-          } as ClusterItem;
-        }
-        const props = f.properties as AssetProps;
-        const asset = loadedAssets.find((a) => a.id === props.id)!;
-        return { kind: 'point', asset } as ClusterItem;
-      });
+    return scRef.current.getClusters(bbox, zoom).map((f) => {
+      // ClusterFeature tem cluster: true nas properties; PointFeature não tem.
+      const props = f.properties as (ClusterProperties & AssetProps) | AssetProps;
+      if ('cluster' in props && props.cluster) {
+        const clusterProps = props as ClusterProperties & AssetProps;
+        const coords = (f.geometry as GeoJSON.Point).coordinates;
+        return {
+          kind: 'cluster',
+          id: clusterProps.cluster_id,
+          count: clusterProps.point_count,
+          lat: coords[1],
+          lng: coords[0],
+        } as ClusterItem;
+      }
+      const pointProps = props as AssetProps;
+      const asset = loadedAssets.find((a) => a.id === pointProps.id)!;
+      return { kind: 'point', asset } as ClusterItem;
+    });
   }, [loadedAssets, currentRegion]);
 }

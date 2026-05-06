@@ -33,8 +33,10 @@ jest.mock('../../repository', () => ({
   getAssets: jest.fn().mockResolvedValue(mockAssets),
 }));
 
-jest.mock('../../sync-lite', () => ({
-  syncPullLite: jest.fn().mockResolvedValue(undefined),
+jest.mock('@/sync/sync-engine', () => ({
+  SyncEngine: {
+    sync: jest.fn().mockResolvedValue(undefined),
+  },
 }));
 
 import { renderHook, act } from '@testing-library/react-native';

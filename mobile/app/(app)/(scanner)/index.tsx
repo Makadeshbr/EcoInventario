@@ -73,13 +73,11 @@ export default function ScannerProfissionalScreen() {
 
       setMode('notfound');
     } finally {
-      // Permite novo scan após 2s se não encontrou
+      // Reseta para idle após 2s — isProcessing.current impede reentrada antes disso.
       setTimeout(() => {
-        if (mode === 'notfound') {
-          isProcessing.current = false;
-          setMode('idle');
-          setScannedText('');
-        }
+        isProcessing.current = false;
+        setMode('idle');
+        setScannedText('');
       }, 2000);
     }
   }

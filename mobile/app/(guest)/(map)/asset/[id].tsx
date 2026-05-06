@@ -138,7 +138,7 @@ export default function AssetDetailScreen() {
           <View style={[styles.orbitBadge, styles.badgeRight]}>
             <BlurView intensity={25} tint="light" style={styles.badgeBlur}>
               <View style={styles.phaseIconBox}>
-                <MaterialIcons name="psychiatry" size={18} color="#102000" />
+                <MaterialIcons name="eco" size={18} color="#102000" />
               </View>
               <Text style={styles.badgeSubLabel}>FASE</Text>
               <Text style={styles.badgeValue}>Adulta</Text>
