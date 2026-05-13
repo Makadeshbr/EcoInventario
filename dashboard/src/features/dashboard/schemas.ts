@@ -22,26 +22,35 @@ export const dashboardStatsSchema = z
       approved_assets: z.number().int().nonnegative(),
       rejected_assets: z.number().int().nonnegative(),
     }),
-    assets_by_status: z.array(
-      z.object({
-        status: z.enum(['draft', 'pending', 'approved', 'rejected']),
-        count: z.number().int().nonnegative(),
-      }),
-    ),
-    assets_by_type: z.array(
-      z.object({
-        asset_type_id: z.string().min(1),
-        name: z.string().min(1),
-        count: z.number().int().nonnegative(),
-      }),
-    ),
-    monthly_activity: z.array(
-      z.object({
-        month: z.string().regex(/^\d{4}-\d{2}$/),
-        created_count: z.number().int().nonnegative(),
-        approved_count: z.number().int().nonnegative(),
-      }),
-    ),
+    assets_by_status: z
+      .array(
+        z.object({
+          status: z.enum(['draft', 'pending', 'approved', 'rejected']),
+          count: z.number().int().nonnegative(),
+        }),
+      )
+      .nullable()
+      .catch([]),
+    assets_by_type: z
+      .array(
+        z.object({
+          asset_type_id: z.string().min(1),
+          name: z.string().min(1),
+          count: z.number().int().nonnegative(),
+        }),
+      )
+      .nullable()
+      .catch([]),
+    monthly_activity: z
+      .array(
+        z.object({
+          month: z.string().regex(/^\d{4}-\d{2}$/),
+          created_count: z.number().int().nonnegative(),
+          approved_count: z.number().int().nonnegative(),
+        }),
+      )
+      .nullable()
+      .catch([]),
   })
   .transform(
     (value): DashboardStats => ({
@@ -51,13 +60,13 @@ export const dashboardStatsSchema = z
         approvedAssets: value.summary.approved_assets,
         rejectedAssets: value.summary.rejected_assets,
       },
-      assetsByStatus: value.assets_by_status,
-      assetsByType: value.assets_by_type.map((item) => ({
+      assetsByStatus: value.assets_by_status ?? [],
+      assetsByType: (value.assets_by_type ?? []).map((item) => ({
         assetTypeId: item.asset_type_id,
         name: item.name,
         count: item.count,
       })),
-      monthlyActivity: value.monthly_activity.map((item) => ({
+      monthlyActivity: (value.monthly_activity ?? []).map((item) => ({
         month: item.month,
         createdCount: item.created_count,
         approvedCount: item.approved_count,

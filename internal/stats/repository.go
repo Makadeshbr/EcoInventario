@@ -95,7 +95,7 @@ func (r *repository) assetsByStatus(ctx context.Context, where string, args []an
 	}
 	defer rows.Close()
 
-	var result []StatusCount
+	result := make([]StatusCount, 0)
 	for rows.Next() {
 		var item StatusCount
 		if err := rows.Scan(&item.Status, &item.Count); err != nil {
@@ -122,7 +122,7 @@ func (r *repository) assetsByType(ctx context.Context, where string, args []any)
 	}
 	defer rows.Close()
 
-	var result []TypeCount
+	result := make([]TypeCount, 0)
 	for rows.Next() {
 		var item TypeCount
 		if err := rows.Scan(&item.AssetTypeID, &item.Name, &item.Count); err != nil {
@@ -152,7 +152,7 @@ func (r *repository) monthlyActivity(ctx context.Context, where string, args []a
 	}
 	defer rows.Close()
 
-	var result []MonthlyActivity
+	result := make([]MonthlyActivity, 0)
 	for rows.Next() {
 		var item MonthlyActivity
 		if err := rows.Scan(&item.Month, &item.CreatedCount, &item.ApprovedCount); err != nil {
