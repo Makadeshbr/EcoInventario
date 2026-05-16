@@ -14,8 +14,8 @@ export default function SyncStatusScreen() {
   const syncState = status.state;
   const isSyncing = syncState === 'syncing';
 
-  function handleSyncNow() {
-    SyncEngine.sync({ force: true });
+  async function handleSyncNow() {
+    await SyncEngine.sync({ force: true });
   }
 
   function getStatusColor() {
@@ -90,7 +90,7 @@ export default function SyncStatusScreen() {
           title={isSyncing ? "Sincronizando..." : "Sincronizar Agora"}
           onPress={handleSyncNow}
           loading={isSyncing}
-          disabled={isSyncing || syncState === 'offline'}
+          disabled={isSyncing}
           style={styles.syncButton}
         />
 

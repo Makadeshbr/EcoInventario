@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSaveAsset } from '@/features/assets/hooks/use-save-asset';
 import { SyncEngine } from '@/sync/sync-engine';
@@ -17,6 +17,9 @@ export default function CriarAssetScreen() {
   const [step, setStep] = useState<Step>(1);
   const [state, setState] = useState<WizardState>(WIZARD_INITIAL);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [isSubmittingFlow, setIsSubmittingFlow] = useState(false);
+  const flowInFlightRef = useRef(false);
+  const createdAssetIdRef = useRef<string | null>(null);
   const { save, isSaving } = useSaveAsset();
   const { isConnected } = useNetworkStatus();
 
@@ -25,17 +28,21 @@ export default function CriarAssetScreen() {
   }
 
   async function handleSave() {
+    if (flowInFlightRef.current) return;
+    flowInFlightRef.current = true;
+    setIsSubmittingFlow(true);
     setStatusMessage('Salvando no aparelho...');
     try {
-      const assetId = await save({
-        assetTypeId: state.assetTypeId,
-        assetTypeName: state.assetTypeName,
-        latitude: state.latitude!,
-        longitude: state.longitude!,
-        gpsAccuracyM: state.gpsAccuracyM,
-        notes: state.notes.trim() || null,
-        photoUris: state.photoUris,
-      });
+      const assetId = createdAssetIdRef.current ?? await save({
+          assetTypeId: state.assetTypeId,
+          assetTypeName: state.assetTypeName,
+          latitude: state.latitude!,
+          longitude: state.longitude!,
+          gpsAccuracyM: state.gpsAccuracyM,
+          notes: state.notes.trim() || null,
+          photoUris: state.photoUris,
+        });
+      createdAssetIdRef.current = assetId;
       if (isConnected) {
         setStatusMessage('Enviando fotos e revisão ao admin...');
         const result = await SyncEngine.sync({ force: true });
@@ -58,6 +65,9 @@ export default function CriarAssetScreen() {
       const message = error instanceof Error ? error.message : 'Não foi possível salvar o asset. Tente novamente.';
       setStatusMessage(message);
       Alert.alert('Erro', message);
+    } finally {
+      flowInFlightRef.current = false;
+      setIsSubmittingFlow(false);
     }
   }
 
@@ -92,7 +102,7 @@ export default function CriarAssetScreen() {
           <StepReview
             state={state}
             onSave={handleSave}
-            isSaving={isSaving}
+            isSaving={isSaving || isSubmittingFlow}
             isConnected={isConnected}
             statusMessage={statusMessage}
           />

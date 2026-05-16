@@ -89,11 +89,11 @@ export const wizardStyles = StyleSheet.create({
   },
   emptyTypesText: { ...typography.bodyMd, color: colors.outline, flex: 1 },
 
-  mapWrapper: { alignItems: 'center', paddingVertical: spacing.md },
+  mapWrapper: { paddingHorizontal: spacing.marginMobile, paddingVertical: spacing.md },
   mapCircle: {
-    width: 288,
-    height: 288,
-    borderRadius: 144,
+    width: '100%',
+    height: 320,
+    borderRadius: radius.lg,
     overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.4)',
     borderColor: 'rgba(255,255,255,0.6)',

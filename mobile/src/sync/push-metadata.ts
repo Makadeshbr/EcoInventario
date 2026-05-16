@@ -3,6 +3,7 @@ import { getDb } from '@/db/database';
 import { MAX_SYNC_BATCH_SIZE } from '@/constants/config';
 import type { SyncAction } from '@/types/sync';
 import { setSyncMetadata } from './sync-metadata';
+import { remapAssetId } from './remap-asset-id';
 
 type QueueRow = {
   id: string;
@@ -127,7 +128,7 @@ export async function pushMetadata(options: PushMetadataOptions = {}): Promise<v
   const items = await db.getAllAsync<QueueRow>(
     `SELECT id, idempotency_key, action, entity_type, entity_id, payload, retry_count, max_retries, last_attempt_at
      FROM sync_queue
-     WHERE status = 'pending'
+     WHERE status IN ('pending', 'failed')
      ORDER BY created_at ASC`,
   );
 
@@ -183,6 +184,10 @@ export async function pushMetadata(options: PushMetadataOptions = {}): Promise<v
       }
 
       if (result.status === 'ok' || result.status === 'duplicate') {
+        if (item.action === 'CREATE' && item.entity_type === 'asset' && result.entity_id && result.entity_id !== item.entity_id) {
+          await remapAssetId(item.entity_id, result.entity_id);
+          item.entity_id = result.entity_id;
+        }
         await db.runAsync(
           `UPDATE sync_queue SET status = 'synced', error_message = NULL WHERE id = ?`,
           [item.id],

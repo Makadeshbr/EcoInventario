@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -104,6 +104,8 @@ export default function AssetDetalhesScreen() {
   const { asset, media, isLoading, refresh } = useAssetDetail(id);
   const { submit, isSubmitting } = useSubmitAsset();
   const user = useAuthStore((s) => s.user);
+  const submitFlowRef = useRef(false);
+  const [isSubmitFlow, setIsSubmitFlow] = useState(false);
 
   if (isLoading) {
     return (
@@ -138,6 +140,7 @@ export default function AssetDetalhesScreen() {
   const canSubmit = isOwner && safeAsset.status === 'draft';
 
   async function handleSubmit() {
+    if (submitFlowRef.current) return;
     Alert.alert(
       'Enviar para aprovação',
       'O asset será enviado para revisão. Deseja continuar?',
@@ -146,6 +149,9 @@ export default function AssetDetalhesScreen() {
         {
           text: 'Enviar',
           onPress: async () => {
+            if (submitFlowRef.current) return;
+            submitFlowRef.current = true;
+            setIsSubmitFlow(true);
             try {
               await submit(safeAsset.id, safeAsset.version, safeAsset.updatedAt);
               const result = await SyncEngine.sync({ force: true });
@@ -161,6 +167,9 @@ export default function AssetDetalhesScreen() {
               Alert.alert('Enviado', 'O asset foi enviado ao admin para revisão.');
             } catch {
               Alert.alert('Erro', 'Não foi possível enviar. Tente novamente.');
+            } finally {
+              submitFlowRef.current = false;
+              setIsSubmitFlow(false);
             }
           },
         },
@@ -352,12 +361,12 @@ export default function AssetDetalhesScreen() {
 
           {canSubmit && (
             <TouchableOpacity
-              style={[styles.submitButton, isSubmitting && styles.buttonDisabled]}
+              style={[styles.submitButton, (isSubmitting || isSubmitFlow) && styles.buttonDisabled]}
               onPress={handleSubmit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isSubmitFlow}
               activeOpacity={0.85}
             >
-              {isSubmitting
+              {isSubmitting || isSubmitFlow
                 ? <ActivityIndicator color={colors.onPrimary} size="small" />
                 : <MaterialIcons name="send" size={20} color={colors.onPrimary} />}
               <Text style={styles.submitButtonText}>

@@ -128,13 +128,13 @@ export function StepLocation({ state, onChange, onNext }: Props) {
         <View style={styles.mapCircle}>
           {hasCoords ? (
             <MapView
-              key={`${state.latitude!.toFixed(5)}-${state.longitude!.toFixed(5)}-${manualAdjusting ? 'manual' : 'auto'}`}
               style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
               initialRegion={region}
               scrollEnabled={manualAdjusting}
-              zoomEnabled={manualAdjusting}
+              zoomEnabled={false}
               pitchEnabled={false}
               rotateEnabled={false}
+              moveOnMarkerPress={false}
               onPress={(event) => {
                 if (!manualAdjusting) return;
                 updatePin(event.nativeEvent.coordinate.latitude, event.nativeEvent.coordinate.longitude);
@@ -145,14 +145,8 @@ export function StepLocation({ state, onChange, onNext }: Props) {
                 anchor={{ x: 0.5, y: 0.5 }}
                 draggable={manualAdjusting}
                 onDragEnd={(event) => updatePin(event.nativeEvent.coordinate.latitude, event.nativeEvent.coordinate.longitude)}
-              >
-                <View style={styles.mapPinWrapper}>
-                  <PingRipple />
-                  <View style={styles.mapPin}>
-                    <MaterialIcons name="location-on" size={24} color='#304f00' />
-                  </View>
-                </View>
-              </Marker>
+                pinColor={colors.primary}
+              />
             </MapView>
           ) : (
             <ActivityIndicator color={colors.secondary} size="large" />

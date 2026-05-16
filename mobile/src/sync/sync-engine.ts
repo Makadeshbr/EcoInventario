@@ -58,6 +58,11 @@ async function runSync(): Promise<SyncResult> {
 
   useSyncStore.getState().setStatus({ state: 'syncing', progress: 0 });
   try {
+    const db = getDb();
+    await db.runAsync(`UPDATE sync_queue SET status = 'pending' WHERE status = 'syncing'`);
+    await db.runAsync(`UPDATE media_upload_queue SET status = 'pending' WHERE status = 'uploading'`);
+    await db.runAsync(`UPDATE media SET upload_status = 'pending' WHERE upload_status = 'uploading'`);
+
     const orgId = useAuthStore.getState().user?.organizationId ?? '';
     await pullAssetTypes(orgId);
     await pushMetadata({ includeSubmissions: false, entityTypes: ['asset'] });

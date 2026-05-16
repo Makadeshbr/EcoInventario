@@ -64,7 +64,7 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
           <View style={styles.reviewNotice}>
             <MaterialIcons name="cloud-off" size={16} color={colors.secondary} />
             <Text style={styles.reviewNoticeText}>
-              O asset será salvo como rascunho e sincronizado quando o aparelho voltar a ficar online.
+              O asset ficará aguardando conexão para ser enviado à revisão.
             </Text>
           </View>
         )}

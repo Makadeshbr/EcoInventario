@@ -122,7 +122,7 @@ export default function PerfilScreen() {
           >
             <MaterialIcons name="sync" size={18} color={colors.secondary} />
             <Text style={styles.syncBannerText}>
-              {pendingTotal} item{pendingTotal > 1 ? 'ns' : ''} aguardando sincronização
+              {pendingTotal} {pendingTotal === 1 ? 'item' : 'itens'} aguardando sincronização
             </Text>
             <MaterialIcons name="chevron-right" size={18} color={colors.secondary} />
           </TouchableOpacity>

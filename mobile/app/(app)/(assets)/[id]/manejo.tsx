@@ -34,6 +34,8 @@ export default function CriarManejoScreen() {
 
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const flowInFlightRef = useRef(false);
+  const [isSubmittingFlow, setIsSubmittingFlow] = useState(false);
   const [activeCamera, setActiveCamera] = useState<'before' | 'after' | null>(null);
   const [taking, setTaking] = useState(false);
 
@@ -79,6 +81,9 @@ export default function CriarManejoScreen() {
   }
 
   async function handleSave() {
+    if (flowInFlightRef.current) return;
+    flowInFlightRef.current = true;
+    setIsSubmittingFlow(true);
     try {
       await save({
         assetId: id,
@@ -100,6 +105,9 @@ export default function CriarManejoScreen() {
       router.back();
     } catch (err: any) {
       Alert.alert('Erro', err.message || 'Não foi possível salvar o manejo.');
+    } finally {
+      flowInFlightRef.current = false;
+      setIsSubmittingFlow(false);
     }
   }
 
@@ -208,16 +216,16 @@ export default function CriarManejoScreen() {
 
         <View style={styles.footer}>
           <TouchableOpacity
-            style={[styles.saveButton, (!canSave || isSaving) && styles.saveButtonDisabled]}
+            style={[styles.saveButton, (!canSave || isSaving || isSubmittingFlow) && styles.saveButtonDisabled]}
             onPress={handleSave}
-            disabled={!canSave || isSaving}
+            disabled={!canSave || isSaving || isSubmittingFlow}
             activeOpacity={0.85}
           >
-            {isSaving
+            {isSaving || isSubmittingFlow
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
               : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
             <Text style={styles.saveButtonText}>
-              {isSaving ? 'Enviando...' : 'Enviar manejo'}
+              {isSaving || isSubmittingFlow ? 'Enviando...' : 'Enviar manejo'}
             </Text>
           </TouchableOpacity>
         </View>
