@@ -16,6 +16,7 @@ import { StepReview } from '@/features/assets/wizard/step-review';
 export default function CriarAssetScreen() {
   const [step, setStep] = useState<Step>(1);
   const [state, setState] = useState<WizardState>(WIZARD_INITIAL);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const { save, isSaving } = useSaveAsset();
   const { isConnected } = useNetworkStatus();
 
@@ -24,6 +25,7 @@ export default function CriarAssetScreen() {
   }
 
   async function handleSave() {
+    setStatusMessage('Salvando no aparelho...');
     try {
       const assetId = await save({
         assetTypeId: state.assetTypeId,
@@ -35,11 +37,27 @@ export default function CriarAssetScreen() {
         photoUris: state.photoUris,
       });
       if (isConnected) {
-        await SyncEngine.sync({ force: true });
+        setStatusMessage('Enviando fotos e revisão ao admin...');
+        const result = await SyncEngine.sync({ force: true });
+        if (result.state === 'error') {
+          setStatusMessage('Salvo, mas houve erro ao enviar. Tente sincronizar novamente.');
+          Alert.alert('Envio pendente', result.message ?? 'Salvo no aparelho, mas ainda não foi confirmado pelo servidor.');
+          return;
+        }
+        if (result.pendingMetadataCount > 0 || result.pendingMediaCount > 0) {
+          setStatusMessage('Salvo e ainda pendente de confirmação do servidor.');
+          Alert.alert('Envio pendente', 'O registro foi salvo e continua na fila de sincronização.');
+          return;
+        }
+        setStatusMessage('Enviado ao admin para revisão.');
+      } else {
+        setStatusMessage('Aguardando conexão para enviar para revisão.');
       }
       router.replace(`/(app)/(assets)/${assetId}`);
-    } catch {
-      Alert.alert('Erro', 'Não foi possível salvar o asset. Tente novamente.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Não foi possível salvar o asset. Tente novamente.';
+      setStatusMessage(message);
+      Alert.alert('Erro', message);
     }
   }
 
@@ -70,7 +88,15 @@ export default function CriarAssetScreen() {
         {step === 1 && <StepTypeNotes state={state} onChange={patch} onNext={() => setStep(2)} />}
         {step === 2 && <StepLocation state={state} onChange={patch} onNext={() => setStep(3)} />}
         {step === 3 && <StepPhotos state={state} onChange={patch} onNext={() => setStep(4)} />}
-        {step === 4 && <StepReview state={state} onSave={handleSave} isSaving={isSaving} isConnected={isConnected} />}
+        {step === 4 && (
+          <StepReview
+            state={state}
+            onSave={handleSave}
+            isSaving={isSaving}
+            isConnected={isConnected}
+            statusMessage={statusMessage}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

@@ -1,7 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { generateUUID } from '@/utils/uuid';
 import { compressImage } from '@/utils/image-compression';
-import { insertManejo, insertMedia, enqueueSyncItem, enqueueMediaUpload } from '../repository';
+import { insertManejo, insertMedia, enqueueSyncItem, enqueueMediaUpload, updateManejoStatus } from '../repository';
 import { createManejoSchema } from '../schemas';
 import { useAuthStore } from '@/stores/auth-store';
 import type { User } from '@/types/domain';
@@ -16,9 +16,13 @@ export interface SaveManejoParams {
 export function useCreateManejo() {
   const user = useAuthStore((s) => s.user);
   const [isSaving, setIsSaving] = useState(false);
+  const inFlightRef = useRef(false);
 
   const save = useCallback(
     async (params: SaveManejoParams): Promise<string> => {
+      if (inFlightRef.current) {
+        throw new Error('Salvamento em andamento');
+      }
       if (!user) throw new Error('Usuário não autenticado');
 
       const validation = createManejoSchema.safeParse({
@@ -30,6 +34,7 @@ export function useCreateManejo() {
         throw new Error(validation.error.errors[0].message);
       }
 
+      inFlightRef.current = true;
       setIsSaving(true);
       try {
         const now = new Date().toISOString();
@@ -79,8 +84,26 @@ export function useCreateManejo() {
           createdAt: now,
         });
 
+        const submitAt = new Date().toISOString();
+        await updateManejoStatus(manejoId, 'pending', submitAt);
+        await enqueueSyncItem({
+          id: generateUUID(),
+          idempotencyKey: `submit-manejo-${manejoId}-1`,
+          action: 'UPDATE',
+          entityType: 'manejo',
+          entityId: manejoId,
+          payload: JSON.stringify({
+            id: manejoId,
+            status: 'pending',
+            client_updated_at: now,
+            updated_at: submitAt,
+          }),
+          createdAt: submitAt,
+        });
+
         return manejoId;
       } finally {
+        inFlightRef.current = false;
         setIsSaving(false);
       }
     },

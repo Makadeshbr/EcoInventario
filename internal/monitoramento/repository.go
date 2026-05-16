@@ -48,14 +48,14 @@ func (r *repository) FindByID(ctx context.Context, id, orgID string) (*Monitoram
 func (r *repository) Insert(ctx context.Context, m *Monitoramento) error {
 	query := `
 		INSERT INTO monitoramentos (
-			organization_id, asset_id, notes,
+			id, organization_id, asset_id, notes,
 			health_status, status, created_by
 		)
-		VALUES ($1, $2, $3, $4, $5, $6)
+		VALUES (COALESCE(NULLIF($1, '')::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, updated_at
 	`
 	return r.db.QueryRowContext(ctx, query,
-		m.OrganizationID, m.AssetID, m.Notes,
+		m.ID, m.OrganizationID, m.AssetID, m.Notes,
 		m.HealthStatus, m.Status, m.CreatedBy,
 	).Scan(&m.ID, &m.CreatedAt, &m.UpdatedAt)
 }

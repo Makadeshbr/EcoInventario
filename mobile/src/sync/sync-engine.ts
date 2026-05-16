@@ -9,11 +9,19 @@ import { getSyncMetadata } from './sync-metadata';
 
 const SYNC_COOLDOWN_MS = 15_000;
 
+export type SyncResult = {
+  state: 'synced' | 'offline' | 'error';
+  pendingMetadataCount: number;
+  pendingMediaCount: number;
+  conflictCount: number;
+  message?: string;
+};
+
 function isOnlineState(state: Awaited<ReturnType<typeof NetInfo.fetch>>): boolean {
   return state.isConnected === true && state.isInternetReachable !== false;
 }
 
-async function updateCounts(): Promise<void> {
+async function updateCounts(): Promise<Omit<SyncResult, 'state' | 'message'>> {
   const db = getDb();
   const [metadata, media, conflicts] = await Promise.all([
     db.getFirstAsync<{ count: number }>(
@@ -26,46 +34,61 @@ async function updateCounts(): Promise<void> {
       `SELECT COUNT(*) AS count FROM sync_conflicts WHERE resolved_at IS NULL`,
     ),
   ]);
+  const counts = {
+    pendingMetadataCount: metadata?.count ?? 0,
+    pendingMediaCount: media?.count ?? 0,
+    conflictCount: conflicts?.count ?? 0,
+  };
   useSyncStore.getState().setCounts(
-    metadata?.count ?? 0,
-    media?.count ?? 0,
-    conflicts?.count ?? 0,
+    counts.pendingMetadataCount,
+    counts.pendingMediaCount,
+    counts.conflictCount,
   );
+  return counts;
 }
 
-async function runSync(): Promise<void> {
+async function runSync(): Promise<SyncResult> {
   const state = await NetInfo.fetch();
   if (!isOnlineState(state)) {
-    await updateCounts();
+    const counts = await updateCounts();
     const pendingCount = useSyncStore.getState().pendingMetadataCount + useSyncStore.getState().pendingMediaCount;
     useSyncStore.getState().setStatus({ state: 'offline', pendingCount });
-    return;
+    return { state: 'offline', ...counts };
   }
 
   useSyncStore.getState().setStatus({ state: 'syncing', progress: 0 });
   try {
     const orgId = useAuthStore.getState().user?.organizationId ?? '';
     await pullAssetTypes(orgId);
-    await pushMetadata();
+    await pushMetadata({ includeSubmissions: false, entityTypes: ['asset'] });
     await pushMedia();
+    await pushMetadata({ includeSubmissions: false, excludeEntityTypes: ['asset'] });
+    await pushMetadata({ onlySubmissions: true });
     await pullChanges();
-    await updateCounts();
+    const counts = await updateCounts();
 
     const { pendingMetadataCount, pendingMediaCount, lastSyncAt } = useSyncStore.getState();
     const pendingCount = pendingMetadataCount + pendingMediaCount;
     const syncedAt = lastSyncAt ?? new Date().toISOString();
 
-    useSyncStore.getState().setStatus({ state: 'synced', lastSyncAt: syncedAt, pendingCount });
+    if (counts.conflictCount > 0) {
+      useSyncStore.getState().setStatus({ state: 'conflict', count: counts.conflictCount });
+    } else {
+      useSyncStore.getState().setStatus({ state: 'synced', lastSyncAt: syncedAt, pendingCount });
+    }
+    return { state: 'synced', ...counts };
   } catch (error) {
-    await updateCounts();
-    useSyncStore.getState().setStatus({ state: 'error', message: String(error) });
+    const counts = await updateCounts();
+    const message = String(error);
+    useSyncStore.getState().setStatus({ state: 'error', message });
     console.warn('[SyncEngine] Erro no sync', error);
+    return { state: 'error', ...counts, message };
   }
 }
 
 class SyncEngineImpl {
   private timer: ReturnType<typeof setInterval> | null = null;
-  private inFlight: Promise<void> | null = null;
+  private inFlight: Promise<SyncResult> | null = null;
   private lastSyncAttemptAt = 0;
 
   start() {
@@ -83,11 +106,11 @@ class SyncEngineImpl {
     }
   }
 
-  async sync(options: { force?: boolean } = {}): Promise<void> {
+  async sync(options: { force?: boolean } = {}): Promise<SyncResult> {
     const now = Date.now();
     if (!options.force && now - this.lastSyncAttemptAt < SYNC_COOLDOWN_MS) {
-      await updateCounts();
-      return;
+      const counts = await updateCounts();
+      return { state: 'synced', ...counts };
     }
 
     if (this.inFlight) {

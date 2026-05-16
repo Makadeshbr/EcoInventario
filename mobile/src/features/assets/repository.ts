@@ -221,6 +221,20 @@ export async function updateAsset(id: string, params: UpdateAssetParams): Promis
   await db.runAsync(`UPDATE assets SET ${sets.join(', ')} WHERE id = ?`, values);
 }
 
+export async function updateManejoStatus(id: string, status: Asset['status'], updatedAt: string): Promise<void> {
+  await getDb().runAsync(
+    `UPDATE manejos SET status = ?, updated_at = ?, is_synced = 0 WHERE id = ?`,
+    [status, updatedAt, id],
+  );
+}
+
+export async function updateMonitoramentoStatus(id: string, status: Asset['status'], updatedAt: string): Promise<void> {
+  await getDb().runAsync(
+    `UPDATE monitoramentos SET status = ?, updated_at = ?, is_synced = 0 WHERE id = ?`,
+    [status, updatedAt, id],
+  );
+}
+
 export async function getAssetTypes(): Promise<AssetType[]> {
   const db = getDb();
   const rows = await db.getAllAsync<Record<string, unknown>>(

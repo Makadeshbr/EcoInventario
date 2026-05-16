@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/allan/ecoinventario/internal/approval"
 	"github.com/allan/ecoinventario/internal/audit"
 	"github.com/allan/ecoinventario/internal/shared/apperror"
 )
@@ -28,11 +29,16 @@ type Service struct {
 	media    MediaChecker
 	audit    *audit.Service
 	policy   assetMutationPolicy
+	notifier approval.Notifier
 }
 
 // NewService cria o serviço de assets.
 func NewService(repo Repository, typeRepo AssetTypeChecker, media MediaChecker, auditSvc *audit.Service) *Service {
 	return &Service{repo: repo, typeRepo: typeRepo, media: media, audit: auditSvc, policy: assetMutationPolicy{}}
+}
+
+func (s *Service) SetApprovalNotifier(notifier approval.Notifier) {
+	s.notifier = notifier
 }
 
 func (s *Service) ensureTypeInOrg(ctx context.Context, typeID, orgID string) error {
@@ -49,4 +55,16 @@ func (s *Service) ensureTypeInOrg(ctx context.Context, typeID, orgID string) err
 func mustMarshal(v any) json.RawMessage {
 	b, _ := json.Marshal(v)
 	return b
+}
+
+func (s *Service) notifyApproval(ctx context.Context, id, status, action string) {
+	if s.notifier == nil {
+		return
+	}
+	s.notifier.NotifyApprovalQueueChanged(ctx, approval.QueueEvent{
+		EntityType: "asset",
+		EntityID:   id,
+		Status:     status,
+		Action:     action,
+	})
 }

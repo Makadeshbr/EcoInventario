@@ -126,6 +126,19 @@ func (s *Service) handleCreate(ctx context.Context, op Operation) OperationResul
 }
 
 func (s *Service) handleUpdate(ctx context.Context, op Operation) OperationResult {
+	if isSubmitPayload(op.Payload) {
+		updatedAt, _, err := s.dispatcher.Update(ctx, op.EntityType, op.EntityID, op.Payload)
+		if err != nil {
+			return errResult(op, err.Error())
+		}
+		return OperationResult{
+			IdempotencyKey:  op.IdempotencyKey,
+			Status:          StatusOk,
+			EntityID:        op.EntityID,
+			ServerUpdatedAt: &updatedAt,
+		}
+	}
+
 	if op.ClientUpdatedAt == nil {
 		return errResult(op, "client_updated_at é obrigatório para UPDATE")
 	}
@@ -167,6 +180,19 @@ func (s *Service) handleUpdate(ctx context.Context, op Operation) OperationResul
 		EntityID:        op.EntityID,
 		ServerUpdatedAt: &updatedAt,
 	}
+}
+
+func isSubmitPayload(payload json.RawMessage) bool {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(payload, &raw); err != nil {
+		return false
+	}
+	statusRaw, ok := raw["status"]
+	if !ok {
+		return false
+	}
+	var status string
+	return json.Unmarshal(statusRaw, &status) == nil && status == "pending"
 }
 
 func (s *Service) handleDelete(ctx context.Context, op Operation) OperationResult {

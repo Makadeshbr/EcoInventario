@@ -56,6 +56,7 @@ export async function pushMedia(): Promise<void> {
     try {
       const upload = await api.post('media/upload-url', {
         json: {
+          media_id: item.media_id,
           asset_id: item.asset_id,
           media_type: item.media_type,
           mime_type: item.mime_type,

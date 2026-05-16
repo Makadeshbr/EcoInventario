@@ -51,6 +51,7 @@ func (s *Service) Submit(ctx context.Context, id string) (*StatusResponse, error
 		PerformedBy:    callerID,
 		Changes:        mustMarshal(map[string]any{"status": map[string]string{"old": shared.StatusDraft, "new": shared.StatusPending}}),
 	})
+	s.notifyApproval(ctx, a.ID, a.Status, shared.AuditSubmit)
 
 	return &StatusResponse{ID: a.ID, Status: a.Status}, nil
 }
@@ -87,6 +88,7 @@ func (s *Service) Approve(ctx context.Context, id string) (*StatusResponse, erro
 		PerformedBy:    callerID,
 		Changes:        mustMarshal(map[string]any{"status": map[string]string{"old": shared.StatusPending, "new": shared.StatusApproved}}),
 	})
+	s.notifyApproval(ctx, a.ID, a.Status, shared.AuditApprove)
 
 	return &StatusResponse{ID: a.ID, Status: a.Status, ApprovedBy: &approver}, nil
 }
@@ -123,6 +125,7 @@ func (s *Service) Reject(ctx context.Context, id string, req RejectRequest) (*Re
 		PerformedBy:    callerID,
 		Changes:        mustMarshal(map[string]any{"status": map[string]string{"old": shared.StatusPending, "new": shared.StatusRejected}, "reason": reason}),
 	})
+	s.notifyApproval(ctx, a.ID, a.Status, shared.AuditReject)
 
 	return &RejectResponse{ID: a.ID, Status: a.Status, RejectionReason: reason}, nil
 }

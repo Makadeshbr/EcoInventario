@@ -314,6 +314,7 @@ export const wizardStyles = StyleSheet.create({
   primaryButtonDisabled: { opacity: 0.4 },
   primaryButtonText: { ...typography.labelLg, color: colors.onPrimary },
   secondaryButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -324,5 +325,5 @@ export const wizardStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.secondary,
   },
-  secondaryButtonText: { ...typography.labelLg, color: colors.secondary },
+  secondaryButtonText: { ...typography.labelLg, color: colors.secondary, textAlign: 'center' },
 });

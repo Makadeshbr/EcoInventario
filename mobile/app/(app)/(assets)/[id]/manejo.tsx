@@ -87,7 +87,15 @@ export default function CriarManejoScreen() {
         afterPhotoUri,
       });
       if (isConnected) {
-        await SyncEngine.sync({ force: true });
+        const result = await SyncEngine.sync({ force: true });
+        if (result.state === 'error' || result.pendingMetadataCount > 0 || result.pendingMediaCount > 0) {
+          Alert.alert('Envio pendente', result.message ?? 'O manejo foi salvo e continua na fila de sincronização.');
+          router.back();
+          return;
+        }
+        Alert.alert('Enviado', 'O manejo foi enviado ao admin para revisão.');
+      } else {
+        Alert.alert('Envio pendente', 'Sem conexão agora. O manejo ficou aguardando conexão para enviar à revisão.');
       }
       router.back();
     } catch (err: any) {
@@ -157,7 +165,7 @@ export default function CriarManejoScreen() {
                 <View style={styles.photoThumb}>
                   <Image source={{ uri: beforePhotoUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                   <TouchableOpacity style={styles.photoRemove} onPress={() => setBeforePhotoUri(undefined)}>
-                    <MaterialIcons name="close" size={14} color={colors.onPrimary} />
+                    <MaterialIcons name="close" size={14} color={colors.onSurfaceVariant} />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -174,7 +182,7 @@ export default function CriarManejoScreen() {
                 <View style={styles.photoThumb}>
                   <Image source={{ uri: afterPhotoUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                   <TouchableOpacity style={styles.photoRemove} onPress={() => setAfterPhotoUri(undefined)}>
-                    <MaterialIcons name="close" size={14} color={colors.onPrimary} />
+                    <MaterialIcons name="close" size={14} color={colors.onSurfaceVariant} />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -207,9 +215,9 @@ export default function CriarManejoScreen() {
           >
             {isSaving
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
-              : <MaterialIcons name="save" size={18} color={colors.onPrimary} />}
+              : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
             <Text style={styles.saveButtonText}>
-              {isSaving ? 'Salvando...' : 'Salvar Manejo'}
+              {isSaving ? 'Enviando...' : 'Enviar manejo'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -317,7 +325,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.surfaceContainerLowest,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -372,7 +380,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.marginMobile,
     paddingBottom: 40,
     paddingTop: 20,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   cameraCancel: {
     width: 48,
@@ -385,7 +393,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.8)',
     alignItems: 'center',
     justifyContent: 'center',
   },

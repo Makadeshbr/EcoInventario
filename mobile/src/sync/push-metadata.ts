@@ -30,6 +30,13 @@ type PushResponseDTO = {
   server_time: string;
 };
 
+type PushMetadataOptions = {
+  includeSubmissions?: boolean;
+  onlySubmissions?: boolean;
+  entityTypes?: string[];
+  excludeEntityTypes?: string[];
+};
+
 function isReadyForRetry(retryCount: number, lastAttemptAt: string | null): boolean {
   if (retryCount === 0 || !lastAttemptAt) return true;
 
@@ -55,6 +62,20 @@ function safeParsePayload(payload: string): Record<string, unknown> {
   }
 }
 
+function isSubmitPayload(payload: Record<string, unknown>): boolean {
+  return payload.status === 'pending';
+}
+
+async function hasUnfinishedAssetMediaUploads(entityType: string, entityId: string): Promise<boolean> {
+  if (entityType !== 'asset') return false;
+  const row = await getDb().getFirstAsync<{ count: number }>(
+    `SELECT COUNT(*) AS count FROM media_upload_queue
+     WHERE asset_id = ? AND status IN ('pending', 'uploading', 'failed')`,
+    [entityId],
+  );
+  return (row?.count ?? 0) > 0;
+}
+
 async function markQueueRetry(item: QueueRow, errorMessage: string): Promise<void> {
   const nextRetry = item.retry_count + 1;
   const nextStatus = nextRetry >= item.max_retries ? 'failed' : 'pending';
@@ -67,15 +88,21 @@ async function markQueueRetry(item: QueueRow, errorMessage: string): Promise<voi
 }
 
 async function markEntitySynced(entityType: string, entityId: string, serverUpdatedAt?: string): Promise<void> {
-  if (entityType !== 'asset') return;
+  const tableByType: Record<string, string> = {
+    asset: 'assets',
+    manejo: 'manejos',
+    monitoramento: 'monitoramentos',
+  };
+  const table = tableByType[entityType];
+  if (!table) return;
   if (serverUpdatedAt) {
     await getDb().runAsync(
-      `UPDATE assets SET is_synced = 1, updated_at = ? WHERE id = ?`,
+      `UPDATE ${table} SET is_synced = 1, updated_at = ? WHERE id = ?`,
       [serverUpdatedAt, entityId],
     );
     return;
   }
-  await getDb().runAsync(`UPDATE assets SET is_synced = 1 WHERE id = ?`, [entityId]);
+  await getDb().runAsync(`UPDATE ${table} SET is_synced = 1 WHERE id = ?`, [entityId]);
 }
 
 async function saveConflict(item: QueueRow, result: PushResultDTO): Promise<void> {
@@ -95,7 +122,7 @@ async function saveConflict(item: QueueRow, result: PushResultDTO): Promise<void
   );
 }
 
-export async function pushMetadata(): Promise<void> {
+export async function pushMetadata(options: PushMetadataOptions = {}): Promise<void> {
   const db = getDb();
   const items = await db.getAllAsync<QueueRow>(
     `SELECT id, idempotency_key, action, entity_type, entity_id, payload, retry_count, max_retries, last_attempt_at
@@ -104,20 +131,31 @@ export async function pushMetadata(): Promise<void> {
      ORDER BY created_at ASC`,
   );
 
-  const readyItems = items
-    .filter((item) => isReadyForRetry(item.retry_count, item.last_attempt_at))
+  const readyItems: QueueRow[] = [];
+  for (const item of items) {
+    const payload = safeParsePayload(item.payload);
+    const isSubmit = isSubmitPayload(payload);
+    if (options.onlySubmissions && !isSubmit) continue;
+    if (options.includeSubmissions === false && isSubmit) continue;
+    if (options.entityTypes && !options.entityTypes.includes(item.entity_type)) continue;
+    if (options.excludeEntityTypes?.includes(item.entity_type)) continue;
+    if (!isReadyForRetry(item.retry_count, item.last_attempt_at)) continue;
+    if (isSubmit && await hasUnfinishedAssetMediaUploads(item.entity_type, item.entity_id)) continue;
+    readyItems.push(item);
+  }
+  const batch = readyItems
     .slice(0, MAX_SYNC_BATCH_SIZE);
 
-  if (readyItems.length === 0) return;
+  if (batch.length === 0) return;
 
   await db.runAsync(
     `UPDATE sync_queue SET status = 'syncing', last_attempt_at = ?
-     WHERE id IN (${readyItems.map(() => '?').join(',')})`,
-    [new Date().toISOString(), ...readyItems.map((item) => item.id)],
+     WHERE id IN (${batch.map(() => '?').join(',')})`,
+    [new Date().toISOString(), ...batch.map((item) => item.id)],
   );
 
   try {
-    const operations = readyItems.map((item) => {
+    const operations = batch.map((item) => {
       const payload = safeParsePayload(item.payload);
       const clientUpdatedAt = typeof payload.client_updated_at === 'string'
         ? payload.client_updated_at
@@ -137,7 +175,7 @@ export async function pushMetadata(): Promise<void> {
       response.results.map((result) => [result.idempotency_key, result] as [string, PushResultDTO]),
     );
 
-    for (const item of readyItems) {
+    for (const item of batch) {
       const result = byKey.get(item.idempotency_key);
       if (!result) {
         await markQueueRetry(item, 'Resposta de sync sem resultado da operação');
@@ -167,7 +205,7 @@ export async function pushMetadata(): Promise<void> {
 
     await setSyncMetadata('last_sync_at', response.server_time);
   } catch (error) {
-    for (const item of readyItems) {
+    for (const item of batch) {
       await markQueueRetry(item, String(error));
     }
     throw error;

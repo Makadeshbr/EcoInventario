@@ -50,6 +50,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [manualLatitude, setManualLatitude] = useState('');
   const [manualLongitude, setManualLongitude] = useState('');
+  const [manualAdjusting, setManualAdjusting] = useState(false);
   const hasCoords = state.latitude !== null && state.longitude !== null;
 
   const captureGPS = useCallback(async () => {
@@ -105,6 +106,11 @@ export function StepLocation({ state, onChange, onNext }: Props) {
 
   const isAccurate = state.gpsAccuracyM !== null && state.gpsAccuracyM <= GPS_ACCURACY_THRESHOLD_M;
 
+  function updatePin(latitude: number, longitude: number) {
+    onChange({ latitude, longitude, gpsAccuracyM: null });
+    setLocationError(null);
+  }
+
   function applyManualLocation() {
     const lat = Number(manualLatitude.replace(',', '.'));
     const lng = Number(manualLongitude.replace(',', '.'));
@@ -121,10 +127,24 @@ export function StepLocation({ state, onChange, onNext }: Props) {
       <View style={styles.mapWrapper}>
         <View style={styles.mapCircle}>
           {hasCoords ? (
-            <MapView style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} region={region} scrollEnabled={false}>
+            <MapView
+              key={`${state.latitude!.toFixed(5)}-${state.longitude!.toFixed(5)}-${manualAdjusting ? 'manual' : 'auto'}`}
+              style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}
+              initialRegion={region}
+              scrollEnabled={manualAdjusting}
+              zoomEnabled={manualAdjusting}
+              pitchEnabled={false}
+              rotateEnabled={false}
+              onPress={(event) => {
+                if (!manualAdjusting) return;
+                updatePin(event.nativeEvent.coordinate.latitude, event.nativeEvent.coordinate.longitude);
+              }}
+            >
               <Marker
                 coordinate={{ latitude: state.latitude!, longitude: state.longitude! }}
                 anchor={{ x: 0.5, y: 0.5 }}
+                draggable={manualAdjusting}
+                onDragEnd={(event) => updatePin(event.nativeEvent.coordinate.latitude, event.nativeEvent.coordinate.longitude)}
               >
                 <View style={styles.mapPinWrapper}>
                   <PingRipple />
@@ -202,7 +222,27 @@ export function StepLocation({ state, onChange, onNext }: Props) {
         </View>
       )}
 
+      {hasCoords && manualAdjusting && (
+        <View style={styles.reviewNotice}>
+          <MaterialIcons name="touch-app" size={16} color={colors.secondary} />
+          <Text style={styles.reviewNoticeText}>
+            Toque no mapa ou arraste o PIN para marcar o ponto exato.
+          </Text>
+        </View>
+      )}
+
       <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => setManualAdjusting((value) => !value)}
+          disabled={!hasCoords}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons name="edit-location-alt" size={18} color={colors.secondary} />
+          <Text style={styles.secondaryButtonText}>
+            {manualAdjusting ? 'Fixar PIN' : 'Ajustar no mapa'}
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={captureGPS}

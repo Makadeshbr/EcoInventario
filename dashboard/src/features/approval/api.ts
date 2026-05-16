@@ -8,28 +8,51 @@ type ApprovalQueueResult = {
   warnings: string[];
 };
 
+type Paginated<T> = {
+  data: T[];
+  pagination: {
+    next_cursor: string | null;
+    has_more: boolean;
+  };
+};
+
+async function collectPendingPages<T>(
+  fetchPage: (cursor?: string) => Promise<Paginated<T>>,
+): Promise<T[]> {
+  const items: T[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const page = await fetchPage(cursor);
+    items.push(...page.data);
+    cursor = page.pagination.has_more && page.pagination.next_cursor ? page.pagination.next_cursor : undefined;
+  } while (cursor);
+
+  return items;
+}
+
 export async function listApprovalQueue(token: string): Promise<ApprovalQueueResult> {
   const [assetsResult, manejosResult, monitoramentosResult] = await Promise.allSettled([
-    listAssets(token, { status: 'pending', limit: 50 }),
-    listManejos(token, { status: 'pending', limit: 50 }),
-    listMonitoramentos(token, { status: 'pending', limit: 50 }),
+    collectPendingPages((cursor) => listAssets(token, { status: 'pending', limit: 100, cursor })),
+    collectPendingPages((cursor) => listManejos(token, { status: 'pending', limit: 100, cursor })),
+    collectPendingPages((cursor) => listMonitoramentos(token, { status: 'pending', limit: 100, cursor })),
   ]);
 
   const warnings: string[] = [];
   if (assetsResult.status === 'rejected') {
-    warnings.push('Nao foi possivel carregar assets pendentes.');
+    warnings.push(`Nao foi possivel carregar assets pendentes: ${assetsResult.reason instanceof Error ? assetsResult.reason.message : 'erro desconhecido'}.`);
   }
   if (manejosResult.status === 'rejected') {
-    warnings.push('Nao foi possivel carregar manejos pendentes.');
+    warnings.push(`Nao foi possivel carregar manejos pendentes: ${manejosResult.reason instanceof Error ? manejosResult.reason.message : 'erro desconhecido'}.`);
   }
   if (monitoramentosResult.status === 'rejected') {
-    warnings.push('Nao foi possivel carregar monitoramentos pendentes.');
+    warnings.push(`Nao foi possivel carregar monitoramentos pendentes: ${monitoramentosResult.reason instanceof Error ? monitoramentosResult.reason.message : 'erro desconhecido'}.`);
   }
 
-  const assets = assetsResult.status === 'fulfilled' ? assetsResult.value.data : [];
-  const manejos = manejosResult.status === 'fulfilled' ? manejosResult.value.data : [];
+  const assets = assetsResult.status === 'fulfilled' ? assetsResult.value : [];
+  const manejos = manejosResult.status === 'fulfilled' ? manejosResult.value : [];
   const monitoramentos =
-    monitoramentosResult.status === 'fulfilled' ? monitoramentosResult.value.data : [];
+    monitoramentosResult.status === 'fulfilled' ? monitoramentosResult.value : [];
 
   const items = [
     ...assets.map(

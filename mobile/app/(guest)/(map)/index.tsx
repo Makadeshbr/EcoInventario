@@ -64,7 +64,7 @@ export default function MapExplorarScreen() {
 
   const { isConnected } = useNetworkStatus();
   const { data: assetTypes } = usePublicAssetTypes();
-  const { data: assets, isLoading } = usePublicAssets(activeBounds, selectedTypeId);
+  const { data: assets, isLoading, isError, refetch } = usePublicAssets(activeBounds, selectedTypeId);
   const hasAutoCentered = useRef(false);
 
   // LOG de Depuração: Veja se os assets estão chegando
@@ -125,8 +125,8 @@ export default function MapExplorarScreen() {
   };
 
   const retryFetch = useCallback(() => {
-    setActiveBounds(regionToBounds(currentRegion));
-  }, [currentRegion]);
+    refetch();
+  }, [refetch]);
 
   return (
     <View style={StyleSheet.absoluteFillObject}>
@@ -172,10 +172,12 @@ export default function MapExplorarScreen() {
         </View>
       )}
 
-      {!isConnected && (
+      {(!isConnected || isError) && (
         <View style={styles.offlineBanner}>
-          <MaterialIcons name="wifi-off" size={16} color="#fff" />
-          <Text style={styles.offlineText}>Sem conexão com a internet</Text>
+          <MaterialIcons name={!isConnected ? "wifi-off" : "error-outline"} size={16} color="#fff" />
+          <Text style={styles.offlineText}>
+            {!isConnected ? 'Sem conexão com a internet' : 'Erro ao conectar com o servidor'}
+          </Text>
           <TouchableOpacity onPress={retryFetch} style={styles.retryBtn} activeOpacity={0.8}>
             <Text style={styles.retryText}>Tentar novamente</Text>
           </TouchableOpacity>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { generateUUID } from '@/utils/uuid';
 import { updateAsset, enqueueSyncItem } from '../repository';
 
@@ -9,8 +9,13 @@ interface SubmitAsset {
 
 export function useSubmitAsset(): SubmitAsset {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const inFlightRef = useRef(false);
 
   const submit = useCallback(async (assetId: string, currentVersion: number, currentUpdatedAt: string) => {
+    if (inFlightRef.current) {
+      throw new Error('Envio em andamento');
+    }
+    inFlightRef.current = true;
     setIsSubmitting(true);
     try {
       const now = new Date().toISOString();
@@ -31,6 +36,7 @@ export function useSubmitAsset(): SubmitAsset {
         createdAt: now,
       });
     } finally {
+      inFlightRef.current = false;
       setIsSubmitting(false);
     }
   }, []);

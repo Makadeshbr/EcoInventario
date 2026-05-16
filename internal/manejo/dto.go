@@ -4,6 +4,7 @@ import "time"
 
 // CreateRequest é o payload de POST /api/v1/manejos.
 type CreateRequest struct {
+	ID            *string `json:"id"              validate:"omitempty,uuid"`
 	AssetID       string  `json:"asset_id"        validate:"required,uuid"`
 	Description   string  `json:"description"     validate:"required,min=1,max=5000"`
 	BeforeMediaID *string `json:"before_media_id" validate:"omitempty,uuid"`

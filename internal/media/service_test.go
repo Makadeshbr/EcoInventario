@@ -175,6 +175,31 @@ func TestGenerateUploadURL_Success(t *testing.T) {
 	}
 }
 
+func TestGenerateUploadURL_PreservesClientMediaID(t *testing.T) {
+	repo := newStubRepo()
+	svc := newSvc(repo, &stubS3{}, true)
+
+	ctx := ctxWithClaims("user-1", "org-1")
+	mediaID := "550e8400-e29b-41d4-a716-446655440123"
+	resp, err := svc.GenerateUploadURL(ctx, media.UploadURLRequest{
+		MediaID:        &mediaID,
+		AssetID:        "asset-1",
+		MediaType:      media.TypeGeneral,
+		MimeType:       "image/jpeg",
+		SizeBytes:      1024,
+		IdempotencyKey: "idem-key-client-media",
+	})
+	if err != nil {
+		t.Fatalf("esperava sucesso, got: %v", err)
+	}
+	if resp.MediaID != mediaID {
+		t.Fatalf("MediaID: got %s, want %s", resp.MediaID, mediaID)
+	}
+	if _, ok := repo.media[mediaID]; !ok {
+		t.Fatalf("media client-side nao foi persistida no repo")
+	}
+}
+
 func TestGenerateUploadURL_InvalidMIME(t *testing.T) {
 	svc := newSvc(newStubRepo(), &stubS3{}, true)
 	ctx := ctxWithClaims("user-1", "org-1")

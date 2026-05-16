@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { generateUUID } from '@/utils/uuid';
-import { insertMonitoramento, enqueueSyncItem } from '../repository';
+import { insertMonitoramento, enqueueSyncItem, updateMonitoramentoStatus } from '../repository';
 import { createMonitoramentoSchema } from '../schemas';
 import { useAuthStore } from '@/stores/auth-store';
 
@@ -13,9 +13,13 @@ export interface SaveMonitoramentoParams {
 export function useCreateMonitoramento() {
   const user = useAuthStore((s) => s.user);
   const [isSaving, setIsSaving] = useState(false);
+  const inFlightRef = useRef(false);
 
   const save = useCallback(
     async (params: SaveMonitoramentoParams): Promise<string> => {
+      if (inFlightRef.current) {
+        throw new Error('Salvamento em andamento');
+      }
       if (!user) throw new Error('Usuário não autenticado');
 
       const validation = createMonitoramentoSchema.safeParse({
@@ -26,6 +30,7 @@ export function useCreateMonitoramento() {
         throw new Error(validation.error.errors[0].message);
       }
 
+      inFlightRef.current = true;
       setIsSaving(true);
       try {
         const now = new Date().toISOString();
@@ -60,8 +65,26 @@ export function useCreateMonitoramento() {
           createdAt: now,
         });
 
+        const submitAt = new Date().toISOString();
+        await updateMonitoramentoStatus(monitoramentoId, 'pending', submitAt);
+        await enqueueSyncItem({
+          id: generateUUID(),
+          idempotencyKey: `submit-monitoramento-${monitoramentoId}-1`,
+          action: 'UPDATE',
+          entityType: 'monitoramento',
+          entityId: monitoramentoId,
+          payload: JSON.stringify({
+            id: monitoramentoId,
+            status: 'pending',
+            client_updated_at: now,
+            updated_at: submitAt,
+          }),
+          createdAt: submitAt,
+        });
+
         return monitoramentoId;
       } finally {
+        inFlightRef.current = false;
         setIsSaving(false);
       }
     },

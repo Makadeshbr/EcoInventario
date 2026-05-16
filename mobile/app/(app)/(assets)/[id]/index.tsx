@@ -19,6 +19,7 @@ import QRCode from 'qrcode';
 
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
 import { useSubmitAsset } from '@/features/assets/hooks/use-submit-asset';
+import { SyncEngine } from '@/sync/sync-engine';
 import { useAuthStore } from '@/stores/auth-store';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import type { Asset } from '@/types/domain';
@@ -147,7 +148,17 @@ export default function AssetDetalhesScreen() {
           onPress: async () => {
             try {
               await submit(safeAsset.id, safeAsset.version, safeAsset.updatedAt);
+              const result = await SyncEngine.sync({ force: true });
               await refresh();
+              if (result.state === 'offline') {
+                Alert.alert('Envio pendente', 'Sem conexão agora. O asset ficou na fila para enviar à revisão.');
+                return;
+              }
+              if (result.state === 'error' || result.pendingMetadataCount > 0 || result.pendingMediaCount > 0) {
+                Alert.alert('Envio pendente', result.message ?? 'O asset foi salvo, mas ainda aguarda confirmação do servidor.');
+                return;
+              }
+              Alert.alert('Enviado', 'O asset foi enviado ao admin para revisão.');
             } catch {
               Alert.alert('Erro', 'Não foi possível enviar. Tente novamente.');
             }

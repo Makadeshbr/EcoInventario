@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useCreateManejo } from '../use-create-manejo';
-import { insertManejo, insertMedia, enqueueSyncItem, enqueueMediaUpload } from '../../repository';
+import { insertManejo, insertMedia, enqueueSyncItem, enqueueMediaUpload, updateManejoStatus } from '../../repository';
 import { generateUUID } from '@/utils/uuid';
 import { compressImage } from '@/utils/image-compression';
 
@@ -30,6 +30,7 @@ jest.mock('@/utils/image-compression', () => ({
 
 jest.mock('../../repository', () => ({
   insertManejo: jest.fn().mockResolvedValue(undefined),
+  updateManejoStatus: jest.fn().mockResolvedValue(undefined),
   enqueueSyncItem: jest.fn().mockResolvedValue(undefined),
   insertMedia: jest.fn().mockResolvedValue(undefined),
   enqueueMediaUpload: jest.fn().mockResolvedValue(undefined),
@@ -72,6 +73,14 @@ describe('useCreateManejo', () => {
     expect(enqueueSyncItem).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'CREATE',
+        entityType: 'manejo',
+      })
+    );
+
+    expect(updateManejoStatus).toHaveBeenCalledWith(expect.any(String), 'pending', expect.any(String));
+    expect(enqueueSyncItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'UPDATE',
         entityType: 'manejo',
       })
     );

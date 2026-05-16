@@ -31,14 +31,14 @@ func NewRepository(db *sql.DB) Repository {
 func (r *repository) Insert(ctx context.Context, m *Media) error {
 	query := `
 		INSERT INTO media (
-			organization_id, asset_id, storage_key, storage_bucket,
+			id, organization_id, asset_id, storage_key, storage_bucket,
 			mime_type, size_bytes, type, upload_status, idempotency_key, created_by
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		VALUES (COALESCE(NULLIF($1, '')::uuid, gen_random_uuid()), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING id, created_at
 	`
 	return r.db.QueryRowContext(ctx, query,
-		m.OrganizationID, m.AssetID, m.StorageKey, m.StorageBucket,
+		m.ID, m.OrganizationID, m.AssetID, m.StorageKey, m.StorageBucket,
 		m.MimeType, m.SizeBytes, m.Type, m.UploadStatus, m.IdempotencyKey, m.CreatedBy,
 	).Scan(&m.ID, &m.CreatedAt)
 }

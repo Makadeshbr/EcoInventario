@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/allan/ecoinventario/internal/approval"
 	"github.com/allan/ecoinventario/internal/asset"
 	"github.com/allan/ecoinventario/internal/assettype"
 	"github.com/allan/ecoinventario/internal/audit"
@@ -160,6 +161,28 @@ func (d *syncDispatcher) Update(ctx context.Context, entityType, entityID string
 		data, _ := json.Marshal(resp)
 		return resp.UpdatedAt, data, nil
 	case "manejo":
+		var raw map[string]json.RawMessage
+		if err := json.Unmarshal(payload, &raw); err != nil {
+			return time.Time{}, nil, err
+		}
+		if statusRaw, ok := raw["status"]; ok {
+			var status string
+			if err := json.Unmarshal(statusRaw, &status); err != nil {
+				return time.Time{}, nil, err
+			}
+			if status == "pending" {
+				resp, err := d.manejoSvc.Submit(ctx, entityID)
+				if err != nil {
+					return time.Time{}, nil, err
+				}
+				current, err := d.manejoSvc.GetByID(ctx, entityID)
+				if err != nil {
+					return time.Time{}, nil, err
+				}
+				data, _ := json.Marshal(resp)
+				return current.UpdatedAt, data, nil
+			}
+		}
 		var req manejo.UpdateRequest
 		if err := json.Unmarshal(payload, &req); err != nil {
 			return time.Time{}, nil, err
@@ -171,6 +194,28 @@ func (d *syncDispatcher) Update(ctx context.Context, entityType, entityID string
 		data, _ := json.Marshal(resp)
 		return resp.UpdatedAt, data, nil
 	case "monitoramento":
+		var raw map[string]json.RawMessage
+		if err := json.Unmarshal(payload, &raw); err != nil {
+			return time.Time{}, nil, err
+		}
+		if statusRaw, ok := raw["status"]; ok {
+			var status string
+			if err := json.Unmarshal(statusRaw, &status); err != nil {
+				return time.Time{}, nil, err
+			}
+			if status == "pending" {
+				resp, err := d.monitoramentoSvc.Submit(ctx, entityID)
+				if err != nil {
+					return time.Time{}, nil, err
+				}
+				current, err := d.monitoramentoSvc.GetByID(ctx, entityID)
+				if err != nil {
+					return time.Time{}, nil, err
+				}
+				data, _ := json.Marshal(resp)
+				return current.UpdatedAt, data, nil
+			}
+		}
 		var req monitoramento.UpdateRequest
 		if err := json.Unmarshal(payload, &req); err != nil {
 			return time.Time{}, nil, err
@@ -297,6 +342,7 @@ func main() {
 
 	userSvc := user.NewService(userRepo, auditSvc, cfg.PasswordPepper)
 	assetTypeSvc := assettype.NewService(assetTypeRepo, auditSvc)
+	approvalBroker := approval.NewBroker()
 
 	// S3 client — sempre use SSL em produção. Desabilite apenas para MinIO local se necessário.
 	// Cloudflare R2 e AWS usam HTTPS obrigatório.
@@ -330,6 +376,9 @@ func main() {
 		&assetExistsAdapter{repo: assetRepo},
 		auditSvc,
 	)
+	assetSvc.SetApprovalNotifier(approvalBroker)
+	manejoSvc.SetApprovalNotifier(approvalBroker)
+	monitoramentoSvc.SetApprovalNotifier(approvalBroker)
 
 	syncSvc := syncsvc.NewService(
 		idempotencyRepo,
@@ -518,6 +567,7 @@ func main() {
 
 			// Audit logs — ADMIN only.
 			r.With(middleware.RequireRole(shared.RoleAdmin)).Get("/audit-logs", auditHandler.HandleList)
+			r.With(middleware.RequireRole(shared.RoleAdmin)).Get("/approval/events", approvalBroker.ServeHTTP)
 		})
 
 		// Health check — público, sem auth.

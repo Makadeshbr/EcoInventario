@@ -85,8 +85,11 @@ func (s *Service) GenerateUploadURL(ctx context.Context, req UploadURLRequest) (
 		}
 	}
 
-	// Monta storage key: {org_id}/assets/{asset_id}/{media_id}.{ext}
 	mediaID := uuid.NewString()
+	if req.MediaID != nil {
+		mediaID = *req.MediaID
+	}
+	// Monta storage key: {org_id}/assets/{asset_id}/{media_id}.{ext}
 	ext := ExtensionFor(req.MimeType)
 	storageKey := fmt.Sprintf("%s/assets/%s/%s.%s", orgID, req.AssetID, mediaID, ext)
 

@@ -26,6 +26,7 @@ jest.mock('@/utils/image-compression', () => ({
 
 jest.mock('../../repository', () => ({
   insertAsset: jest.fn().mockResolvedValue(undefined),
+  updateAsset: jest.fn().mockResolvedValue(undefined),
   enqueueSyncItem: jest.fn().mockResolvedValue(undefined),
   insertMedia: jest.fn().mockResolvedValue(undefined),
   enqueueMediaUpload: jest.fn().mockResolvedValue(undefined),
@@ -40,6 +41,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useSaveAsset } from '../use-save-asset';
 import {
   insertAsset,
+  updateAsset,
   enqueueSyncItem,
   insertMedia,
   enqueueMediaUpload,
@@ -122,6 +124,21 @@ describe('useSaveAsset — fluxo de salvamento', () => {
     const payload = JSON.parse(call.payload);
     expect(payload.status).toBe('draft');
     expect(payload.organization_id).toBe('org-1');
+  });
+
+  test('marca asset como pending e enfileira submit para revisao', async () => {
+    const { result } = renderHook(() => useSaveAsset());
+    await act(async () => { await result.current.save(validParams); });
+
+    expect(updateAsset).toHaveBeenCalledWith('asset-id', expect.objectContaining({ status: 'pending' }));
+    expect(enqueueSyncItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'UPDATE',
+        entityType: 'asset',
+        entityId: 'asset-id',
+        idempotencyKey: 'submit-asset-asset-id-1',
+      }),
+    );
   });
 
   test('retorna o assetId gerado', async () => {

@@ -31,7 +31,7 @@
         "EXPO_PUBLIC_API_BASE_URL": "https://ecoinventario-api.onrender.com/api/v1"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       },
       "ios": {
         "simulator": false

@@ -64,7 +64,15 @@ export default function CriarMonitoramentoScreen() {
         healthStatus,
       });
       if (isConnected) {
-        await SyncEngine.sync({ force: true });
+        const result = await SyncEngine.sync({ force: true });
+        if (result.state === 'error' || result.pendingMetadataCount > 0 || result.pendingMediaCount > 0) {
+          Alert.alert('Envio pendente', result.message ?? 'O monitoramento foi salvo e continua na fila de sincronização.');
+          router.back();
+          return;
+        }
+        Alert.alert('Enviado', 'O monitoramento foi enviado ao admin para revisão.');
+      } else {
+        Alert.alert('Envio pendente', 'Sem conexão agora. O monitoramento ficou aguardando conexão para enviar à revisão.');
       }
       router.back();
     } catch (err: any) {
@@ -153,9 +161,9 @@ export default function CriarMonitoramentoScreen() {
           >
             {isSaving
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
-              : <MaterialIcons name="save" size={18} color={colors.onPrimary} />}
+              : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
             <Text style={styles.saveButtonText}>
-              {isSaving ? 'Salvando...' : 'Salvar Avaliação'}
+              {isSaving ? 'Enviando...' : 'Enviar avaliação'}
             </Text>
           </TouchableOpacity>
         </View>

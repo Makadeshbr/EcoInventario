@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/allan/ecoinventario/internal/approval"
 	"github.com/allan/ecoinventario/internal/audit"
 	"github.com/allan/ecoinventario/internal/shared"
 	"github.com/allan/ecoinventario/internal/shared/apperror"
@@ -26,15 +27,20 @@ var validHealthStatuses = map[string]bool{
 
 // Service implementa a lógica de negócio para monitoramentos.
 type Service struct {
-	repo   Repository
-	asset  AssetChecker
-	audit  *audit.Service
-	policy monitoramentoMutationPolicy
+	repo     Repository
+	asset    AssetChecker
+	audit    *audit.Service
+	policy   monitoramentoMutationPolicy
+	notifier approval.Notifier
 }
 
 // NewService cria o serviço de monitoramentos.
 func NewService(repo Repository, asset AssetChecker, auditSvc *audit.Service) *Service {
 	return &Service{repo: repo, asset: asset, audit: auditSvc, policy: monitoramentoMutationPolicy{}}
+}
+
+func (s *Service) SetApprovalNotifier(notifier approval.Notifier) {
+	s.notifier = notifier
 }
 
 // Create cria um novo monitoramento em status draft.
@@ -57,6 +63,9 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (*Response, err
 		HealthStatus:   req.HealthStatus,
 		Status:         shared.StatusDraft,
 		CreatedBy:      callerID,
+	}
+	if req.ID != nil {
+		m.ID = *req.ID
 	}
 	if err := s.repo.Insert(ctx, m); err != nil {
 		return nil, fmt.Errorf("inserindo monitoramento: %w", err)
@@ -213,6 +222,7 @@ func (s *Service) Submit(ctx context.Context, id string) (*StatusResponse, error
 		PerformedBy:    callerID,
 		Changes:        mustMarshal(map[string]any{"status": map[string]string{"old": shared.StatusDraft, "new": shared.StatusPending}}),
 	})
+	s.notifyApproval(ctx, m.ID, m.Status, shared.AuditSubmit)
 
 	return &StatusResponse{ID: m.ID, Status: m.Status}, nil
 }
@@ -248,6 +258,7 @@ func (s *Service) Approve(ctx context.Context, id string) (*StatusResponse, erro
 		PerformedBy:    callerID,
 		Changes:        mustMarshal(map[string]any{"status": map[string]string{"old": shared.StatusPending, "new": shared.StatusApproved}}),
 	})
+	s.notifyApproval(ctx, m.ID, m.Status, shared.AuditApprove)
 
 	return &StatusResponse{ID: m.ID, Status: m.Status, ApprovedBy: &approver}, nil
 }
@@ -283,6 +294,7 @@ func (s *Service) Reject(ctx context.Context, id string, req RejectRequest) (*Re
 		PerformedBy:    callerID,
 		Changes:        mustMarshal(map[string]any{"status": map[string]string{"old": shared.StatusPending, "new": shared.StatusRejected}, "reason": reason}),
 	})
+	s.notifyApproval(ctx, m.ID, m.Status, shared.AuditReject)
 
 	return &RejectResponse{ID: m.ID, Status: m.Status, RejectionReason: reason}, nil
 }
@@ -326,4 +338,16 @@ func (s *Service) ensureAssetInOrg(ctx context.Context, assetID, orgID string) e
 func mustMarshal(v any) json.RawMessage {
 	b, _ := json.Marshal(v)
 	return b
+}
+
+func (s *Service) notifyApproval(ctx context.Context, id, status, action string) {
+	if s.notifier == nil {
+		return
+	}
+	s.notifier.NotifyApprovalQueueChanged(ctx, approval.QueueEvent{
+		EntityType: "monitoramento",
+		EntityID:   id,
+		Status:     status,
+		Action:     action,
+	})
 }

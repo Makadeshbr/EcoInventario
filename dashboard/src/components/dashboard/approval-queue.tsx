@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, ChevronDown, Filter, Loader2, XCircle } from 'lucide-react';
 
 import type { ApprovalEntityType, ApprovalItem } from '@/features/approval/types';
@@ -19,6 +19,7 @@ export function ApprovalQueue({
   warnings?: string[];
 }) {
   const [items, setItems] = useState(initialItems);
+  const [queueWarnings, setQueueWarnings] = useState(warnings);
   const [entityFilter, setEntityFilter] = useState<'all' | ApprovalEntityType>('all');
   const [ownerFilter, setOwnerFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
@@ -27,6 +28,54 @@ export function ApprovalQueue({
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<Date | null>(null);
+
+  const refreshQueue = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await fetch('/api/dashboard/approval/queue', { cache: 'no-store' });
+      const payload = (await response.json().catch(() => null)) as {
+        items?: ApprovalItem[];
+        warnings?: string[];
+        error?: string;
+      } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error ?? 'Falha ao atualizar fila de aprovacao');
+      }
+      setItems(payload?.items ?? []);
+      setQueueWarnings(payload?.warnings ?? []);
+      setLastUpdatedAt(new Date());
+    } catch (refreshError) {
+      setError(refreshError instanceof Error ? refreshError.message : 'Falha ao atualizar fila de aprovacao');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let source: EventSource | null = null;
+    let retry: number | null = null;
+
+    function connect() {
+      source = new EventSource('/api/dashboard/approval/events');
+      source.addEventListener('approval_queue_changed', () => {
+        void refreshQueue();
+      });
+      source.onerror = () => {
+        source?.close();
+        source = null;
+        void refreshQueue();
+        retry = window.setTimeout(connect, 3000);
+      };
+    }
+
+    connect();
+    return () => {
+      if (retry) window.clearTimeout(retry);
+      source?.close();
+    };
+  }, [refreshQueue]);
 
   const filtered = useMemo(
     () =>
@@ -52,7 +101,7 @@ export function ApprovalQueue({
       setError(payload?.error ?? 'Falha ao aprovar registro');
       return;
     }
-    setItems((current) => current.filter((row) => row.id !== item.id));
+    await refreshQueue();
   }
 
   async function reject() {
@@ -75,7 +124,7 @@ export function ApprovalQueue({
       setError(payload?.error ?? 'Falha ao rejeitar registro');
       return;
     }
-    setItems((current) => current.filter((row) => row.id !== rejecting.id));
+    await refreshQueue();
     setRejecting(null);
     setReason('');
   }
@@ -118,13 +167,18 @@ export function ApprovalQueue({
         </p>
       ) : null}
 
-      {warnings.length > 0 ? (
+      {queueWarnings.length > 0 ? (
         <div className="rounded-[20px] border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm font-semibold text-yellow-800">
-          {warnings.map((warning) => (
+          {queueWarnings.map((warning) => (
             <p key={warning}>{warning}</p>
           ))}
         </div>
       ) : null}
+
+      <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-outline">
+        <span>{isRefreshing ? 'Atualizando fila...' : 'Fila em tempo real ativa'}</span>
+        <span>{lastUpdatedAt ? `Atualizado ${lastUpdatedAt.toLocaleTimeString('pt-BR')}` : 'Aguardando eventos'}</span>
+      </div>
 
       <section className="panel overflow-hidden">
         {filtered.length === 0 ? (
@@ -167,6 +221,7 @@ export function ApprovalQueue({
                     <button
                       type="button"
                       onClick={() => setRejecting(item)}
+                      disabled={busyKey === item.id}
                       className="inline-flex h-11 items-center gap-2 rounded-full bg-red-50 px-4 text-sm font-bold text-error"
                     >
                       <XCircle className="h-4 w-4" />
@@ -209,9 +264,10 @@ export function ApprovalQueue({
               <button
                 type="button"
                 onClick={reject}
-                className="h-11 rounded-full bg-primary px-5 text-sm font-bold text-on-primary"
+                disabled={busyKey === rejecting.id}
+                className="h-11 rounded-full bg-primary px-5 text-sm font-bold text-on-primary disabled:opacity-60"
               >
-                Confirmar rejeicao
+                {busyKey === rejecting.id ? 'Rejeitando...' : 'Confirmar rejeicao'}
               </button>
             </div>
           </div>

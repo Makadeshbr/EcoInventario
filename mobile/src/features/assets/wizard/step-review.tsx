@@ -16,9 +16,10 @@ interface Props {
   onSave: () => void;
   isSaving: boolean;
   isConnected: boolean;
+  statusMessage?: string | null;
 }
 
-export function StepReview({ state, onSave, isSaving, isConnected }: Props) {
+export function StepReview({ state, onSave, isSaving, isConnected, statusMessage }: Props) {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.stepContent} showsVerticalScrollIndicator={false}>
@@ -33,6 +34,13 @@ export function StepReview({ state, onSave, isSaving, isConnected }: Props) {
         </Text>
         {state.gpsAccuracyM !== null && (
           <Text style={styles.reviewSub}>Precisão: {state.gpsAccuracyM.toFixed(0)}m</Text>
+        )}
+
+        {statusMessage && (
+          <View style={styles.reviewNotice}>
+            <MaterialIcons name="sync" size={16} color={colors.secondary} />
+            <Text style={styles.reviewNoticeText}>{statusMessage}</Text>
+          </View>
         )}
 
         <Text style={[styles.reviewLabel, { marginTop: spacing.md }]}>Notas</Text>
@@ -71,9 +79,9 @@ export function StepReview({ state, onSave, isSaving, isConnected }: Props) {
         >
           {isSaving
             ? <ActivityIndicator color={colors.onPrimary} size="small" />
-            : <MaterialIcons name="save" size={18} color={colors.onPrimary} />}
+            : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
           <Text style={styles.primaryButtonText}>
-            {isSaving ? 'Salvando...' : 'Salvar'}
+            {isSaving ? 'Enviando...' : 'Enviar para revisão'}
           </Text>
         </TouchableOpacity>
       </View>

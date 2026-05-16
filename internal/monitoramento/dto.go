@@ -4,9 +4,10 @@ import "time"
 
 // CreateRequest é o payload de POST /api/v1/monitoramentos.
 type CreateRequest struct {
-	AssetID      string `json:"asset_id"      validate:"required,uuid"`
-	Notes        string `json:"notes"         validate:"required,min=1,max=5000"`
-	HealthStatus string `json:"health_status" validate:"required"`
+	ID           *string `json:"id"            validate:"omitempty,uuid"`
+	AssetID      string  `json:"asset_id"      validate:"required,uuid"`
+	Notes        string  `json:"notes"         validate:"required,min=1,max=5000"`
+	HealthStatus string  `json:"health_status" validate:"required"`
 }
 
 // UpdateRequest é o payload de PATCH /api/v1/monitoramentos/{id} (campos opcionais).

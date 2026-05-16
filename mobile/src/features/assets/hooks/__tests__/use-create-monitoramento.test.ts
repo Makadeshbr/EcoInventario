@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useCreateMonitoramento } from '../use-create-monitoramento';
-import { insertMonitoramento, enqueueSyncItem } from '../../repository';
+import { insertMonitoramento, enqueueSyncItem, updateMonitoramentoStatus } from '../../repository';
 import { generateUUID } from '@/utils/uuid';
 
 jest.mock('@/db/database', () => ({ getDb: jest.fn() }));
@@ -25,6 +25,7 @@ jest.mock('@/utils/uuid', () => ({
 
 jest.mock('../../repository', () => ({
   insertMonitoramento: jest.fn().mockResolvedValue(undefined),
+  updateMonitoramentoStatus: jest.fn().mockResolvedValue(undefined),
   enqueueSyncItem: jest.fn().mockResolvedValue(undefined),
 }));
 
@@ -57,6 +58,14 @@ describe('useCreateMonitoramento', () => {
     expect(enqueueSyncItem).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'CREATE',
+        entityType: 'monitoramento',
+      })
+    );
+
+    expect(updateMonitoramentoStatus).toHaveBeenCalledWith(expect.any(String), 'pending', expect.any(String));
+    expect(enqueueSyncItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'UPDATE',
         entityType: 'monitoramento',
       })
     );

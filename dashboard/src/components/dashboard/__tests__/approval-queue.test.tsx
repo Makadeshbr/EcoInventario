@@ -33,6 +33,13 @@ describe('ApprovalQueue', () => {
   test('rejeitar exige motivo antes de chamar API', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal(
+      'EventSource',
+      vi.fn(() => ({
+        addEventListener: vi.fn(),
+        close: vi.fn(),
+      })),
+    );
 
     render(<ApprovalQueue initialItems={[item]} />);
 
