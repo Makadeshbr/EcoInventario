@@ -36,6 +36,8 @@ type PushMetadataOptions = {
   onlySubmissions?: boolean;
   entityTypes?: string[];
   excludeEntityTypes?: string[];
+  bypassRetryDelay?: boolean;
+  maxItems?: number;
 };
 
 function isReadyForRetry(retryCount: number, lastAttemptAt: string | null): boolean {
@@ -170,11 +172,12 @@ export async function pushMetadata(options: PushMetadataOptions = {}): Promise<v
     if (options.includeSubmissions === false && isSubmit) continue;
     if (options.entityTypes && !options.entityTypes.includes(item.entity_type)) continue;
     if (options.excludeEntityTypes?.includes(item.entity_type)) continue;
-    if (!isReadyForRetry(item.retry_count, item.last_attempt_at)) continue;
+    if (!options.bypassRetryDelay && !isReadyForRetry(item.retry_count, item.last_attempt_at)) continue;
     readyItems.push(item);
   }
+  const batchLimit = options.maxItems ?? MAX_SYNC_BATCH_SIZE;
   const batch = readyItems
-    .slice(0, MAX_SYNC_BATCH_SIZE);
+    .slice(0, batchLimit);
 
   if (batch.length === 0) return;
 

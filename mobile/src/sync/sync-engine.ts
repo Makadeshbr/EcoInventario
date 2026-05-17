@@ -17,6 +17,10 @@ export type SyncResult = {
   message?: string;
 };
 
+type RunSyncOptions = {
+  force?: boolean;
+};
+
 function isOnlineState(state: Awaited<ReturnType<typeof NetInfo.fetch>>): boolean {
   return state.isConnected === true && state.isInternetReachable !== false;
 }
@@ -47,7 +51,7 @@ async function updateCounts(): Promise<Omit<SyncResult, 'state' | 'message'>> {
   return counts;
 }
 
-async function runSync(): Promise<SyncResult> {
+async function runSync(options: RunSyncOptions = {}): Promise<SyncResult> {
   const state = await NetInfo.fetch();
   if (!isOnlineState(state)) {
     const counts = await updateCounts();
@@ -64,11 +68,27 @@ async function runSync(): Promise<SyncResult> {
     await db.runAsync(`UPDATE media SET upload_status = 'pending' WHERE upload_status = 'uploading'`);
 
     const orgId = useAuthStore.getState().user?.organizationId ?? '';
+    const manualBatchSize = options.force ? 100 : undefined;
+    const manualMediaBatchSize = options.force ? 25 : undefined;
     await pullAssetTypes(orgId);
-    await pushMetadata({ includeSubmissions: false, entityTypes: ['asset'] });
-    await pushMedia();
-    await pushMetadata({ includeSubmissions: false, excludeEntityTypes: ['asset'] });
-    await pushMetadata({ onlySubmissions: true });
+    await pushMetadata({
+      includeSubmissions: false,
+      entityTypes: ['asset'],
+      bypassRetryDelay: options.force,
+      maxItems: manualBatchSize,
+    });
+    await pushMedia({ maxItems: manualMediaBatchSize });
+    await pushMetadata({
+      includeSubmissions: false,
+      excludeEntityTypes: ['asset'],
+      bypassRetryDelay: options.force,
+      maxItems: manualBatchSize,
+    });
+    await pushMetadata({
+      onlySubmissions: true,
+      bypassRetryDelay: options.force,
+      maxItems: manualBatchSize,
+    });
     await pullChanges();
     const counts = await updateCounts();
 
@@ -123,7 +143,7 @@ class SyncEngineImpl {
     }
 
     this.lastSyncAttemptAt = now;
-    this.inFlight = runSync().finally(() => {
+    this.inFlight = runSync({ force: options.force }).finally(() => {
       this.inFlight = null;
     });
     return this.inFlight;

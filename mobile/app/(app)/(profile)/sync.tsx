@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { Alert, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -9,13 +10,47 @@ import { SyncEngine } from '@/sync/sync-engine';
 
 export default function SyncStatusScreen() {
   const { status, lastSyncAt, pendingMetadataCount, pendingMediaCount } = useSyncStore();
+  const [manualSyncing, setManualSyncing] = useState(false);
   const pendingTotal = pendingMetadataCount + pendingMediaCount;
 
   const syncState = status.state;
-  const isSyncing = syncState === 'syncing';
+  const isSyncing = syncState === 'syncing' || manualSyncing;
 
   async function handleSyncNow() {
-    await SyncEngine.sync({ force: true });
+    if (manualSyncing) return;
+    setManualSyncing(true);
+    try {
+      const result = await SyncEngine.sync({ force: true });
+      if (result.state === 'offline') {
+        Alert.alert('Sem conexao', 'Os itens continuam salvos no aparelho e serao enviados quando a internet voltar.');
+        return;
+      }
+      if (result.state === 'error') {
+        Alert.alert('Sincronizacao falhou', result.message ?? 'Nao foi possivel concluir o envio agora.');
+        return;
+      }
+      if (result.conflictCount > 0) {
+        Alert.alert('Conflito de sincronizacao', `${result.conflictCount} item(ns) precisam de revisao antes de reenviar.`);
+        return;
+      }
+      if (result.pendingMetadataCount === 0 && result.pendingMediaCount === 0) {
+        Alert.alert('Tudo sincronizado', 'Todos os dados e fotos foram confirmados pelo servidor.');
+        return;
+      }
+      if (result.pendingMetadataCount === 0) {
+        Alert.alert(
+          'Dados enviados',
+          `${result.pendingMediaCount} foto(s) ainda estao pendentes, mas os dados elegiveis ja foram enviados para o painel admin.`,
+        );
+        return;
+      }
+      Alert.alert(
+        'Ainda ha pendencias',
+        `${result.pendingMetadataCount} dado(s) e ${result.pendingMediaCount} foto(s) continuam pendentes. Verifique sua conexao e tente novamente.`,
+      );
+    } finally {
+      setManualSyncing(false);
+    }
   }
 
   function getStatusColor() {
@@ -73,11 +108,11 @@ export default function SyncStatusScreen() {
         <View style={styles.queueCard}>
           <Text style={styles.queueTitle}>Fila de Envio</Text>
           <View style={styles.queueRow}>
-            <Text style={styles.queueLabel}>Dados (Ativos, Manejos)</Text>
+            <Text style={styles.queueLabel}>Dados para o admin</Text>
             <Text style={styles.queueValue}>{pendingMetadataCount}</Text>
           </View>
           <View style={styles.queueRow}>
-            <Text style={styles.queueLabel}>Mídias (Fotos)</Text>
+            <Text style={styles.queueLabel}>Fotos</Text>
             <Text style={styles.queueValue}>{pendingMediaCount}</Text>
           </View>
           <View style={[styles.queueRow, styles.queueRowTotal]}>

@@ -4,6 +4,10 @@ import { remapAssetId } from './remap-asset-id';
 
 const MEDIA_UPLOAD_BATCH_SIZE = 3;
 
+type PushMediaOptions = {
+  maxItems?: number;
+};
+
 type MediaQueueRow = {
   id: string;
   idempotency_key: string;
@@ -92,7 +96,7 @@ async function requestUploadURL(item: MediaQueueRow): Promise<UploadURLResponseD
   }
 }
 
-export async function pushMedia(): Promise<void> {
+export async function pushMedia(options: PushMediaOptions = {}): Promise<void> {
   const db = getDb();
   const items = await db.getAllAsync<MediaQueueRow>(
     `SELECT id, idempotency_key, media_id, local_file_path, asset_id, media_type,
@@ -102,7 +106,7 @@ export async function pushMedia(): Promise<void> {
      ORDER BY created_at ASC`,
   );
 
-  const batch = items.slice(0, MEDIA_UPLOAD_BATCH_SIZE);
+  const batch = items.slice(0, options.maxItems ?? MEDIA_UPLOAD_BATCH_SIZE);
 
   for (const item of batch) {
     await db.runAsync(`UPDATE media_upload_queue SET status = 'uploading' WHERE id = ?`, [item.id]);
