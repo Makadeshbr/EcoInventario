@@ -200,6 +200,33 @@ func TestGenerateUploadURL_PreservesClientMediaID(t *testing.T) {
 	}
 }
 
+func TestGenerateUploadURL_NormalizesLegacyMobilePayload(t *testing.T) {
+	repo := newStubRepo()
+	svc := newSvc(repo, &stubS3{}, true)
+
+	ctx := ctxWithClaims("user-1", "org-1")
+	resp, err := svc.GenerateUploadURL(ctx, media.UploadURLRequest{
+		AssetID:        "asset-1",
+		MediaType:      "photo",
+		MimeType:       "jpg",
+		SizeBytes:      0,
+		IdempotencyKey: "upload-queue-key-from-mobile",
+	})
+	if err != nil {
+		t.Fatalf("esperava sucesso para payload legado do app, got: %v", err)
+	}
+	stored := repo.media[resp.MediaID]
+	if stored.Type != media.TypeGeneral {
+		t.Fatalf("Type: got %s, want %s", stored.Type, media.TypeGeneral)
+	}
+	if stored.MimeType != "image/jpeg" {
+		t.Fatalf("MimeType: got %s, want image/jpeg", stored.MimeType)
+	}
+	if stored.SizeBytes != 1 {
+		t.Fatalf("SizeBytes: got %d, want 1", stored.SizeBytes)
+	}
+}
+
 func TestGenerateUploadURL_InvalidMIME(t *testing.T) {
 	svc := newSvc(newStubRepo(), &stubS3{}, true)
 	ctx := ctxWithClaims("user-1", "org-1")

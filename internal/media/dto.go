@@ -4,12 +4,12 @@ import "time"
 
 // UploadURLRequest é o payload de POST /api/v1/media/upload-url.
 type UploadURLRequest struct {
-	MediaID        *string `json:"media_id"        validate:"omitempty,uuid"`
+	MediaID        *string `json:"media_id"        validate:"omitempty"`
 	AssetID        string  `json:"asset_id"        validate:"required,uuid"`
-	MediaType      string  `json:"media_type"      validate:"required,oneof=before after general"`
+	MediaType      string  `json:"media_type"      validate:"required"`
 	MimeType       string  `json:"mime_type"       validate:"required"`
-	SizeBytes      int64   `json:"size_bytes"      validate:"required,min=1,max=10485760"`
-	IdempotencyKey string  `json:"idempotency_key" validate:"required,uuid"`
+	SizeBytes      int64   `json:"size_bytes"      validate:"omitempty"`
+	IdempotencyKey string  `json:"idempotency_key" validate:"required"`
 }
 
 // UploadURLResponse é a resposta de POST /api/v1/media/upload-url.

@@ -67,14 +67,44 @@ function isSubmitPayload(payload: Record<string, unknown>): boolean {
   return payload.status === 'pending';
 }
 
-async function hasUnfinishedAssetMediaUploads(entityType: string, entityId: string): Promise<boolean> {
-  if (entityType !== 'asset') return false;
-  const row = await getDb().getFirstAsync<{ count: number }>(
-    `SELECT COUNT(*) AS count FROM media_upload_queue
-     WHERE asset_id = ? AND status IN ('pending', 'uploading', 'failed')`,
-    [entityId],
+async function hasServerConfirmedMedia(mediaId: unknown): Promise<boolean> {
+  if (typeof mediaId !== 'string' || mediaId.length === 0) return false;
+  const row = await getDb().getFirstAsync<{ upload_status: string }>(
+    `SELECT upload_status FROM media WHERE id = ?`,
+    [mediaId],
   );
-  return (row?.count ?? 0) > 0;
+  return row?.upload_status === 'uploaded';
+}
+
+async function removeUnconfirmedManejoMedia(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const next = { ...payload };
+  if (next.before_media_id && !(await hasServerConfirmedMedia(next.before_media_id))) {
+    delete next.before_media_id;
+  }
+  if (next.after_media_id && !(await hasServerConfirmedMedia(next.after_media_id))) {
+    delete next.after_media_id;
+  }
+  return next;
+}
+
+async function buildOperation(item: QueueRow) {
+  let payload = safeParsePayload(item.payload);
+  if (item.entity_type === 'manejo' && item.action === 'CREATE') {
+    payload = await removeUnconfirmedManejoMedia(payload);
+  }
+
+  const clientUpdatedAt = typeof payload.client_updated_at === 'string'
+    ? payload.client_updated_at
+    : typeof payload.updated_at === 'string' ? payload.updated_at : '';
+
+  return {
+    idempotency_key: item.idempotency_key,
+    action: item.action,
+    entity_type: item.entity_type,
+    entity_id: item.entity_id,
+    payload,
+    client_updated_at: item.action === 'UPDATE' && clientUpdatedAt ? clientUpdatedAt : undefined,
+  };
 }
 
 async function markQueueRetry(item: QueueRow, errorMessage: string): Promise<void> {
@@ -141,7 +171,6 @@ export async function pushMetadata(options: PushMetadataOptions = {}): Promise<v
     if (options.entityTypes && !options.entityTypes.includes(item.entity_type)) continue;
     if (options.excludeEntityTypes?.includes(item.entity_type)) continue;
     if (!isReadyForRetry(item.retry_count, item.last_attempt_at)) continue;
-    if (isSubmit && await hasUnfinishedAssetMediaUploads(item.entity_type, item.entity_id)) continue;
     readyItems.push(item);
   }
   const batch = readyItems
@@ -156,20 +185,7 @@ export async function pushMetadata(options: PushMetadataOptions = {}): Promise<v
   );
 
   try {
-    const operations = batch.map((item) => {
-      const payload = safeParsePayload(item.payload);
-      const clientUpdatedAt = typeof payload.client_updated_at === 'string'
-        ? payload.client_updated_at
-        : typeof payload.updated_at === 'string' ? payload.updated_at : '';
-      return {
-        idempotency_key: item.idempotency_key,
-        action: item.action,
-        entity_type: item.entity_type,
-        entity_id: item.entity_id,
-        payload,
-        client_updated_at: item.action === 'UPDATE' && clientUpdatedAt ? clientUpdatedAt : undefined,
-      };
-    });
+    const operations = await Promise.all(batch.map(buildOperation));
 
     const response = await api.post('sync/push', { json: { operations } }).json<PushResponseDTO>();
     const byKey = new Map<string, PushResultDTO>(

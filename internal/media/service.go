@@ -3,6 +3,7 @@ package media
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/allan/ecoinventario/internal/audit"
 	"github.com/allan/ecoinventario/internal/shared"
@@ -41,6 +42,14 @@ func NewService(repo Repository, s3 S3Client, assetRepo AssetChecker, auditSvc *
 func (s *Service) GenerateUploadURL(ctx context.Context, req UploadURLRequest) (*UploadURLResponse, error) {
 	orgID := shared.GetOrgID(ctx)
 	callerID := shared.GetUserID(ctx)
+	req.MediaType = normalizeMediaType(req.MediaType)
+	req.MimeType = normalizeMIME(req.MimeType)
+	if req.SizeBytes <= 0 {
+		req.SizeBytes = 1
+	}
+	if req.SizeBytes > MaxSizeBytes {
+		req.SizeBytes = MaxSizeBytes
+	}
 
 	if !IsAllowedMIME(req.MimeType) {
 		return nil, apperror.NewValidation("mime_type inválido: apenas image/jpeg, image/png, image/webp são aceitos")
@@ -128,6 +137,33 @@ func (s *Service) GenerateUploadURL(ctx context.Context, req UploadURLRequest) (
 		UploadURL: uploadURL,
 		ExpiresIn: int(PresignedPutExpiry.Seconds()),
 	}, nil
+}
+
+func normalizeMediaType(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case TypeBefore:
+		return TypeBefore
+	case TypeAfter:
+		return TypeAfter
+	default:
+		return TypeGeneral
+	}
+}
+
+func normalizeMIME(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "image/jpg", "jpg", "jpeg", "image/jpeg":
+		return "image/jpeg"
+	case "png", "image/png":
+		return "image/png"
+	case "webp", "image/webp":
+		return "image/webp"
+	default:
+		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(value)), "image/") {
+			return "image/jpeg"
+		}
+		return value
+	}
 }
 
 // Confirm verifica que o objeto existe no S3 e marca o upload como concluído.
