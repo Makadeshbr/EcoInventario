@@ -75,9 +75,10 @@ func (s *Service) GenerateUploadURL(ctx context.Context, req UploadURLRequest) (
 			return nil, err
 		}
 		return &UploadURLResponse{
-			MediaID:   existing.ID,
-			UploadURL: uploadURL,
-			ExpiresIn: int(PresignedPutExpiry.Seconds()),
+			MediaID:    existing.ID,
+			UploadURL:  uploadURL,
+			StorageKey: existing.StorageKey,
+			ExpiresIn:  int(PresignedPutExpiry.Seconds()),
 		}, nil
 	}
 
@@ -133,9 +134,10 @@ func (s *Service) GenerateUploadURL(ctx context.Context, req UploadURLRequest) (
 	})
 
 	return &UploadURLResponse{
-		MediaID:   m.ID,
-		UploadURL: uploadURL,
-		ExpiresIn: int(PresignedPutExpiry.Seconds()),
+		MediaID:    m.ID,
+		UploadURL:  uploadURL,
+		StorageKey: storageKey,
+		ExpiresIn:  int(PresignedPutExpiry.Seconds()),
 	}, nil
 }
 

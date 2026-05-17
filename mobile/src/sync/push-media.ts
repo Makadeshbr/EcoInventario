@@ -20,6 +20,7 @@ type MediaQueueRow = {
 type UploadURLResponseDTO = {
   media_id: string;
   upload_url: string;
+  storage_key?: string;
 };
 
 type AssetListDTO = {
@@ -109,6 +110,10 @@ export async function pushMedia(): Promise<void> {
 
     try {
       const upload = await requestUploadURL(item);
+      await db.runAsync(
+        `UPDATE media SET storage_key = ? WHERE id = ?`,
+        [upload.storage_key ?? upload.media_id, item.media_id],
+      );
 
       const file = await fetch(item.local_file_path);
       const blob = await file.blob();
@@ -128,7 +133,7 @@ export async function pushMedia(): Promise<void> {
       );
       await db.runAsync(
         `UPDATE media SET upload_status = 'uploaded', storage_key = ? WHERE id = ?`,
-        [upload.media_id, item.media_id],
+        [upload.storage_key ?? upload.media_id, item.media_id],
       );
     } catch (error) {
       await markMediaRetry(item, String(error));

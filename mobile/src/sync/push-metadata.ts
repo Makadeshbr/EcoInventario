@@ -67,21 +67,21 @@ function isSubmitPayload(payload: Record<string, unknown>): boolean {
   return payload.status === 'pending';
 }
 
-async function hasServerConfirmedMedia(mediaId: unknown): Promise<boolean> {
+async function hasServerRegisteredMedia(mediaId: unknown): Promise<boolean> {
   if (typeof mediaId !== 'string' || mediaId.length === 0) return false;
-  const row = await getDb().getFirstAsync<{ upload_status: string }>(
-    `SELECT upload_status FROM media WHERE id = ?`,
+  const row = await getDb().getFirstAsync<{ upload_status: string; storage_key: string | null }>(
+    `SELECT upload_status, storage_key FROM media WHERE id = ?`,
     [mediaId],
   );
-  return row?.upload_status === 'uploaded';
+  return row?.upload_status === 'uploaded' || Boolean(row?.storage_key);
 }
 
-async function removeUnconfirmedManejoMedia(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+async function removeUnregisteredManejoMedia(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
   const next = { ...payload };
-  if (next.before_media_id && !(await hasServerConfirmedMedia(next.before_media_id))) {
+  if (next.before_media_id && !(await hasServerRegisteredMedia(next.before_media_id))) {
     delete next.before_media_id;
   }
-  if (next.after_media_id && !(await hasServerConfirmedMedia(next.after_media_id))) {
+  if (next.after_media_id && !(await hasServerRegisteredMedia(next.after_media_id))) {
     delete next.after_media_id;
   }
   return next;
@@ -90,7 +90,7 @@ async function removeUnconfirmedManejoMedia(payload: Record<string, unknown>): P
 async function buildOperation(item: QueueRow) {
   let payload = safeParsePayload(item.payload);
   if (item.entity_type === 'manejo' && item.action === 'CREATE') {
-    payload = await removeUnconfirmedManejoMedia(payload);
+    payload = await removeUnregisteredManejoMedia(payload);
   }
 
   const clientUpdatedAt = typeof payload.client_updated_at === 'string'

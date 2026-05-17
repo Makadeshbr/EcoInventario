@@ -170,6 +170,9 @@ func TestGenerateUploadURL_Success(t *testing.T) {
 	if resp.UploadURL == "" {
 		t.Error("UploadURL não deve ser vazia")
 	}
+	if resp.StorageKey == "" {
+		t.Error("StorageKey não deve ser vazio")
+	}
 	if resp.ExpiresIn != int(media.PresignedPutExpiry.Seconds()) {
 		t.Errorf("ExpiresIn: got %d, want %d", resp.ExpiresIn, int(media.PresignedPutExpiry.Seconds()))
 	}

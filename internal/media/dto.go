@@ -14,9 +14,10 @@ type UploadURLRequest struct {
 
 // UploadURLResponse é a resposta de POST /api/v1/media/upload-url.
 type UploadURLResponse struct {
-	MediaID   string `json:"media_id"`
-	UploadURL string `json:"upload_url"`
-	ExpiresIn int    `json:"expires_in"` // segundos
+	MediaID    string `json:"media_id"`
+	UploadURL  string `json:"upload_url"`
+	StorageKey string `json:"storage_key"`
+	ExpiresIn  int    `json:"expires_in"` // segundos
 }
 
 // ConfirmResponse é a resposta de POST /api/v1/media/{id}/confirm.
