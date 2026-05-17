@@ -19,6 +19,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useCreateManejo } from '@/features/assets/hooks/use-create-manejo';
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
 import { SyncEngine } from '@/sync/sync-engine';
+import { getEntitySyncStatus } from '@/sync/entity-sync-status';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 
@@ -85,7 +86,7 @@ export default function CriarManejoScreen() {
     flowInFlightRef.current = true;
     setIsSubmittingFlow(true);
     try {
-      await save({
+      const manejoId = await save({
         assetId: id,
         description: description.trim(),
         beforePhotoUri,
@@ -93,7 +94,8 @@ export default function CriarManejoScreen() {
       });
       if (isConnected) {
         const result = await SyncEngine.sync({ force: true });
-        if (result.state === 'error' || result.pendingMetadataCount > 0 || result.pendingMediaCount > 0) {
+        const entityStatus = await getEntitySyncStatus('manejo', manejoId);
+        if (result.state === 'error' || entityStatus.pendingMetadataCount > 0) {
           Alert.alert('Envio pendente', result.message ?? 'O manejo foi salvo e continua na fila de sincronização.');
           router.back();
           return;

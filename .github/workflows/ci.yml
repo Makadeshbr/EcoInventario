@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Test backend
+        run: go test ./... -count=1
+
+  dashboard:
+    name: Dashboard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test dashboard
+        run: npm run test
+
+      - name: Build dashboard
+        run: npm run build
+
+  mobile:
+    name: Mobile
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test mobile
+        run: >
+          npm run test --
+          --runTestsByPath
+          src/db/__tests__/migrations.test.ts
+          src/features/assets/__tests__/repository.test.ts
+          src/features/assets/hooks/__tests__/use-assets-list.test.ts
+          src/features/assets/hooks/__tests__/use-home-data.test.ts
+          src/features/assets/hooks/__tests__/use-save-asset.test.ts
+          src/features/assets/hooks/__tests__/use-create-manejo.test.ts
+          src/features/assets/hooks/__tests__/use-create-monitoramento.test.ts
+          src/features/auth/hooks/__tests__/use-login.test.ts

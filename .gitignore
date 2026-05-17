@@ -1,7 +1,12 @@
 ﻿.cache/
 node_modules/
+.gocache/
+.claude/
+.vscode/
+bin/
 .next/
 .expo/
+*.exe
 *.log
 .env*
 !.env.example

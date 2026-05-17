@@ -397,13 +397,18 @@ func TestSubmit(t *testing.T) {
 		assertStatus(t, err, 403)
 	})
 
-	t.Run("submit sem mídia uploaded retorna 422", func(t *testing.T) {
+	t.Run("submit sem mídia uploaded ainda envia para revisão", func(t *testing.T) {
 		existing := &asset.Asset{ID: "a-1", CreatedBy: "tech-1", Status: shared.StatusDraft}
 		repo := &mockRepo{stored: existing}
 		svc := newSvcWithMedia(repo, &mockTypeChecker{exists: true}, &mockMediaChecker{hasMedia: false})
 
-		_, err := svc.Submit(techCtx("tech-1", "org-1"), "a-1")
-		assertStatus(t, err, 422)
+		resp, err := svc.Submit(techCtx("tech-1", "org-1"), "a-1")
+		if err != nil {
+			t.Fatalf("erro: %v", err)
+		}
+		if resp.Status != shared.StatusPending {
+			t.Errorf("status: got %q", resp.Status)
+		}
 	})
 }
 

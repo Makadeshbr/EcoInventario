@@ -17,6 +17,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useCreateMonitoramento } from '@/features/assets/hooks/use-create-monitoramento';
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
 import { SyncEngine } from '@/sync/sync-engine';
+import { getEntitySyncStatus } from '@/sync/entity-sync-status';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 
@@ -63,14 +64,15 @@ export default function CriarMonitoramentoScreen() {
     flowInFlightRef.current = true;
     setIsSubmittingFlow(true);
     try {
-      await save({
+      const monitoramentoId = await save({
         assetId: id,
         notes: notes.trim(),
         healthStatus,
       });
       if (isConnected) {
         const result = await SyncEngine.sync({ force: true });
-        if (result.state === 'error' || result.pendingMetadataCount > 0 || result.pendingMediaCount > 0) {
+        const entityStatus = await getEntitySyncStatus('monitoramento', monitoramentoId);
+        if (result.state === 'error' || entityStatus.pendingMetadataCount > 0) {
           Alert.alert('Envio pendente', result.message ?? 'O monitoramento foi salvo e continua na fila de sincronização.');
           router.back();
           return;

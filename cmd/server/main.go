@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"log/slog"
@@ -26,6 +27,7 @@ import (
 	"github.com/allan/ecoinventario/internal/organization"
 	"github.com/allan/ecoinventario/internal/public"
 	"github.com/allan/ecoinventario/internal/shared"
+	"github.com/allan/ecoinventario/internal/shared/apperror"
 	"github.com/allan/ecoinventario/internal/stats"
 	syncsvc "github.com/allan/ecoinventario/internal/sync"
 	"github.com/allan/ecoinventario/internal/user"
@@ -80,6 +82,7 @@ func (a *mediaOwnerAdapter) BelongsToAsset(ctx context.Context, mediaID, assetID
 
 // syncDispatcher implementa syncsvc.EntityDispatcher adaptando os services existentes.
 type syncDispatcher struct {
+	assetRepo        asset.Repository
 	assetSvc         *asset.Service
 	manejoSvc        *manejo.Service
 	monitoramentoSvc *monitoramento.Service
@@ -94,6 +97,16 @@ func (d *syncDispatcher) Create(ctx context.Context, entityType string, payload 
 		}
 		resp, err := d.assetSvc.Create(ctx, req)
 		if err != nil {
+			var appErr *apperror.AppError
+			if errors.As(err, &appErr) && appErr.Code == "CONFLICT" && req.QRCode != "" && d.assetRepo != nil {
+				existing, findErr := d.assetRepo.FindByQRCode(ctx, req.QRCode)
+				if findErr != nil {
+					return "", time.Time{}, nil, findErr
+				}
+				if existing != nil && existing.OrganizationID == shared.GetOrgID(ctx) {
+					return existing.ID, existing.UpdatedAt, nil, nil
+				}
+			}
 			return "", time.Time{}, nil, err
 		}
 		data, _ := json.Marshal(resp)
@@ -383,6 +396,7 @@ func main() {
 	syncSvc := syncsvc.NewService(
 		idempotencyRepo,
 		&syncDispatcher{
+			assetRepo:        assetRepo,
 			assetSvc:         assetSvc,
 			manejoSvc:        manejoSvc,
 			monitoramentoSvc: monitoramentoSvc,

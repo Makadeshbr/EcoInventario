@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSaveAsset } from '@/features/assets/hooks/use-save-asset';
 import { SyncEngine } from '@/sync/sync-engine';
+import { getEntitySyncStatus } from '@/sync/entity-sync-status';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { type Step, type WizardState, WIZARD_INITIAL, STEP_TITLES } from '@/features/assets/wizard/wizard-types';
 import { wizardStyles as styles } from '@/features/assets/wizard/wizard-styles';
@@ -51,10 +52,15 @@ export default function CriarAssetScreen() {
           Alert.alert('Envio pendente', result.message ?? 'Salvo no aparelho, mas ainda não foi confirmado pelo servidor.');
           return;
         }
-        if (result.pendingMetadataCount > 0 || result.pendingMediaCount > 0) {
+        const entityStatus = await getEntitySyncStatus('asset', assetId);
+        if (entityStatus.pendingMetadataCount > 0) {
           setStatusMessage('Salvo e ainda pendente de confirmação do servidor.');
           Alert.alert('Envio pendente', 'O registro foi salvo e continua na fila de sincronização.');
           return;
+        }
+        if (entityStatus.pendingMediaCount > 0) {
+          setStatusMessage('Enviado ao admin. Fotos ainda pendentes.');
+          Alert.alert('Enviado ao admin', 'O registro chegou para aprovação. Algumas fotos ainda estão pendentes e serão reenviadas.');
         }
         setStatusMessage('Enviado ao admin para revisão.');
       } else {

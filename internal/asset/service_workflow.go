@@ -26,18 +26,6 @@ func (s *Service) Submit(ctx context.Context, id string) (*StatusResponse, error
 		return nil, err
 	}
 
-	hasMedia, err := s.media.HasUploadedMedia(ctx, a.ID)
-	if err != nil {
-		return nil, fmt.Errorf("verificando mídia: %w", err)
-	}
-	if !hasMedia {
-		return nil, &apperror.AppError{
-			Code:    "UNPROCESSABLE_ENTITY",
-			Message: "Submit exige ao menos uma mídia carregada",
-			Status:  422,
-		}
-	}
-
 	a.Status = shared.StatusPending
 	if err := s.repo.UpdateStatus(ctx, a); err != nil {
 		return nil, fmt.Errorf("atualizando status: %w", err)
