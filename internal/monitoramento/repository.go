@@ -126,8 +126,8 @@ func (r *repository) List(ctx context.Context, f ListFilters) ([]*Monitoramento,
 		n++
 	}
 	if f.CreatedBy != "" {
-		conditions = append(conditions, fmt.Sprintf("m.created_by = $%d", n))
-		args = append(args, f.CreatedBy)
+		conditions = append(conditions, fmt.Sprintf("(m.created_by::text ILIKE $%d OR cu.name ILIKE $%d)", n, n))
+		args = append(args, "%"+f.CreatedBy+"%")
 		n++
 	}
 	if f.CreatedFrom != "" {

@@ -49,12 +49,22 @@ func (m *mockRepo) Update(_ context.Context, _ *manejo.Manejo) error {
 	return m.updateErr
 }
 
+func (m *mockRepo) UpdateDirect(_ context.Context, _ *manejo.Manejo) error {
+	m.updateCalls++
+	return m.updateErr
+}
+
 func (m *mockRepo) UpdateStatus(_ context.Context, _ *manejo.Manejo) error {
 	m.statusCalls++
 	return m.statusErr
 }
 
 func (m *mockRepo) SoftDelete(_ context.Context, _, _ string) error {
+	m.deleteCalls++
+	return m.deleteErr
+}
+
+func (m *mockRepo) HardDelete(_ context.Context, _, _ string) error {
 	m.deleteCalls++
 	return m.deleteErr
 }

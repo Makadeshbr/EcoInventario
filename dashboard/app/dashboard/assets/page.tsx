@@ -1,8 +1,8 @@
-import { ApiErrorState } from '@/components/dashboard/api-error-state';
-import { AssetsExplorer } from '@/components/dashboard/assets-explorer';
-import { PageHeader } from '@/components/dashboard/page-header';
-import { listAssets, listAssetTypes } from '@/features/assets/api';
-import { getSession } from '@/lib/auth/session';
+import { ApiErrorState } from "@/components/dashboard/api-error-state";
+import { AssetsExplorer } from "@/components/dashboard/assets-explorer";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { listAssets, listAssetTypes } from "@/features/assets/api";
+import { getSession } from "@/lib/auth/session";
 
 export default async function AssetsPage({
   searchParams,
@@ -21,18 +21,20 @@ export default async function AssetsPage({
 
   const result = await Promise.all([
     listAssets(session.accessToken, {
-      status: get('status'),
-      typeId: get('type_id'),
-      createdBy: get('created_by'),
-      qrCode: get('qr_code'),
-      cursor: get('cursor'),
+      status: get("status"),
+      typeId: get("type_id"),
+      createdBy: get("created_by"),
+      qrCode: get("qr_code"),
+      cursor: get("cursor"),
       limit: 50,
     }),
     listAssetTypes(session.accessToken),
   ]).catch(() => null);
 
   if (!result) {
-    return <ApiErrorState description="A lista de assets depende da API real em /api/v1/assets." />;
+    return (
+      <ApiErrorState description="A lista de assets depende da API real em /api/v1/assets." />
+    );
   }
 
   const [assets, assetTypes] = result;
@@ -47,6 +49,7 @@ export default async function AssetsPage({
       <AssetsExplorer
         assets={assets.data}
         assetTypes={assetTypes}
+        canAdmin={session.user.role === "admin"}
         hasMore={assets.pagination.has_more}
         nextCursor={assets.pagination.next_cursor}
       />

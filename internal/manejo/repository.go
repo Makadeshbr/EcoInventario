@@ -13,8 +13,10 @@ type Repository interface {
 	FindByID(ctx context.Context, id, orgID string) (*Manejo, error)
 	Insert(ctx context.Context, m *Manejo) error
 	Update(ctx context.Context, m *Manejo) error
+	UpdateDirect(ctx context.Context, m *Manejo) error
 	UpdateStatus(ctx context.Context, m *Manejo) error
 	SoftDelete(ctx context.Context, id, orgID string) error
+	HardDelete(ctx context.Context, id, orgID string) error
 	List(ctx context.Context, f ListFilters) ([]*Manejo, error)
 }
 
@@ -83,6 +85,28 @@ func (r *repository) Update(ctx context.Context, m *Manejo) error {
 	return err
 }
 
+func (r *repository) UpdateDirect(ctx context.Context, m *Manejo) error {
+	query := `
+		UPDATE manejos
+		SET description = $1,
+		    before_media_id = $2,
+		    after_media_id = $3,
+		    status = $4,
+		    rejection_reason = $5,
+		    updated_at = now()
+		WHERE id = $6 AND organization_id = $7 AND deleted_at IS NULL
+		RETURNING updated_at
+	`
+	err := r.db.QueryRowContext(ctx, query,
+		m.Description, m.BeforeMediaID, m.AfterMediaID, m.Status, m.RejectionReason,
+		m.ID, m.OrganizationID,
+	).Scan(&m.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("manejo não encontrado para update direto")
+	}
+	return err
+}
+
 func (r *repository) UpdateStatus(ctx context.Context, m *Manejo) error {
 	query := `
 		UPDATE manejos
@@ -119,6 +143,73 @@ func (r *repository) SoftDelete(ctx context.Context, id, orgID string) error {
 	return nil
 }
 
+func (r *repository) HardDelete(ctx context.Context, id, orgID string) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("iniciando hard delete manejo: %w", err)
+	}
+	defer tx.Rollback()
+
+	var beforeID, afterID sql.NullString
+	err = tx.QueryRowContext(ctx, `
+		SELECT before_media_id, after_media_id
+		FROM manejos
+		WHERE id = $1 AND organization_id = $2
+	`, id, orgID).Scan(&beforeID, &afterID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("manejo não encontrado para hard delete")
+	}
+	if err != nil {
+		return fmt.Errorf("buscando manejo para hard delete: %w", err)
+	}
+
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM audit_logs
+		WHERE organization_id = $2
+		  AND (
+		    (entity_type = 'manejo' AND entity_id = $1)
+		    OR (entity_type = 'media' AND entity_id IN ($3, $4))
+		  )
+	`, id, orgID, nullStringArg(beforeID), nullStringArg(afterID)); err != nil {
+		return fmt.Errorf("removendo auditoria do manejo: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM processed_idempotency_keys WHERE entity_id = $1
+	`, id); err != nil {
+		return fmt.Errorf("removendo idempotencia do manejo: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM manejos WHERE id = $1 AND organization_id = $2
+	`, id, orgID); err != nil {
+		return fmt.Errorf("removendo manejo definitivamente: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, `
+		DELETE FROM media
+		WHERE organization_id = $1
+		  AND id IN ($2, $3)
+		  AND NOT EXISTS (
+		    SELECT 1 FROM manejos
+		    WHERE organization_id = $1
+		      AND deleted_at IS NULL
+		      AND (before_media_id = media.id OR after_media_id = media.id)
+		  )
+	`, orgID, nullStringArg(beforeID), nullStringArg(afterID)); err != nil {
+		return fmt.Errorf("removendo midias do manejo: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("confirmando hard delete manejo: %w", err)
+	}
+	return nil
+}
+
+func nullStringArg(value sql.NullString) any {
+	if value.Valid {
+		return value.String
+	}
+	return nil
+}
+
 func (r *repository) List(ctx context.Context, f ListFilters) ([]*Manejo, error) {
 	args := []any{f.Limit, f.OrgID}
 	conditions := []string{"m.organization_id = $2", "m.deleted_at IS NULL"}
@@ -130,8 +221,8 @@ func (r *repository) List(ctx context.Context, f ListFilters) ([]*Manejo, error)
 		n++
 	}
 	if f.CreatedBy != "" {
-		conditions = append(conditions, fmt.Sprintf("m.created_by = $%d", n))
-		args = append(args, f.CreatedBy)
+		conditions = append(conditions, fmt.Sprintf("(m.created_by::text ILIKE $%d OR cu.name ILIKE $%d)", n, n))
+		args = append(args, "%"+f.CreatedBy+"%")
 		n++
 	}
 	if f.CreatedFrom != "" {

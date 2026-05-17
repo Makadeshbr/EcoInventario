@@ -83,6 +83,10 @@ func (r *memAssetRepo) Update(_ context.Context, a *asset.Asset) error {
 	return nil
 }
 
+func (r *memAssetRepo) UpdateDirect(ctx context.Context, a *asset.Asset) error {
+	return r.Update(ctx, a)
+}
+
 func (r *memAssetRepo) UpdateStatus(_ context.Context, a *asset.Asset) error {
 	existing, ok := r.assets[a.ID]
 	if !ok {
@@ -95,6 +99,11 @@ func (r *memAssetRepo) UpdateStatus(_ context.Context, a *asset.Asset) error {
 }
 
 func (r *memAssetRepo) SoftDelete(_ context.Context, id, _ string) error {
+	delete(r.assets, id)
+	return nil
+}
+
+func (r *memAssetRepo) HardDelete(_ context.Context, id, _ string) error {
 	delete(r.assets, id)
 	return nil
 }
@@ -126,8 +135,8 @@ func (r *memAssetRepo) History(_ context.Context, id, _ string) ([]asset.History
 // ─── repositório stateful de manejo ──────────────────────────────────────
 
 type memManejoRepo struct {
-	seq    int
-	items  map[string]*manejo.Manejo
+	seq   int
+	items map[string]*manejo.Manejo
 }
 
 func newMemManejoRepo() *memManejoRepo {
@@ -160,6 +169,10 @@ func (r *memManejoRepo) Update(_ context.Context, m *manejo.Manejo) error {
 	return nil
 }
 
+func (r *memManejoRepo) UpdateDirect(ctx context.Context, m *manejo.Manejo) error {
+	return r.Update(ctx, m)
+}
+
 func (r *memManejoRepo) UpdateStatus(_ context.Context, m *manejo.Manejo) error {
 	existing, ok := r.items[m.ID]
 	if !ok {
@@ -172,6 +185,11 @@ func (r *memManejoRepo) UpdateStatus(_ context.Context, m *manejo.Manejo) error 
 }
 
 func (r *memManejoRepo) SoftDelete(_ context.Context, id, _ string) error {
+	delete(r.items, id)
+	return nil
+}
+
+func (r *memManejoRepo) HardDelete(_ context.Context, id, _ string) error {
 	delete(r.items, id)
 	return nil
 }

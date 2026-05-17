@@ -204,6 +204,102 @@ func (s *Service) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
+func validWorkflowStatus(status string) bool {
+	switch status {
+	case shared.StatusDraft, shared.StatusPending, shared.StatusApproved, shared.StatusRejected:
+		return true
+	default:
+		return false
+	}
+}
+
+func (s *Service) AdminUpdateDirect(ctx context.Context, id string, req AdminUpdateRequest) (*Response, error) {
+	orgID := shared.GetOrgID(ctx)
+	callerID := shared.GetUserID(ctx)
+	if shared.GetRole(ctx) != shared.RoleAdmin {
+		return nil, apperror.NewForbidden("Apenas admin pode alterar diretamente manejos")
+	}
+
+	current, err := s.repo.FindByID(ctx, id, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("buscando manejo: %w", err)
+	}
+	if current == nil {
+		return nil, apperror.NewNotFound("manejo", id)
+	}
+
+	changes := map[string]any{}
+	if req.Description != nil && *req.Description != current.Description {
+		changes["description"] = map[string]string{"old": current.Description, "new": *req.Description}
+		current.Description = *req.Description
+	}
+	if req.Status != nil && *req.Status != current.Status {
+		if !validWorkflowStatus(*req.Status) {
+			return nil, apperror.NewValidation("status inválido")
+		}
+		changes["status"] = map[string]string{"old": current.Status, "new": *req.Status}
+		current.Status = *req.Status
+	}
+	if req.RejectionReason != nil {
+		current.RejectionReason = req.RejectionReason
+		changes["rejection_reason"] = *req.RejectionReason
+	}
+	if req.BeforeMediaID != nil {
+		if err := s.validateMediaRef(ctx, req.BeforeMediaID, current.AssetID, orgID, "before_media_id"); err != nil {
+			return nil, err
+		}
+		current.BeforeMediaID = req.BeforeMediaID
+		changes["before_media_id"] = *req.BeforeMediaID
+	}
+	if req.AfterMediaID != nil {
+		if err := s.validateMediaRef(ctx, req.AfterMediaID, current.AssetID, orgID, "after_media_id"); err != nil {
+			return nil, err
+		}
+		current.AfterMediaID = req.AfterMediaID
+		changes["after_media_id"] = *req.AfterMediaID
+	}
+
+	if err := s.repo.UpdateDirect(ctx, current); err != nil {
+		return nil, fmt.Errorf("atualizando manejo diretamente: %w", err)
+	}
+	s.audit.Log(ctx, audit.Entry{
+		OrganizationID: orgID,
+		EntityType:     "manejo",
+		EntityID:       current.ID,
+		Action:         shared.AuditUpdate,
+		PerformedBy:    callerID,
+		Changes:        mustMarshal(map[string]any{"admin_direct": true, "fields": changes}),
+	})
+
+	full, err := s.repo.FindByID(ctx, current.ID, orgID)
+	if err != nil || full == nil {
+		resp := current.toResponse()
+		return &resp, nil
+	}
+	resp := full.toResponse()
+	return &resp, nil
+}
+
+func (s *Service) AdminHardDelete(ctx context.Context, id string) error {
+	orgID := shared.GetOrgID(ctx)
+	callerID := shared.GetUserID(ctx)
+	if shared.GetRole(ctx) != shared.RoleAdmin {
+		return apperror.NewForbidden("Apenas admin pode excluir definitivamente manejos")
+	}
+	if err := s.repo.HardDelete(ctx, id, orgID); err != nil {
+		return fmt.Errorf("excluindo manejo definitivamente: %w", err)
+	}
+	s.audit.Log(ctx, audit.Entry{
+		OrganizationID: orgID,
+		EntityType:     "manejo",
+		EntityID:       id,
+		Action:         shared.AuditDelete,
+		PerformedBy:    callerID,
+		Changes:        mustMarshal(map[string]any{"hard_delete": true}),
+	})
+	return nil
+}
+
 // Submit transiciona draft→pending.
 func (s *Service) Submit(ctx context.Context, id string) (*StatusResponse, error) {
 	orgID := shared.GetOrgID(ctx)

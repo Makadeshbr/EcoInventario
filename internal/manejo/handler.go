@@ -142,6 +142,38 @@ func (h *Handler) HandleDelete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// HandleAdminUpdateDirect processa PATCH /api/v1/admin/manejos/{id}.
+func (h *Handler) HandleAdminUpdateDirect(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var req AdminUpdateRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, r, "JSON inválido")
+		return
+	}
+	if err := validate.Struct(req); err != nil {
+		response.ValidationError(w, r, err)
+		return
+	}
+
+	m, err := h.svc.AdminUpdateDirect(r.Context(), id, req)
+	if err != nil {
+		response.HandleError(w, r, err)
+		return
+	}
+	response.JSON(w, http.StatusOK, m)
+}
+
+// HandleAdminHardDelete processa DELETE /api/v1/admin/manejos/{id}.
+func (h *Handler) HandleAdminHardDelete(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.svc.AdminHardDelete(r.Context(), id); err != nil {
+		response.HandleError(w, r, err)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // HandleSubmit processa POST /api/v1/manejos/{id}/submit.
 func (h *Handler) HandleSubmit(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")

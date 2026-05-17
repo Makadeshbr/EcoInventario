@@ -18,6 +18,15 @@ type UpdateRequest struct {
 	AfterMediaID  *string `json:"after_media_id"  validate:"omitempty,uuid"`
 }
 
+// AdminUpdateRequest edita o registro atual diretamente. Uso restrito a ADMIN.
+type AdminUpdateRequest struct {
+	Description     *string `json:"description"      validate:"omitempty,min=1,max=5000"`
+	Status          *string `json:"status"           validate:"omitempty,oneof=draft pending approved rejected"`
+	RejectionReason *string `json:"rejection_reason" validate:"omitempty,max=1000"`
+	BeforeMediaID   *string `json:"before_media_id"  validate:"omitempty,uuid"`
+	AfterMediaID    *string `json:"after_media_id"   validate:"omitempty,uuid"`
+}
+
 // RejectRequest é o payload de POST /api/v1/manejos/{id}/reject.
 type RejectRequest struct {
 	Reason string `json:"reason" validate:"required,min=1,max=1000"`

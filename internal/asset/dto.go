@@ -22,6 +22,18 @@ type UpdateRequest struct {
 	Notes        *string  `json:"notes"          validate:"omitempty,max=2000"`
 }
 
+// AdminUpdateRequest edita o registro atual diretamente. Uso restrito a ADMIN.
+type AdminUpdateRequest struct {
+	AssetTypeID     *string  `json:"asset_type_id"      validate:"omitempty,uuid"`
+	Latitude        *float64 `json:"latitude"           validate:"omitempty,gte=-90,lte=90"`
+	Longitude       *float64 `json:"longitude"          validate:"omitempty,gte=-180,lte=180"`
+	GPSAccuracyM    *float32 `json:"gps_accuracy_m"     validate:"omitempty,gte=0,lte=1000"`
+	QRCode          *string  `json:"qr_code"            validate:"omitempty,min=1,max=500"`
+	Status          *string  `json:"status"             validate:"omitempty,oneof=draft pending approved rejected"`
+	RejectionReason *string  `json:"rejection_reason"   validate:"omitempty,max=1000"`
+	Notes           *string  `json:"notes"              validate:"omitempty,max=2000"`
+}
+
 // RejectRequest é o payload de POST /api/v1/assets/{id}/reject.
 type RejectRequest struct {
 	Reason string `json:"reason" validate:"required,min=1,max=1000"`

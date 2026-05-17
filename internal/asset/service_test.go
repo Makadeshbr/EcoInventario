@@ -60,12 +60,22 @@ func (m *mockRepo) Update(_ context.Context, _ *asset.Asset) error {
 	return m.updateErr
 }
 
+func (m *mockRepo) UpdateDirect(_ context.Context, _ *asset.Asset) error {
+	m.updateCalls++
+	return m.updateErr
+}
+
 func (m *mockRepo) UpdateStatus(_ context.Context, _ *asset.Asset) error {
 	m.statusCalls++
 	return m.updateStatusErr
 }
 
 func (m *mockRepo) SoftDelete(_ context.Context, _, _ string) error {
+	m.softDeleteCalls++
+	return m.softDeleteErr
+}
+
+func (m *mockRepo) HardDelete(_ context.Context, _, _ string) error {
 	m.softDeleteCalls++
 	return m.softDeleteErr
 }

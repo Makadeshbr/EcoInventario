@@ -10,6 +10,15 @@ import (
 	"github.com/allan/ecoinventario/internal/shared/vo"
 )
 
+func validWorkflowStatus(status string) bool {
+	switch status {
+	case shared.StatusDraft, shared.StatusPending, shared.StatusApproved, shared.StatusRejected:
+		return true
+	default:
+		return false
+	}
+}
+
 // Create cria um novo asset com status=draft, version=1.
 // QR code é fornecido pelo cliente e deve ser único globalmente.
 func (s *Service) Create(ctx context.Context, req CreateRequest) (*Response, error) {
@@ -262,6 +271,119 @@ func (s *Service) SoftDelete(ctx context.Context, id string) error {
 		EntityID:       id,
 		Action:         shared.AuditDelete,
 		PerformedBy:    callerID,
+	})
+	return nil
+}
+
+// AdminUpdateDirect altera o registro atual sem versionamento. Uso operacional
+// restrito a ADMIN para correcao direta de dados no banco.
+func (s *Service) AdminUpdateDirect(ctx context.Context, id string, req AdminUpdateRequest) (*Response, error) {
+	orgID := shared.GetOrgID(ctx)
+	callerID := shared.GetUserID(ctx)
+	role := shared.GetRole(ctx)
+	if role != shared.RoleAdmin {
+		return nil, apperror.NewForbidden("Apenas admin pode alterar diretamente assets")
+	}
+
+	current, err := s.repo.FindByID(ctx, id, orgID)
+	if err != nil {
+		return nil, fmt.Errorf("buscando asset: %w", err)
+	}
+	if current == nil {
+		return nil, apperror.NewNotFound("asset", id)
+	}
+
+	changes := map[string]any{}
+	if req.AssetTypeID != nil && *req.AssetTypeID != current.AssetTypeID {
+		if err := s.ensureTypeInOrg(ctx, *req.AssetTypeID, orgID); err != nil {
+			return nil, err
+		}
+		changes["asset_type_id"] = map[string]string{"old": current.AssetTypeID, "new": *req.AssetTypeID}
+		current.AssetTypeID = *req.AssetTypeID
+	}
+	if req.Latitude != nil {
+		current.Latitude = *req.Latitude
+		changes["latitude"] = *req.Latitude
+	}
+	if req.Longitude != nil {
+		current.Longitude = *req.Longitude
+		changes["longitude"] = *req.Longitude
+	}
+	if _, err := vo.NewCoordinates(current.Latitude, current.Longitude); err != nil {
+		return nil, err
+	}
+	if req.GPSAccuracyM != nil {
+		current.GPSAccuracyM = req.GPSAccuracyM
+		changes["gps_accuracy_m"] = *req.GPSAccuracyM
+	}
+	if req.QRCode != nil && *req.QRCode != current.QRCode {
+		if _, err := vo.NewQRCode(*req.QRCode); err != nil {
+			return nil, err
+		}
+		existing, err := s.repo.FindByQRCode(ctx, *req.QRCode)
+		if err != nil {
+			return nil, fmt.Errorf("verificando qr_code: %w", err)
+		}
+		if existing != nil && existing.ID != current.ID {
+			return nil, apperror.NewConflict("QR code já está em uso")
+		}
+		changes["qr_code"] = map[string]string{"old": current.QRCode, "new": *req.QRCode}
+		current.QRCode = *req.QRCode
+	}
+	if req.Status != nil && *req.Status != current.Status {
+		if !validWorkflowStatus(*req.Status) {
+			return nil, apperror.NewValidation("status inválido")
+		}
+		changes["status"] = map[string]string{"old": current.Status, "new": *req.Status}
+		current.Status = *req.Status
+	}
+	if req.RejectionReason != nil {
+		current.RejectionReason = req.RejectionReason
+		changes["rejection_reason"] = *req.RejectionReason
+	}
+	if req.Notes != nil {
+		current.Notes = req.Notes
+		changes["notes"] = *req.Notes
+	}
+
+	if err := s.repo.UpdateDirect(ctx, current); err != nil {
+		return nil, fmt.Errorf("atualizando asset diretamente: %w", err)
+	}
+	s.audit.Log(ctx, audit.Entry{
+		OrganizationID: orgID,
+		EntityType:     "asset",
+		EntityID:       current.ID,
+		Action:         shared.AuditUpdate,
+		PerformedBy:    callerID,
+		Changes:        mustMarshal(map[string]any{"admin_direct": true, "fields": changes}),
+	})
+
+	full, err := s.repo.FindByID(ctx, current.ID, orgID)
+	if err != nil || full == nil {
+		resp := current.toResponse()
+		return &resp, nil
+	}
+	resp := full.toResponse()
+	return &resp, nil
+}
+
+// AdminHardDelete remove definitivamente o asset e dependencias operacionais.
+func (s *Service) AdminHardDelete(ctx context.Context, id string) error {
+	orgID := shared.GetOrgID(ctx)
+	callerID := shared.GetUserID(ctx)
+	if shared.GetRole(ctx) != shared.RoleAdmin {
+		return apperror.NewForbidden("Apenas admin pode excluir definitivamente assets")
+	}
+	if err := s.repo.HardDelete(ctx, id, orgID); err != nil {
+		return fmt.Errorf("excluindo asset definitivamente: %w", err)
+	}
+	s.audit.Log(ctx, audit.Entry{
+		OrganizationID: orgID,
+		EntityType:     "asset",
+		EntityID:       id,
+		Action:         shared.AuditDelete,
+		PerformedBy:    callerID,
+		Changes:        mustMarshal(map[string]any{"hard_delete": true}),
 	})
 	return nil
 }

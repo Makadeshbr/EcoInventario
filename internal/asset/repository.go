@@ -14,8 +14,10 @@ type Repository interface {
 	FindByQRCode(ctx context.Context, qrCode string) (*Asset, error)
 	Insert(ctx context.Context, a *Asset) error
 	Update(ctx context.Context, a *Asset) error
+	UpdateDirect(ctx context.Context, a *Asset) error
 	UpdateStatus(ctx context.Context, a *Asset) error
 	SoftDelete(ctx context.Context, id, orgID string) error
+	HardDelete(ctx context.Context, id, orgID string) error
 	List(ctx context.Context, f ListFilters) ([]*Asset, error)
 	Nearby(ctx context.Context, p NearbyParams) ([]*Asset, error)
 	History(ctx context.Context, id, orgID string) ([]HistoryEntry, error)
@@ -133,6 +135,31 @@ func (r *repository) Update(ctx context.Context, a *Asset) error {
 	return err
 }
 
+func (r *repository) UpdateDirect(ctx context.Context, a *Asset) error {
+	query := `
+		UPDATE assets
+		SET asset_type_id = $1,
+		    location = ST_MakePoint($2, $3)::geography,
+		    gps_accuracy_m = $4,
+		    qr_code = $5,
+		    status = $6,
+		    rejection_reason = $7,
+		    notes = $8,
+		    updated_at = now()
+		WHERE id = $9 AND organization_id = $10 AND deleted_at IS NULL
+		RETURNING updated_at
+	`
+	err := r.db.QueryRowContext(ctx, query,
+		a.AssetTypeID, a.Longitude, a.Latitude,
+		a.GPSAccuracyM, a.QRCode, a.Status, a.RejectionReason, a.Notes,
+		a.ID, a.OrganizationID,
+	).Scan(&a.UpdatedAt)
+	if errors.Is(err, sql.ErrNoRows) {
+		return fmt.Errorf("asset não encontrado para update direto")
+	}
+	return err
+}
+
 func (r *repository) UpdateStatus(ctx context.Context, a *Asset) error {
 	query := `
 		UPDATE assets
@@ -169,6 +196,93 @@ func (r *repository) SoftDelete(ctx context.Context, id, orgID string) error {
 	return nil
 }
 
+func (r *repository) HardDelete(ctx context.Context, id, orgID string) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("iniciando hard delete asset: %w", err)
+	}
+	defer tx.Rollback()
+
+	var exists bool
+	if err := tx.QueryRowContext(ctx, `
+		SELECT EXISTS(
+			SELECT 1 FROM assets WHERE id = $1 AND organization_id = $2
+		)
+	`, id, orgID).Scan(&exists); err != nil {
+		return fmt.Errorf("verificando asset para hard delete: %w", err)
+	}
+	if !exists {
+		return fmt.Errorf("asset não encontrado para hard delete")
+	}
+
+	target := `
+		WITH RECURSIVE target_assets AS (
+			SELECT id FROM assets WHERE id = $1 AND organization_id = $2
+			UNION ALL
+			SELECT a.id
+			FROM assets a
+			JOIN target_assets target ON a.parent_id = target.id
+			WHERE a.organization_id = $2
+		)
+	`
+
+	if _, err := tx.ExecContext(ctx, target+`
+		DELETE FROM audit_logs
+		WHERE organization_id = $2
+		  AND (
+		    (entity_type = 'asset' AND entity_id IN (SELECT id FROM target_assets))
+		    OR (entity_type = 'manejo' AND entity_id IN (
+		      SELECT id FROM manejos WHERE asset_id IN (SELECT id FROM target_assets)
+		    ))
+		    OR (entity_type = 'monitoramento' AND entity_id IN (
+		      SELECT id FROM monitoramentos WHERE asset_id IN (SELECT id FROM target_assets)
+		    ))
+		    OR (entity_type = 'media' AND entity_id IN (
+		      SELECT id FROM media WHERE asset_id IN (SELECT id FROM target_assets)
+		    ))
+		  )
+	`, id, orgID); err != nil {
+		return fmt.Errorf("removendo auditoria do asset: %w", err)
+	}
+
+	if _, err := tx.ExecContext(ctx, target+`
+		DELETE FROM processed_idempotency_keys
+		WHERE entity_id IN (
+			SELECT id FROM target_assets
+			UNION SELECT id FROM manejos WHERE asset_id IN (SELECT id FROM target_assets)
+			UNION SELECT id FROM monitoramentos WHERE asset_id IN (SELECT id FROM target_assets)
+		)
+	`, id, orgID); err != nil {
+		return fmt.Errorf("removendo idempotencia do asset: %w", err)
+	}
+
+	if _, err := tx.ExecContext(ctx, target+`
+		DELETE FROM manejos WHERE asset_id IN (SELECT id FROM target_assets)
+	`, id, orgID); err != nil {
+		return fmt.Errorf("removendo manejos do asset: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, target+`
+		DELETE FROM monitoramentos WHERE asset_id IN (SELECT id FROM target_assets)
+	`, id, orgID); err != nil {
+		return fmt.Errorf("removendo monitoramentos do asset: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, target+`
+		DELETE FROM media WHERE asset_id IN (SELECT id FROM target_assets)
+	`, id, orgID); err != nil {
+		return fmt.Errorf("removendo midias do asset: %w", err)
+	}
+	if _, err := tx.ExecContext(ctx, target+`
+		DELETE FROM assets WHERE id IN (SELECT id FROM target_assets)
+	`, id, orgID); err != nil {
+		return fmt.Errorf("removendo asset definitivamente: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("confirmando hard delete asset: %w", err)
+	}
+	return nil
+}
+
 func (r *repository) List(ctx context.Context, f ListFilters) ([]*Asset, error) {
 	args := []any{f.Limit, f.OrgID}
 	conditions := []string{"a.organization_id = $2", "a.deleted_at IS NULL"}
@@ -195,8 +309,8 @@ func (r *repository) List(ctx context.Context, f ListFilters) ([]*Asset, error) 
 		n++
 	}
 	if f.CreatedBy != "" {
-		conditions = append(conditions, fmt.Sprintf("a.created_by = $%d", n))
-		args = append(args, f.CreatedBy)
+		conditions = append(conditions, fmt.Sprintf("(a.created_by::text ILIKE $%d OR cu.name ILIKE $%d)", n, n))
+		args = append(args, "%"+f.CreatedBy+"%")
 		n++
 	}
 	if f.QRCode != "" {

@@ -579,6 +579,15 @@ func main() {
 			// Stats: home do dashboard; service restringe viewer a approved.
 			r.Get("/stats", statsHandler.HandleDashboard)
 
+			// Admin direto: correcoes operacionais e exclusao definitiva.
+			r.Route("/admin", func(r chi.Router) {
+				r.Use(middleware.RequireRole(shared.RoleAdmin))
+				r.Patch("/assets/{id}", assetHandler.HandleAdminUpdateDirect)
+				r.Delete("/assets/{id}", assetHandler.HandleAdminHardDelete)
+				r.Patch("/manejos/{id}", manejoHandler.HandleAdminUpdateDirect)
+				r.Delete("/manejos/{id}", manejoHandler.HandleAdminHardDelete)
+			})
+
 			// Audit logs — ADMIN only.
 			r.With(middleware.RequireRole(shared.RoleAdmin)).Get("/audit-logs", auditHandler.HandleList)
 			r.With(middleware.RequireRole(shared.RoleAdmin)).Get("/approval/events", approvalBroker.ServeHTTP)

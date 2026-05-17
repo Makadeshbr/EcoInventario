@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Fragment, FormEvent, useMemo, useState } from 'react';
-import { ChevronDown, Filter, Search } from 'lucide-react';
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Fragment, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChevronDown, Filter, Search } from "lucide-react";
 
-import type { Manejo, Monitoramento } from '@/features/operations/schemas';
+import type { Manejo, Monitoramento } from "@/features/operations/schemas";
 
-import { ApprovalActions } from './approval-actions';
-import { HealthBadge } from './health-badge';
-import { PhotoComparison } from './photo-comparison';
-import { StatusBadge } from './status-badge';
+import { ApprovalActions } from "./approval-actions";
+import { AdminDirectActions } from "./admin-direct-actions";
+import { HealthBadge } from "./health-badge";
+import { PhotoComparison } from "./photo-comparison";
+import { StatusBadge } from "./status-badge";
 
 export type AssetOption = {
   id: string;
@@ -25,7 +26,7 @@ type CommonProps = {
 };
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString('pt-BR');
+  return new Date(value).toLocaleDateString("pt-BR");
 }
 
 function shortID(value: string) {
@@ -33,29 +34,38 @@ function shortID(value: string) {
 }
 
 function assetLabel(assetId: string, assetOptions: AssetOption[]) {
-  return assetOptions.find((asset) => asset.id === assetId)?.label ?? `Asset ${shortID(assetId)}`;
+  return (
+    assetOptions.find((asset) => asset.id === assetId)?.label ??
+    `Asset ${shortID(assetId)}`
+  );
 }
 
 function Filters({
   kind,
   assetOptions,
 }: {
-  kind: 'manejos' | 'monitoramentos';
+  kind: "manejos" | "monitoramentos";
   assetOptions: AssetOption[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const columns =
-    kind === 'monitoramentos'
-      ? 'xl:grid-cols-[140px_1fr_155px_155px_155px_160px_auto]'
-      : 'xl:grid-cols-[140px_1fr_180px_180px_170px_auto]';
+    kind === "monitoramentos"
+      ? "xl:grid-cols-[140px_1fr_155px_155px_155px_160px_auto_auto]"
+      : "xl:grid-cols-[140px_1fr_180px_180px_170px_auto_auto]";
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const params = new URLSearchParams();
-    for (const key of ['status', 'asset_id', 'created_by', 'date', 'health_status']) {
-      const value = String(form.get(key) ?? '');
+    for (const key of [
+      "status",
+      "asset_id",
+      "created_by",
+      "date",
+      "health_status",
+    ]) {
+      const value = String(form.get(key) ?? "");
       if (value) params.set(key, value);
     }
     router.push(`/dashboard/${kind}?${params.toString()}`);
@@ -71,7 +81,7 @@ function Filters({
         <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-outline" />
         <select
           name="asset_id"
-          defaultValue={searchParams.get('asset_id') ?? ''}
+          defaultValue={searchParams.get("asset_id") ?? ""}
           className="h-12 w-full rounded-full border border-outline-variant bg-white/70 pl-12 pr-4 text-sm font-semibold outline-none focus:border-secondary"
         >
           <option value="">Todos assets</option>
@@ -84,7 +94,7 @@ function Filters({
       </label>
       <select
         name="status"
-        defaultValue={searchParams.get('status') ?? ''}
+        defaultValue={searchParams.get("status") ?? ""}
         className="h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-sm font-semibold"
       >
         <option value="">Todos status</option>
@@ -93,10 +103,10 @@ function Filters({
         <option value="approved">Aprovado</option>
         <option value="rejected">Rejeitado</option>
       </select>
-      {kind === 'monitoramentos' ? (
+      {kind === "monitoramentos" ? (
         <select
           name="health_status"
-          defaultValue={searchParams.get('health_status') ?? ''}
+          defaultValue={searchParams.get("health_status") ?? ""}
           className="h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-sm font-semibold"
         >
           <option value="">Todas saudes</option>
@@ -108,27 +118,37 @@ function Filters({
       ) : (
         <input
           name="created_by"
-          defaultValue={searchParams.get('created_by') ?? ''}
-          placeholder="ID do tecnico"
+          defaultValue={searchParams.get("created_by") ?? ""}
+          placeholder="Tecnico"
           className="input-shell h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-sm font-semibold outline-none focus:border-secondary"
         />
       )}
-      {kind === 'monitoramentos' ? (
+      {kind === "monitoramentos" ? (
         <input
           name="created_by"
-          defaultValue={searchParams.get('created_by') ?? ''}
-          placeholder="ID tecnico"
+          defaultValue={searchParams.get("created_by") ?? ""}
+          placeholder="Tecnico"
           className="input-shell h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-sm font-semibold outline-none focus:border-secondary"
         />
       ) : null}
       <input
         name="date"
-        defaultValue={searchParams.get('date') ?? ''}
+        defaultValue={searchParams.get("date") ?? ""}
         type="date"
         className="input-shell h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-sm font-semibold outline-none focus:border-secondary"
       />
-      <button className="h-12 rounded-full bg-primary px-5 text-sm font-bold text-on-primary" type="submit">
+      <button
+        className="h-12 rounded-full bg-primary px-5 text-sm font-bold text-on-primary"
+        type="submit"
+      >
         Filtrar
+      </button>
+      <button
+        className="h-12 rounded-full bg-white/70 px-5 text-sm font-bold text-primary"
+        type="button"
+        onClick={() => router.push(`/dashboard/${kind}`)}
+      >
+        Limpar
       </button>
     </form>
   );
@@ -141,7 +161,10 @@ function LoadMore({ href, hasMore }: { href: string; hasMore: boolean }) {
 
   return (
     <div className="flex justify-center">
-      <Link className="rounded-full bg-primary px-5 py-3 text-sm font-bold text-on-primary" href={href}>
+      <Link
+        className="rounded-full bg-primary px-5 py-3 text-sm font-bold text-on-primary"
+        href={href}
+      >
         Carregar mais
       </Link>
     </div>
@@ -160,11 +183,17 @@ export function ManejosTable({
   mediaById: Record<string, string>;
 }) {
   const [items, setItems] = useState(manejos);
-  const [expanded, setExpanded] = useState<string | null>(manejos[0]?.id ?? null);
+  const [expanded, setExpanded] = useState<string | null>(
+    manejos[0]?.id ?? null,
+  );
   const searchParams = useSearchParams();
+  useEffect(() => {
+    setItems(manejos);
+    setExpanded(manejos[0]?.id ?? null);
+  }, [manejos]);
   const loadMoreHref = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString());
-    if (nextCursor) params.set('cursor', nextCursor);
+    if (nextCursor) params.set("cursor", nextCursor);
     return `/dashboard/manejos?${params.toString()}`;
   }, [nextCursor, searchParams]);
 
@@ -194,7 +223,10 @@ export function ManejosTable({
                   <Fragment key={item.id}>
                     <tr className="transition hover:bg-white/40">
                       <td className="px-5 py-4">
-                        <Link className="font-bold text-primary" href={`/dashboard/assets/${item.assetId}`}>
+                        <Link
+                          className="font-bold text-primary"
+                          href={`/dashboard/assets/${item.assetId}`}
+                        >
                           {assetLabel(item.assetId, assetOptions)}
                         </Link>
                       </td>
@@ -204,23 +236,46 @@ export function ManejosTable({
                       <td className="px-5 py-4">
                         <StatusBadge status={item.status} />
                       </td>
-                      <td className="px-5 py-4 text-sm font-semibold">{item.createdBy.name}</td>
-                      <td className="px-5 py-4 text-sm text-on-surface-variant">{formatDate(item.createdAt)}</td>
+                      <td className="px-5 py-4 text-sm font-semibold">
+                        {item.createdBy.name}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-on-surface-variant">
+                        {formatDate(item.createdAt)}
+                      </td>
                       <td className="px-5 py-4">
                         <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => setExpanded((current) => (current === item.id ? null : item.id))}
+                            onClick={() =>
+                              setExpanded((current) =>
+                                current === item.id ? null : item.id,
+                              )
+                            }
                             className="grid h-10 w-10 place-items-center rounded-full bg-white/65 text-secondary"
                             aria-label="Alternar fotos do manejo"
                           >
                             <ChevronDown className="h-5 w-5" />
                           </button>
-                          {canApprove && item.status === 'pending' ? (
+                          {canApprove ? (
+                            <AdminDirectActions
+                              entityType="manejo"
+                              item={item}
+                              onDeleted={(id) =>
+                                setItems((current) =>
+                                  current.filter((row) => row.id !== id),
+                                )
+                              }
+                            />
+                          ) : null}
+                          {canApprove && item.status === "pending" ? (
                             <ApprovalActions
                               entityType="manejo"
                               id={item.id}
-                              onDone={() => setItems((current) => current.filter((row) => row.id !== item.id))}
+                              onDone={() =>
+                                setItems((current) =>
+                                  current.filter((row) => row.id !== item.id),
+                                )
+                              }
                             />
                           ) : null}
                         </div>
@@ -230,8 +285,16 @@ export function ManejosTable({
                       <tr>
                         <td colSpan={6} className="bg-white/25 px-5 py-5">
                           <PhotoComparison
-                            beforeUrl={item.beforeMediaId ? (mediaById[item.beforeMediaId] ?? null) : null}
-                            afterUrl={item.afterMediaId ? (mediaById[item.afterMediaId] ?? null) : null}
+                            beforeUrl={
+                              item.beforeMediaId
+                                ? (mediaById[item.beforeMediaId] ?? null)
+                                : null
+                            }
+                            afterUrl={
+                              item.afterMediaId
+                                ? (mediaById[item.afterMediaId] ?? null)
+                                : null
+                            }
                           />
                         </td>
                       </tr>
@@ -259,9 +322,12 @@ export function MonitoramentosTable({
 }) {
   const [items, setItems] = useState(monitoramentos);
   const searchParams = useSearchParams();
+  useEffect(() => {
+    setItems(monitoramentos);
+  }, [monitoramentos]);
   const loadMoreHref = useMemo(() => {
     const params = new URLSearchParams(searchParams.toString());
-    if (nextCursor) params.set('cursor', nextCursor);
+    if (nextCursor) params.set("cursor", nextCursor);
     return `/dashboard/monitoramentos?${params.toString()}`;
   }, [nextCursor, searchParams]);
 
@@ -291,7 +357,10 @@ export function MonitoramentosTable({
                 {items.map((item) => (
                   <tr key={item.id} className="transition hover:bg-white/40">
                     <td className="px-5 py-4">
-                      <Link className="font-bold text-primary" href={`/dashboard/assets/${item.assetId}`}>
+                      <Link
+                        className="font-bold text-primary"
+                        href={`/dashboard/assets/${item.assetId}`}
+                      >
                         {assetLabel(item.assetId, assetOptions)}
                       </Link>
                     </td>
@@ -304,17 +373,27 @@ export function MonitoramentosTable({
                     <td className="px-5 py-4">
                       <StatusBadge status={item.status} />
                     </td>
-                    <td className="px-5 py-4 text-sm font-semibold">{item.createdBy.name}</td>
-                    <td className="px-5 py-4 text-sm text-on-surface-variant">{formatDate(item.createdAt)}</td>
+                    <td className="px-5 py-4 text-sm font-semibold">
+                      {item.createdBy.name}
+                    </td>
+                    <td className="px-5 py-4 text-sm text-on-surface-variant">
+                      {formatDate(item.createdAt)}
+                    </td>
                     <td className="px-5 py-4">
-                      {canApprove && item.status === 'pending' ? (
+                      {canApprove && item.status === "pending" ? (
                         <ApprovalActions
                           entityType="monitoramento"
                           id={item.id}
-                          onDone={() => setItems((current) => current.filter((row) => row.id !== item.id))}
+                          onDone={() =>
+                            setItems((current) =>
+                              current.filter((row) => row.id !== item.id),
+                            )
+                          }
                         />
                       ) : (
-                        <span className="text-xs font-bold uppercase text-outline">Sem acao</span>
+                        <span className="text-xs font-bold uppercase text-outline">
+                          Sem acao
+                        </span>
                       )}
                     </td>
                   </tr>
