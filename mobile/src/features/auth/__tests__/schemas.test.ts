@@ -1,8 +1,14 @@
 import { loginSchema } from '../schemas';
 
 describe('loginSchema', () => {
-  test('aceita email e senha válidos', () => {
+  test('aceita email e senha validos', () => {
     expect(loginSchema.safeParse({ email: 'tech@eco.com', password: '12345678' }).success).toBe(true);
+  });
+
+  test('normaliza email antes de enviar login', () => {
+    const result = loginSchema.safeParse({ email: '  TECH@ECO.COM  ', password: '12345678' });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.email).toBe('tech@eco.com');
   });
 
   test('rejeita email sem @', () => {

@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/allan/ecoinventario/internal/audit"
@@ -42,7 +43,9 @@ var errUnauthorized = apperror.NewUnauthorized("Credenciais inválidas")
 
 // Login autentica o usuário e retorna access + refresh tokens.
 func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
-	user, err := s.repo.FindUserByEmail(ctx, req.Email)
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+
+	user, err := s.repo.FindUserByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("buscando usuário: %w", err)
 	}

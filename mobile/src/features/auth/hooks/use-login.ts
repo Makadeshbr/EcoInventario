@@ -31,6 +31,8 @@ export function useLogin() {
         } catch {
           setError('Erro ao conectar com o servidor. Tente novamente.');
         }
+      } else if (err instanceof Error && err.name === 'TimeoutError') {
+        setError('Servidor demorou para responder. Tente novamente em alguns segundos.');
       } else {
         setError(
           err instanceof Error && err.message

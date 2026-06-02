@@ -150,6 +150,23 @@ describe('useLogin — erro de API', () => {
     expect(mockRouterReplace).not.toHaveBeenCalled();
   });
 
+  test('timeout do servidor: informa demora do backend sem culpar a internet', async () => {
+    const timeoutError = new Error('Request timed out');
+    timeoutError.name = 'TimeoutError';
+    (login as jest.Mock).mockRejectedValueOnce(timeoutError);
+
+    const { result } = renderHook(() => useLogin());
+
+    await act(async () => {
+      await result.current.handleLogin({ email: 'user@eco.com', password: 'wrongpass1' });
+    });
+
+    expect(result.current.error).toBe(
+      'Servidor demorou para responder. Tente novamente em alguns segundos.',
+    );
+    expect(mockRouterReplace).not.toHaveBeenCalled();
+  });
+
   test('erro desconhecido (sem message): exibe mensagem genérica', async () => {
     (login as jest.Mock).mockRejectedValueOnce({});
 

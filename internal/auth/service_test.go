@@ -17,6 +17,7 @@ import (
 type mockRepo struct {
 	user          *auth.UserRecord
 	findErr       error
+	lastEmail     string
 	savedToken    *auth.RefreshTokenRecord
 	foundToken    *auth.RefreshTokenRecord
 	findTokenErr  error
@@ -25,6 +26,7 @@ type mockRepo struct {
 }
 
 func (m *mockRepo) FindUserByEmail(_ context.Context, email string) (*auth.UserRecord, error) {
+	m.lastEmail = email
 	return m.user, m.findErr
 }
 
@@ -108,6 +110,22 @@ func TestServiceLogin(t *testing.T) {
 		}
 		if resp.ExpiresIn != 900 {
 			t.Errorf("expires_in: got %d, want 900", resp.ExpiresIn)
+		}
+	})
+
+	t.Run("normaliza email antes de buscar usuario", func(t *testing.T) {
+		repo := &mockRepo{user: validUser}
+		svc := newTestService(t, repo)
+
+		_, err := svc.Login(context.Background(), auth.LoginRequest{
+			Email:    "  USER@TEST.COM  ",
+			Password: "senha123",
+		})
+		if err != nil {
+			t.Fatalf("erro inesperado: %v", err)
+		}
+		if repo.lastEmail != "user@test.com" {
+			t.Fatalf("email normalizado: got %q, want user@test.com", repo.lastEmail)
 		}
 	})
 

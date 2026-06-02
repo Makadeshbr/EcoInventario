@@ -67,6 +67,32 @@ describe('AdminUsersManager', () => {
     await waitFor(() => expect(updateUser).toHaveBeenCalledWith('user-2', { isActive: true }));
     expect(deleteUser).not.toHaveBeenCalledWith('user-1');
   });
+
+  test('mostra mensagem retornada pela API ao falhar criacao de usuario', async () => {
+    const createUser = vi.fn().mockRejectedValue(new Error('Email ja cadastrado nesta organizacao'));
+
+    render(
+      <AdminUsersManager
+        users={users}
+        currentUserId="user-1"
+        hasMore={false}
+        nextCursor={null}
+        createUserAction={createUser}
+        updateUserAction={vi.fn().mockResolvedValue(undefined)}
+        deleteUserAction={vi.fn().mockResolvedValue(undefined)}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /novo usuario/i }));
+    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: 'Viewer Bia' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'bia@example.com' } });
+    fireEvent.change(screen.getByLabelText(/senha/i), { target: { value: 'senhaSegura123' } });
+    fireEvent.click(screen.getByRole('button', { name: /salvar usuario/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText('Email ja cadastrado nesta organizacao')).toBeInTheDocument(),
+    );
+  });
 });
 
 describe('AdminAssetTypesManager', () => {

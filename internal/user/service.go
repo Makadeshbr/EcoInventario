@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/allan/ecoinventario/internal/shared"
 	"github.com/allan/ecoinventario/internal/shared/apperror"
 	"github.com/allan/ecoinventario/internal/shared/response"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // Service implementa a lógica de negócio para usuários.
@@ -54,6 +56,9 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (*UserResponse,
 	}
 
 	if err := s.repo.Insert(ctx, u); err != nil {
+		if isEmailUniqueViolation(err) {
+			return nil, apperror.NewConflict("Email ja cadastrado nesta organizacao")
+		}
 		return nil, fmt.Errorf("inserindo usuário: %w", err)
 	}
 
@@ -226,4 +231,15 @@ func (s *Service) ensureAdminDeleteAllowed(ctx context.Context, orgID, callerID 
 func mustMarshal(v any) json.RawMessage {
 	b, _ := json.Marshal(v)
 	return b
+}
+
+func isEmailUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
+		return false
+	}
+
+	return pgErr.Code == "23505" &&
+		(pgErr.ConstraintName == "users_email_organization_id_key" ||
+			pgErr.ConstraintName == "users_email_organization_id_active_key")
 }

@@ -17,6 +17,10 @@ jest.mock('@/api/client', () => ({
   },
 }));
 
+jest.mock('@/constants/config', () => ({
+  LOGIN_TIMEOUT_MS: 60000,
+}));
+
 import { api } from '@/api/client';
 import { login } from '../api';
 
@@ -25,6 +29,7 @@ describe('login()', () => {
     await login({ email: 'tech@eco.com', password: 'senhasegura' });
     expect(api.post).toHaveBeenCalledWith('auth/login', {
       json: { email: 'tech@eco.com', password: 'senhasegura' },
+      timeout: 60000,
     });
   });
 

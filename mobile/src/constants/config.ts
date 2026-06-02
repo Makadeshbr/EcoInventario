@@ -1,5 +1,6 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://ecoinventario-api.onrender.com/api/v1';
+export const LOGIN_TIMEOUT_MS = 60_000;
 
 export const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
 export const MAX_IMAGE_DIMENSION = 1920;

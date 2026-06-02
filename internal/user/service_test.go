@@ -2,12 +2,14 @@ package user_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/allan/ecoinventario/internal/audit"
 	"github.com/allan/ecoinventario/internal/shared"
 	"github.com/allan/ecoinventario/internal/shared/apperror"
 	"github.com/allan/ecoinventario/internal/user"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // --- mocks ---
@@ -97,6 +99,27 @@ func TestUserServiceCreate(t *testing.T) {
 
 	t.Run("email duplicado na org retorna 409", func(t *testing.T) {
 		repo := &mockUserRepo{emailExists: true}
+		svc := newTestSvc(repo)
+
+		_, err := svc.Create(ctx, user.CreateRequest{
+			Name:     "Outro",
+			Email:    "joao@test.com",
+			Password: "senha123",
+			Role:     shared.RoleTech,
+		})
+		if err == nil {
+			t.Fatal("esperava erro")
+		}
+		assertAppError(t, err, 409)
+	})
+
+	t.Run("email duplicado por corrida no banco retorna 409", func(t *testing.T) {
+		repo := &mockUserRepo{
+			insertErr: fmt.Errorf("insert: %w", &pgconn.PgError{
+				Code:           "23505",
+				ConstraintName: "users_email_organization_id_active_key",
+			}),
+		}
 		svc := newTestSvc(repo)
 
 		_, err := svc.Create(ctx, user.CreateRequest{

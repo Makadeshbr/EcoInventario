@@ -36,6 +36,10 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString('pt-BR');
 }
 
+function errorMessage(err: unknown, fallback: string) {
+  return err instanceof Error && err.message ? err.message : fallback;
+}
+
 export function AdminUsersManager({
   users,
   currentUserId,
@@ -63,7 +67,7 @@ export function AdminUsersManager({
       setError(null);
       await createUserAction(payload).then(
         () => setCreating(false),
-        () => setError('Nao foi possivel salvar o usuario.'),
+        (err) => setError(errorMessage(err, 'Nao foi possivel salvar o usuario.')),
       );
     });
   }
@@ -82,7 +86,7 @@ export function AdminUsersManager({
       setError(null);
       await updateUserAction(editing.id, payload).then(
         () => setEditing(null),
-        () => setError('Nao foi possivel atualizar o usuario.'),
+        (err) => setError(errorMessage(err, 'Nao foi possivel atualizar o usuario.')),
       );
     });
   }
@@ -101,7 +105,9 @@ export function AdminUsersManager({
 
     startTransition(async () => {
       setError(null);
-      await deleteUserAction(user.id).catch(() => setError('Nao foi possivel excluir o usuario.'));
+      await deleteUserAction(user.id).catch((err) =>
+        setError(errorMessage(err, 'Nao foi possivel excluir o usuario.')),
+      );
     });
   }
 
