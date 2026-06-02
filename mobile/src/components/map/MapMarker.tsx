@@ -3,12 +3,14 @@ import { View, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/theme/tokens';
+import { iconForAssetType } from '@/utils/asset-icon';
 
 interface MapMarkerProps {
   asset: {
     id: string;
     latitude: number;
     longitude: number;
+    asset_type?: { name: string } | null;
   };
   onPress: () => void;
 }
@@ -37,7 +39,11 @@ export function MapMarker({ asset, onPress }: MapMarkerProps) {
     >
       <View style={styles.container}>
         <View style={styles.balloon}>
-          <MaterialIcons name="eco" size={22} color="#ffffff" />
+          <MaterialIcons
+            name={iconForAssetType(asset.asset_type?.name) as keyof typeof MaterialIcons.glyphMap}
+            size={22}
+            color="#ffffff"
+          />
         </View>
         <View style={styles.pointer} />
       </View>
