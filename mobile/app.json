@@ -25,7 +25,6 @@
       "bundleIdentifier": "com.ecoinventario.app"
     },
     "android": {
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
@@ -57,12 +56,18 @@
       [
         "expo-splash-screen",
         {
+          "image": "./assets/images/splash-transparent.png",
+          "imageWidth": 1,
           "backgroundColor": "#F5F0E8",
           "resizeMode": "native",
           "android": {
+            "image": "./assets/images/splash-transparent.png",
+            "imageWidth": 1,
             "backgroundColor": "#F5F0E8"
           },
           "ios": {
+            "image": "./assets/images/splash-transparent.png",
+            "imageWidth": 1,
             "backgroundColor": "#F5F0E8"
           }
         }
