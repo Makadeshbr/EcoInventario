@@ -7,21 +7,31 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 
 gsap.registerPlugin(ScrollTrigger)
 
-const stats = [
-  { value: 12000, suffix: '+', label: 'mudas plantadas',      display: '12 mil' },
-  { value: 38,    suffix: '',  label: 'comunidades atendidas', display: '38'     },
-  { value: 120,   suffix: '',  label: 'hectares em restauração', display: '120'  },
-  { value: 4500,  suffix: '',  label: 'alunos alcançados',     display: '4.500'  },
+const commitments = [
+  {
+    title: 'Indicadores em construção',
+    description:
+      'Os resultados serão publicados quando vierem de registros auditáveis, sem inflar números por estimativa.',
+  },
+  {
+    title: 'Projetos com rastreabilidade',
+    description:
+      'Cada ação deve ter localização, fotos, responsáveis e acompanhamento para virar evidência, não apenas promessa.',
+  },
+  {
+    title: 'Impacto antes de vaidade',
+    description:
+      'A prioridade é mostrar o que foi feito, o que está em andamento e onde a comunidade ainda precisa de apoio.',
+  },
 ]
 
 export default function ImpactSection() {
   const sectionRef = useRef<HTMLElement>(null)
-  const statsRef   = useRef<HTMLDivElement>(null)
-  const headRef    = useRef<HTMLDivElement>(null)
+  const cardsRef = useRef<HTMLDivElement>(null)
+  const headRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Heading
       const headItems = headRef.current?.querySelectorAll('.reveal-head')
       if (headItems?.length) {
         gsap.fromTo(
@@ -34,42 +44,14 @@ export default function ImpactSection() {
         )
       }
 
-      // Count-up for each stat
-      const statEls = statsRef.current?.querySelectorAll('.stat-number')
-      statEls?.forEach((el, i) => {
-        const stat = stats[i]
-        const counter = { value: 0 }
-
-        gsap.to(counter, {
-          value: stat.value,
-          duration: 2,
-          delay: i * 0.15,
-          ease: 'power2.out',
-          onUpdate() {
-            const v = Math.round(counter.value)
-            if (stat.value >= 1000) {
-              el.textContent = v.toLocaleString('pt-BR') + stat.suffix
-            } else {
-              el.textContent = v + stat.suffix
-            }
-          },
-          scrollTrigger: {
-            trigger: statsRef.current,
-            start: 'top 75%',
-            once: true,
-          },
-        })
-      })
-
-      // Stagger reveal stat items
-      const statItems = statsRef.current?.querySelectorAll('.stat-item')
-      if (statItems?.length) {
+      const cards = cardsRef.current?.querySelectorAll('.impact-card')
+      if (cards?.length) {
         gsap.fromTo(
-          statItems,
+          cards,
           { y: 32, opacity: 0 },
           {
             y: 0, opacity: 1, duration: 0.75, stagger: 0.14, ease: 'power3.out',
-            scrollTrigger: { trigger: statsRef.current, start: 'top 75%' },
+            scrollTrigger: { trigger: cardsRef.current, start: 'top 75%' },
           },
         )
       }
@@ -80,7 +62,6 @@ export default function ImpactSection() {
 
   return (
     <section ref={sectionRef} id="impacto" className="relative overflow-hidden py-28 lg:py-40">
-      {/* Background forest image */}
       <div className="absolute inset-0">
         <Image
           src="/images/floresta.png"
@@ -89,47 +70,38 @@ export default function ImpactSection() {
           className="object-cover"
           sizes="100vw"
         />
-        {/* Dark overlays for depth */}
         <div className="absolute inset-0 bg-forest/82" />
         <div className="absolute inset-0 bg-gradient-to-b from-forest/40 via-transparent to-forest/40" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-6 lg:px-10">
-
-        {/* Heading */}
-        <div ref={headRef} className="text-center mb-20">
+        <div ref={headRef} className="text-center mb-16">
           <div className="reveal-head flex items-center justify-center gap-3 mb-5">
             <span className="h-px w-10 bg-gold/50" />
-            <span className="section-label text-gold/70">Nosso Impacto</span>
+            <span className="section-label text-gold/70">Impacto com transparência</span>
             <span className="h-px w-10 bg-gold/50" />
           </div>
           <h2 className="reveal-head font-serif text-4xl lg:text-5xl text-cream font-light leading-[1.15]">
-            Números que contam<br />uma história real
+            Sem números inflados.<br />Só evidência que possa ser sustentada.
           </h2>
+          <p className="reveal-head mx-auto mt-6 max-w-2xl text-sm lg:text-base leading-[1.8] text-sand/60">
+            Estamos substituindo métricas decorativas por acompanhamento real: registros de campo,
+            histórico das ações e indicadores publicados apenas quando houver base confiável.
+          </p>
         </div>
 
-        {/* Stats grid */}
-        <div ref={statsRef} className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.06] rounded-lg overflow-hidden">
-          {stats.map((stat, i) => (
-            <div
-              key={stat.label}
-              className={`stat-item bg-forest/60 backdrop-blur-sm px-8 py-12 text-center ${
-                i < stats.length - 1 ? 'border-r-0 lg:border-r border-white/[0.06]' : ''
-              }`}
+        <div ref={cardsRef} className="grid gap-px overflow-hidden rounded-lg bg-white/[0.06] lg:grid-cols-3">
+          {commitments.map((item) => (
+            <article
+              key={item.title}
+              className="impact-card bg-forest/60 px-8 py-10 backdrop-blur-sm"
             >
-              <div
-                className="stat-number font-serif text-5xl lg:text-6xl text-gold font-light mb-3 tabular-nums"
-                aria-label={stat.display + stat.suffix}
-              >
-                0
-              </div>
-              <p className="text-sand/60 text-sm leading-relaxed max-w-[16ch] mx-auto">
-                {stat.label}
-              </p>
-            </div>
+              <span className="mb-6 block h-px w-12 bg-gold/50" />
+              <h3 className="font-serif text-2xl font-light text-gold">{item.title}</h3>
+              <p className="mt-4 text-sm leading-[1.8] text-sand/60">{item.description}</p>
+            </article>
           ))}
         </div>
-
       </div>
     </section>
   )

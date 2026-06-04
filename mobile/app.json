@@ -55,6 +55,19 @@
       "expo-router",
       "expo-updates",
       [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F5F0E8",
+          "resizeMode": "native",
+          "android": {
+            "backgroundColor": "#F5F0E8"
+          },
+          "ios": {
+            "backgroundColor": "#F5F0E8"
+          }
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "O app precisa da câmera para escanear QR codes e registrar fotos dos ativos."

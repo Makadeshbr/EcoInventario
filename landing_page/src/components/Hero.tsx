@@ -179,24 +179,24 @@ export default function Hero() {
               </a>
             </div>
 
-            {/* Social proof */}
+            {/* Transparencia sem metricas inventadas */}
             <div
               ref={proofRef}
               className="flex items-center gap-4 sm:gap-8 pt-6 border-t border-white/[0.09] overflow-hidden"
             >
               <div className="min-w-0">
-                <span className="font-serif text-[1.4rem] sm:text-[1.7rem] text-gold block leading-none">12mil+</span>
-                <span className="text-[0.62rem] text-sand/45 mt-1.5 block uppercase">mudas plantadas</span>
+                <span className="font-serif text-[1.05rem] sm:text-[1.2rem] text-gold block leading-none">Educação ambiental</span>
+                <span className="text-[0.62rem] text-sand/45 mt-1.5 block uppercase">formação e consciência</span>
               </div>
               <div className="w-px h-9 bg-white/10 flex-shrink-0" />
               <div className="min-w-0">
-                <span className="font-serif text-[1.4rem] sm:text-[1.7rem] text-gold block leading-none">38</span>
-                <span className="text-[0.62rem] text-sand/45 mt-1.5 block uppercase">comunidades</span>
+                <span className="font-serif text-[1.05rem] sm:text-[1.2rem] text-gold block leading-none">Restauração</span>
+                <span className="text-[0.62rem] text-sand/45 mt-1.5 block uppercase">cuidado com território</span>
               </div>
               <div className="w-px h-9 bg-white/10 flex-shrink-0" />
               <div className="min-w-0">
-                <span className="font-serif text-[1.4rem] sm:text-[1.7rem] text-gold block leading-none">120ha</span>
-                <span className="text-[0.62rem] text-sand/45 mt-1.5 block uppercase">restaurados</span>
+                <span className="font-serif text-[1.05rem] sm:text-[1.2rem] text-gold block leading-none">Comunidade</span>
+                <span className="text-[0.62rem] text-sand/45 mt-1.5 block uppercase">participação local</span>
               </div>
             </div>
 

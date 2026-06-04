@@ -21,7 +21,7 @@ export function useLogin() {
         );
         return;
       }
-      setAuth(response.accessToken, response.refreshToken, response.user);
+      await setAuth(response.accessToken, response.refreshToken, response.user);
       router.replace('/(app)/(home)');
     } catch (err: unknown) {
       if (err instanceof HTTPError) {
