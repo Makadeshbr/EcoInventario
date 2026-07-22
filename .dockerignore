@@ -1,0 +1,42 @@
+# Contexto de build do Docker — só precisamos do módulo Go + migrations.
+# Exclui frontends, caches e artefatos que inflariam o contexto (centenas de MB).
+
+# Git e CI
+.git
+.github
+
+# Caches de build
+.gocache
+.cache
+.claude
+.vscode
+
+# Frontends (não entram na imagem do backend Go)
+mobile
+dashboard
+landing_page
+Design_Stitch
+
+# Node
+**/node_modules
+**/.next
+**/.expo
+**/dist
+
+# Docs e tarefas
+docs
+tasks
+*.md
+
+# Binários e artefatos
+bin
+*.exe
+*.log
+*.session.sql
+Logo_App.png
+test_e2e.ps1
+
+# Segredos locais (nunca na imagem)
+.env
+.env.*
+!.env.example
