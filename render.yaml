@@ -26,7 +26,15 @@ services:
       - key: ENV                 # CORRIGIDO: era ENVIRONMENT (não lido pelo config.go)
         value: "production"
       - key: CORS_ALLOWED_ORIGINS
-        value: "*"               # Restringir após ter domínio fixo
+        # "*" agora funciona (o middleware ecoa a origin), mas para produção
+        # restrinja às URLs reais da Vercel, ex:
+        # "https://dashboard.vercel.app,https://ecoinventario.com.br"
+        value: "*"
+
+      # Nº de proxies reversos confiáveis à frente da API (Render = 1).
+      # Usado para extrair o IP real do cliente e impedir spoofing no rate limit.
+      - key: TRUSTED_PROXY_COUNT
+        value: "1"
 
       # ── Segredos — preencher no painel Render (não entram no git) ──
       - key: PASSWORD_PEPPER     # NOVO: era obrigatório no config.go mas faltava

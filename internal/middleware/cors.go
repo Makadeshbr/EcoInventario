@@ -8,7 +8,12 @@ import (
 // CORS retorna um middleware que configura os headers CORS com base nas origens permitidas.
 func CORS(allowedOrigins []string) func(http.Handler) http.Handler {
 	originsSet := make(map[string]bool, len(allowedOrigins))
+	allowAll := false
 	for _, o := range allowedOrigins {
+		if o == "*" {
+			allowAll = true
+			continue
+		}
 		originsSet[o] = true
 	}
 
@@ -16,7 +21,10 @@ func CORS(allowedOrigins []string) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			origin := r.Header.Get("Origin")
 
-			if originsSet[origin] {
+			// Com wildcard configurado, refletimos a origin recebida (eco) em vez de
+			// "*", pois é mais seguro e mantém o comportamento correto caso venhamos
+			// a habilitar credenciais. Sem Origin, nenhum header CORS é setado.
+			if (allowAll && origin != "") || originsSet[origin] {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-Id, X-Idempotency-Key")

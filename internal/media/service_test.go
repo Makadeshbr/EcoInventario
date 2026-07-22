@@ -246,6 +246,24 @@ func TestGenerateUploadURL_InvalidMIME(t *testing.T) {
 	}
 }
 
+func TestGenerateUploadURL_RejectsDisguisedSVG(t *testing.T) {
+	svc := newSvc(newStubRepo(), &stubS3{}, true)
+	ctx := ctxWithClaims("user-1", "org-1")
+
+	// image/svg+xml não está na whitelist e não pode ser coagido para image/jpeg —
+	// senão abre porta para stored-XSS via SVG servido do bucket.
+	_, err := svc.GenerateUploadURL(ctx, media.UploadURLRequest{
+		AssetID:        "asset-1",
+		MediaType:      media.TypeGeneral,
+		MimeType:       "image/svg+xml",
+		SizeBytes:      1024,
+		IdempotencyKey: "idem-svg",
+	})
+	if err == nil {
+		t.Fatal("esperava rejeição de image/svg+xml (não é tipo permitido)")
+	}
+}
+
 func TestGenerateUploadURL_AssetNotFound(t *testing.T) {
 	svc := newSvc(newStubRepo(), &stubS3{}, false) // asset não existe
 

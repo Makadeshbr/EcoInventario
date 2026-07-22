@@ -161,10 +161,10 @@ func normalizeMIME(value string) string {
 	case "webp", "image/webp":
 		return "image/webp"
 	default:
-		if strings.HasPrefix(strings.ToLower(strings.TrimSpace(value)), "image/") {
-			return "image/jpeg"
-		}
-		return value
+		// Não coage tipos desconhecidos: retorna normalizado para que a whitelist
+		// (IsAllowedMIME) rejeite. Coagir qualquer "image/*" para jpeg deixava passar
+		// SVG e outros formatos perigosos.
+		return strings.ToLower(strings.TrimSpace(value))
 	}
 }
 

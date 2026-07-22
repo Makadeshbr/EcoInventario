@@ -85,17 +85,41 @@ func RateLimit(limiter *RateLimiter, keyFn func(*http.Request) string) func(http
 	}
 }
 
-// KeyByIP extrai o IP do cliente como chave para rate limiting.
-func KeyByIP(r *http.Request) string {
+// KeyByIP retorna uma função de chave por IP para rate limiting, considerando
+// quantos proxies reversos confiáveis existem à frente da aplicação.
+func KeyByIP(trustedProxies int) func(*http.Request) string {
+	return func(r *http.Request) string {
+		return ClientIP(r, trustedProxies)
+	}
+}
+
+// ClientIP extrai o IP real do cliente de forma resistente a spoofing.
+//
+// O cliente controla o início da cadeia X-Forwarded-For; cada proxy confiável
+// ANEXA o IP de quem lhe entregou a requisição. Por isso o IP real é o
+// (trustedProxies)-ésimo a partir da direita — nunca o primeiro (à esquerda),
+// que é injetável pelo atacante para burlar o rate limit de login.
+func ClientIP(r *http.Request, trustedProxies int) string {
+	if trustedProxies < 1 {
+		trustedProxies = 1
+	}
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
-		if idx := strings.IndexByte(xff, ','); idx >= 0 {
-			return strings.TrimSpace(xff[:idx])
+		parts := make([]string, 0, 4)
+		for _, p := range strings.Split(xff, ",") {
+			if trimmed := strings.TrimSpace(p); trimmed != "" {
+				parts = append(parts, trimmed)
+			}
 		}
-		return strings.TrimSpace(xff)
+		if len(parts) > 0 {
+			idx := len(parts) - trustedProxies
+			if idx < 0 {
+				idx = 0
+			}
+			return parts[idx]
+		}
 	}
-	if xri := r.Header.Get("X-Real-Ip"); xri != "" {
-		return strings.TrimSpace(xri)
-	}
+	// Sem X-Forwarded-For: a requisição não passou por um proxy conhecido,
+	// então o RemoteAddr é a fonte confiável do IP.
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		return r.RemoteAddr

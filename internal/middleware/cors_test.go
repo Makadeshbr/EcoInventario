@@ -54,6 +54,41 @@ func TestCORS_Preflight_Retorna204(t *testing.T) {
 	}
 }
 
+func TestCORS_Wildcard_EcoaOrigin(t *testing.T) {
+	cors := CORS([]string{"*"})
+	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r.Header.Set("Origin", "https://dashboard.vercel.app")
+	handler.ServeHTTP(w, r)
+
+	// Com wildcard configurado, qualquer origin é refletida (eco), não match exato.
+	if got := w.Header().Get("Access-Control-Allow-Origin"); got != "https://dashboard.vercel.app" {
+		t.Errorf("wildcard deveria ecoar a origin, got %q", got)
+	}
+	if w.Header().Get("Vary") != "Origin" {
+		t.Error("resposta com wildcard deve incluir Vary: Origin")
+	}
+}
+
+func TestCORS_Wildcard_SemOriginNaoSetaHeader(t *testing.T) {
+	cors := CORS([]string{"*"})
+	handler := cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", nil) // sem header Origin
+	handler.ServeHTTP(w, r)
+
+	if w.Header().Get("Access-Control-Allow-Origin") != "" {
+		t.Error("sem Origin não deveria setar Access-Control-Allow-Origin")
+	}
+}
+
 func TestParseOrigins_MultiplaOrigens(t *testing.T) {
 	result := ParseOrigins("http://localhost:3000, http://localhost:8080")
 	if len(result) != 2 {

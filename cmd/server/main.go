@@ -461,7 +461,7 @@ func main() {
 	r.Route("/api/v1", func(r chi.Router) {
 		// Rotas públicas de auth — login limitado a 5/min por IP.
 		r.Route("/auth", func(r chi.Router) {
-			r.With(middleware.RateLimit(loginLimiter, middleware.KeyByIP)).Post("/login", authHandler.HandleLogin)
+			r.With(middleware.RateLimit(loginLimiter, middleware.KeyByIP(cfg.TrustedProxyCount))).Post("/login", authHandler.HandleLogin)
 			r.Post("/refresh", authHandler.HandleRefresh)
 			r.With(middleware.Auth(jwtSvc)).Post("/logout", authHandler.HandleLogout)
 		})
@@ -513,7 +513,6 @@ func main() {
 				})
 			})
 
-			r.Get("/manejos", manejoHandler.HandleList)
 			// Manejos — leitura para todos, escrita para tech/admin, aprovação para admin.
 			r.Route("/manejos", func(r chi.Router) {
 				r.Get("/", manejoHandler.HandleList)
@@ -534,7 +533,6 @@ func main() {
 				})
 			})
 
-			r.Get("/monitoramentos", monitoramentoHandler.HandleList)
 			// Monitoramentos — leitura para todos, escrita para tech/admin, aprovação para admin.
 			r.Route("/monitoramentos", func(r chi.Router) {
 				r.Get("/", monitoramentoHandler.HandleList)
@@ -598,7 +596,7 @@ func main() {
 
 		// Public API — sem autenticação, rate limit por IP.
 		r.Route("/public", func(r chi.Router) {
-			r.Use(middleware.RateLimit(publicLimiter, middleware.KeyByIP))
+			r.Use(middleware.RateLimit(publicLimiter, middleware.KeyByIP(cfg.TrustedProxyCount)))
 			r.Get("/asset-types", publicHandler.HandleListAssetTypes)
 			r.Route("/assets", func(r chi.Router) {
 				// resolve-qr antes do wildcard {id}
