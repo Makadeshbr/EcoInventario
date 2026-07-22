@@ -10,6 +10,7 @@ interface SyncState {
   setStatus: (s: SyncStatus) => void;
   setLastSyncAt: (t: string) => void;
   setCounts: (meta: number, media: number, conflicts: number) => void;
+  reset: () => void;
 }
 
 export const useSyncStore = create<SyncState>((set) => ({
@@ -22,4 +23,12 @@ export const useSyncStore = create<SyncState>((set) => ({
   setLastSyncAt: (timestamp) => set({ lastSyncAt: timestamp }),
   setCounts: (meta, media, conflicts) =>
     set({ pendingMetadataCount: meta, pendingMediaCount: media, conflictCount: conflicts }),
+  reset: () =>
+    set({
+      status: { state: 'idle' },
+      lastSyncAt: null,
+      pendingMetadataCount: 0,
+      pendingMediaCount: 0,
+      conflictCount: 0,
+    }),
 }));

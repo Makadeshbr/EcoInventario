@@ -9,7 +9,7 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://ecoinventario-api.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_BASE_URL": "https://api-production-b46e.up.railway.app/api/v1"
       },
       "android": {
         "buildType": "apk"
@@ -19,7 +19,7 @@
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://ecoinventario-api.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_BASE_URL": "https://api-production-b46e.up.railway.app/api/v1"
       },
       "android": {
         "buildType": "apk"
@@ -28,7 +28,7 @@
     "production": {
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://ecoinventario-api.onrender.com/api/v1"
+        "EXPO_PUBLIC_API_BASE_URL": "https://api-production-b46e.up.railway.app/api/v1"
       },
       "android": {
         "buildType": "apk"

@@ -1,16 +1,19 @@
 import { create } from 'zustand';
 import { MMKV } from 'react-native-mmkv';
 import { API_BASE_URL } from '@/constants/config';
+import { resetLocalDatabase } from '@/db/database';
+import { useSyncStore } from '@/stores/sync-store';
 import type { User } from '@/types/domain';
 
 const storage = new MMKV();
+const LOCAL_DATA_USER_ID_KEY = 'local_data_user_id';
 
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;
   isAuthenticated: boolean;
-  setAuth: (access: string, refresh: string, user: User) => void;
+  setAuth: (access: string, refresh: string, user: User) => Promise<void>;
   refreshAccessToken: () => Promise<boolean>;
   logout: () => void;
 }
@@ -21,7 +24,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   user: JSON.parse(storage.getString('user') ?? 'null'),
   isAuthenticated: !!storage.getString('access_token'),
 
-  setAuth: (access, refresh, user) => {
+  setAuth: async (access, refresh, user) => {
+    const localDataUserId = storage.getString(LOCAL_DATA_USER_ID_KEY);
+    if (localDataUserId !== user.id) {
+      await resetLocalDatabase();
+      useSyncStore.getState().reset();
+      storage.set(LOCAL_DATA_USER_ID_KEY, user.id);
+    }
+
     storage.set('access_token', access);
     storage.set('refresh_token', refresh);
     storage.set('user', JSON.stringify(user));
@@ -41,7 +51,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const data = await res.json();
       const user = get().user;
       if (!user || user.role !== 'tech') return false;
-      get().setAuth(data.access_token, data.refresh_token, user);
+      await get().setAuth(data.access_token, data.refresh_token, user);
       return true;
     } catch (error) {
       // Falha de rede ou token inválido — não propaga, mas loga para diagnóstico
@@ -54,6 +64,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     storage.delete('access_token');
     storage.delete('refresh_token');
     storage.delete('user');
+    storage.delete(LOCAL_DATA_USER_ID_KEY);
+    useSyncStore.getState().reset();
+    resetLocalDatabase().catch((error) => {
+      console.error('[AuthStore] resetLocalDatabase falhou:', error);
+    });
     set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false });
   },
 }));
