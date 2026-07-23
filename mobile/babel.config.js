@@ -13,6 +13,8 @@ module.exports = function (api) {
           extensions: ['.ios.js', '.android.js', '.js', '.jsx', '.ts', '.tsx', '.json'],
         },
       ],
+      // Reanimated 4 usa o plugin do worklets — DEVE ser o último da lista.
+      'react-native-worklets/plugin',
     ],
   };
 };

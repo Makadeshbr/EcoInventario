@@ -26,6 +26,11 @@ export const colors = {
   onErrorContainer: '#93000a',
   surfaceVariant: '#e0e3df',
   surfaceContainerHighest: '#dbe3d8',
+  // Accent "pulso digital" (verde neon) — do DESIGN.md do Stitch, para
+  // progresso, sucesso e realces de alto impacto. Usar com parcimônia.
+  accent: '#b7f569',
+  accentDim: '#9dd850',
+  accentDeep: '#304f00',
 } as const;
 
 export const spacing = {
@@ -117,4 +122,42 @@ export const typography = {
     fontSize: 12,
     lineHeight: 16,
   },
+} as const;
+
+// ── Motion ──────────────────────────────────────────────────────────────────
+// Tokens de movimento para uso com reanimated (withTiming/withSpring).
+export const motion = {
+  duration: { instant: 100, fast: 180, base: 260, slow: 420, slower: 640 },
+  // Presets de mola (config do withSpring).
+  spring: {
+    soft: { damping: 18, stiffness: 140, mass: 1 },
+    snappy: { damping: 20, stiffness: 220, mass: 1 },
+    bouncy: { damping: 12, stiffness: 180, mass: 1 },
+  },
+  // Escala tátil no press (DESIGN.md: scale-down em vez de mudança de cor).
+  scale: { pressIn: 0.97, pressInStrong: 0.94 },
+} as const;
+
+// ── Gradientes ──────────────────────────────────────────────────────────────
+// Arrays de cor para expo-linear-gradient.
+export const gradients = {
+  canvas: ['#f7faf5', '#eef4ea'],
+  hero: ['#102000', '#2b4a1a', '#4d644d'], // verde profundo → sálvia
+  accent: ['#b7f569', '#9dd850'],
+  sheen: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.05)'],
+  // Scrim escuro para garantir legibilidade de texto sobre fotos.
+  photoScrim: ['transparent', 'rgba(16,32,0,0.75)'],
+} as const;
+
+// ── Glass (glassmorphism) ─────────────────────────────────────────────────────
+// Specs para BlurView + camadas translúcidas (DESIGN.md: depth via blur, não drop shadow).
+export const glass = {
+  blur: 30,
+  blurStrong: 50,
+  tint: 'light' as const,
+  bg: 'rgba(255,255,255,0.42)',
+  bgStrong: 'rgba(255,255,255,0.6)',
+  border: 'rgba(255,255,255,0.6)',
+  borderSubtle: 'rgba(255,255,255,0.35)',
+  shadowTint: '#2d3a2d', // sombra ambiente tingida
 } as const;
