@@ -10,3 +10,6 @@ bin/
 *.log
 .env*
 !.env.example
+
+# Artefatos de build TS
+*.tsbuildinfo
