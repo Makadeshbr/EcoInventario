@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -20,6 +19,8 @@ import { SyncEngine } from '@/sync/sync-engine';
 import { getEntitySyncStatus } from '@/sync/entity-sync-status';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { PressableScale } from '@/components/ui/pressable-scale';
 
 const HEALTH_OPTIONS = [
   { id: 'healthy', label: 'Saudável', icon: 'check-circle', color: '#304f00', bg: 'rgba(183,245,105,0.3)' },
@@ -41,19 +42,23 @@ export default function CriarMonitoramentoScreen() {
 
   if (isLoading) {
     return (
+      <GradientBackground>
       <SafeAreaView style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]} edges={['top']}>
         <ActivityIndicator color={colors.secondary} size="large" />
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   if (!asset) {
     return (
+      <GradientBackground>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={styles.notFound}>Asset não encontrado.</Text>
         </View>
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -91,11 +96,12 @@ export default function CriarMonitoramentoScreen() {
   }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <PressableScale style={styles.backBtn} onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={styles.headerTitle}>Monitoramento</Text>
         <View style={{ width: 44 }} />
       </View>
@@ -115,14 +121,14 @@ export default function CriarMonitoramentoScreen() {
             {HEALTH_OPTIONS.map((opt) => {
               const isActive = healthStatus === opt.id;
               return (
-                <TouchableOpacity
+                <PressableScale
                   key={opt.id}
                   style={[
                     styles.healthOption,
                     isActive && { backgroundColor: opt.bg, borderColor: opt.color }
                   ]}
                   onPress={() => setHealthStatus(opt.id)}
-                  activeOpacity={0.8}
+                 
                 >
                   <MaterialIcons
                     name={opt.icon as any}
@@ -132,7 +138,7 @@ export default function CriarMonitoramentoScreen() {
                   <Text style={[styles.healthOptionText, isActive && { color: opt.color, fontFamily: typography.labelLg.fontFamily }]}>
                     {opt.label}
                   </Text>
-                </TouchableOpacity>
+                </PressableScale>
               );
             })}
           </View>
@@ -163,11 +169,11 @@ export default function CriarMonitoramentoScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity
+          <PressableScale
             style={[styles.saveButton, (!canSave || isSaving || isSubmittingFlow) && styles.saveButtonDisabled]}
             onPress={handleSave}
             disabled={!canSave || isSaving || isSubmittingFlow}
-            activeOpacity={0.85}
+           
           >
             {isSaving || isSubmittingFlow
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
@@ -175,15 +181,16 @@ export default function CriarMonitoramentoScreen() {
             <Text style={styles.saveButtonText}>
               {isSaving || isSubmittingFlow ? 'Enviando...' : 'Enviar avaliação'}
             </Text>
-          </TouchableOpacity>
+          </PressableScale>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.surfaceContainerLow },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

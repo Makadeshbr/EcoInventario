@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
-import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeInUp, useReducedMotion } from 'react-native-reanimated';
 import { motion } from '@/theme/tokens';
 
 type Direction = 'down' | 'up' | 'none';
@@ -33,6 +33,13 @@ export function FadeInView({
   from = 'down',
   duration = motion.duration.base,
 }: FadeInViewProps) {
+  // Acessibilidade: com "reduzir movimento" ligado no sistema, o conteúdo
+  // aparece direto — sem slide nem stagger.
+  const reducedMotion = useReducedMotion();
+  if (reducedMotion) {
+    return <Animated.View style={style}>{children}</Animated.View>;
+  }
+
   const entering = ENTERING[from].duration(duration).delay(delay);
   return (
     <Animated.View entering={entering} style={style}>

@@ -3,7 +3,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Linking,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -11,6 +10,7 @@ import Constants from 'expo-constants';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
@@ -86,27 +86,27 @@ export default function SobreScreen() {
           <Text style={styles.cardBody}>
             Dúvidas, sugestões ou parcerias? Fale conosco.
           </Text>
-          <TouchableOpacity
+          <PressableScale
             style={styles.contactBtn}
             onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`)}
-            activeOpacity={0.8}
+           
           >
             <Text style={styles.contactEmail}>{CONTACT_EMAIL}</Text>
             <MaterialIcons name="open-in-new" size={16} color={colors.secondary} />
-          </TouchableOpacity>
+          </PressableScale>
         </View>
 
         {/* CTA Profissional */}
         <View style={styles.ctaSection}>
           <Text style={styles.ctaHint}>Faz parte de uma instituição parceira?</Text>
-          <TouchableOpacity
+          <PressableScale
             style={styles.ctaBtn}
             onPress={() => router.push('/(auth)/login')}
-            activeOpacity={0.85}
+           
           >
             <MaterialIcons name="login" size={20} color={colors.onPrimary} />
             <Text style={styles.ctaBtnText}>Login Profissional</Text>
-          </TouchableOpacity>
+          </PressableScale>
         </View>
 
         {/* Footer */}

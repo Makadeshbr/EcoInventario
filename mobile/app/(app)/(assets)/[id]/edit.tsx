@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -19,6 +18,8 @@ import { useUpdateAsset } from '@/features/assets/hooks/use-update-asset';
 import { useAuthStore } from '@/stores/auth-store';
 import { getAssetTypes } from '@/features/assets/repository';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { PressableScale } from '@/components/ui/pressable-scale';
 import type { AssetType } from '@/types/domain';
 
 export default function EditarAssetScreen() {
@@ -52,19 +53,23 @@ export default function EditarAssetScreen() {
 
   if (isLoading || !initialized) {
     return (
+      <GradientBackground>
       <SafeAreaView style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]} edges={['top']}>
         <ActivityIndicator color={colors.secondary} size="large" />
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   if (!asset) {
     return (
+      <GradientBackground>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={styles.notFound}>Asset não encontrado.</Text>
         </View>
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -73,11 +78,12 @@ export default function EditarAssetScreen() {
 
   if (!canEdit) {
     return (
+      <GradientBackground>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <PressableScale style={styles.backBtn} onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
-          </TouchableOpacity>
+          </PressableScale>
           <Text style={styles.headerTitle}>Editar Asset</Text>
           <View style={{ width: 40 }} />
         </View>
@@ -88,6 +94,7 @@ export default function EditarAssetScreen() {
           </Text>
         </View>
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -105,11 +112,12 @@ export default function EditarAssetScreen() {
   }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <PressableScale style={styles.backBtn} onPress={() => router.back()}>
           <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={styles.headerTitle}>Editar Asset</Text>
         <View style={{ width: 40 }} />
       </View>
@@ -133,16 +141,16 @@ export default function EditarAssetScreen() {
           ) : (
             <View style={styles.typeList}>
               {types.map((t) => (
-                <TouchableOpacity
+                <PressableScale
                   key={t.id}
                   style={[styles.typeChip, assetTypeId === t.id && styles.typeChipActive]}
                   onPress={() => { setAssetTypeId(t.id); setAssetTypeName(t.name); }}
-                  activeOpacity={0.8}
+                 
                 >
                   <Text style={[styles.typeChipText, assetTypeId === t.id && styles.typeChipTextActive]}>
                     {t.name}
                   </Text>
-                </TouchableOpacity>
+                </PressableScale>
               ))}
               {types.length === 0 && (
                 <Text style={styles.emptyTypes}>Nenhum tipo disponível.</Text>
@@ -179,18 +187,18 @@ export default function EditarAssetScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity
+          <PressableScale
             style={styles.cancelButton}
             onPress={() => router.back()}
-            activeOpacity={0.8}
+           
           >
             <Text style={styles.cancelText}>Cancelar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </PressableScale>
+          <PressableScale
             style={[styles.saveButton, (isSaving || !assetTypeId) && styles.saveButtonDisabled]}
             onPress={handleSave}
             disabled={isSaving || !assetTypeId}
-            activeOpacity={0.85}
+           
           >
             {isSaving
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
@@ -198,10 +206,11 @@ export default function EditarAssetScreen() {
             <Text style={styles.saveButtonText}>
               {isSaving ? 'Salvando...' : 'Salvar alterações'}
             </Text>
-          </TouchableOpacity>
+          </PressableScale>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -212,7 +221,7 @@ const GLASS = {
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

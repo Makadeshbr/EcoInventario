@@ -1,6 +1,11 @@
 import React from 'react';
 import { Pressable, PressableProps, ViewStyle, StyleProp, GestureResponderEvent } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  useReducedMotion,
+} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { motion } from '@/theme/tokens';
 
@@ -31,15 +36,22 @@ export function PressableScale({
   ...rest
 }: PressableScaleProps) {
   const scale = useSharedValue(1);
+  // Acessibilidade: com "reduzir movimento" ligado, o haptic continua mas a
+  // escala não roda.
+  const reducedMotion = useReducedMotion();
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   function handlePressIn(e: GestureResponderEvent) {
-    scale.value = withSpring(scaleTo, motion.spring.snappy);
+    if (!reducedMotion) {
+      scale.value = withSpring(scaleTo, motion.spring.snappy);
+    }
     onPressIn?.(e);
   }
 
   function handlePressOut(e: GestureResponderEvent) {
-    scale.value = withSpring(1, motion.spring.snappy);
+    if (!reducedMotion) {
+      scale.value = withSpring(1, motion.spring.snappy);
+    }
     onPressOut?.(e);
   }
 
