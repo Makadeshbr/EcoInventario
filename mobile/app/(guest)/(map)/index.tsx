@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing } from '@/theme/tokens';
+import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
 import { ECO_MAP_STYLE } from '@/theme/map-style';
 import { usePublicAssets, usePublicAssetTypes } from '@/features/public/queries';
 import { useNetworkStatus } from '@/hooks/use-network-status';
@@ -33,6 +35,16 @@ function regionToBounds(r: Region): string {
   return `${swLng},${swLat},${neLng},${neLat}`;
 }
 
+/** Diâmetro do cluster cresce com a densidade, entre 40 e 64px. */
+const CLUSTER_MIN_SIZE = 40;
+const CLUSTER_MAX_SIZE = 64;
+
+function clusterSize(count: number): number {
+  // Escala logarítmica: 2 pontos já se distinguem de 200 sem estourar o mapa.
+  const growth = Math.log10(Math.max(count, 1)) * 12;
+  return Math.min(CLUSTER_MIN_SIZE + growth, CLUSTER_MAX_SIZE);
+}
+
 function ClusterMarker({ item }: { item: Extract<ClusterItem, { kind: 'cluster' }> }) {
   const [tracksView, setTracksView] = useState(true);
 
@@ -41,13 +53,20 @@ function ClusterMarker({ item }: { item: Extract<ClusterItem, { kind: 'cluster' 
     return () => clearTimeout(timer);
   }, []);
 
+  const outer = clusterSize(item.count);
+  const inner = outer - 12;
+
   return (
     <Marker
       coordinate={{ latitude: item.lat, longitude: item.lng }}
       tracksViewChanges={tracksView}
     >
-      <View style={styles.cluster}>
-        <View style={styles.clusterInner}>
+      <View
+        style={[styles.cluster, { width: outer, height: outer, borderRadius: outer / 2 }]}
+      >
+        <View
+          style={[styles.clusterInner, { width: inner, height: inner, borderRadius: inner / 2 }]}
+        >
           <Text style={styles.clusterCount}>{item.count}</Text>
         </View>
       </View>
@@ -66,13 +85,6 @@ export default function MapExplorarScreen() {
   const { data: assetTypes } = usePublicAssetTypes();
   const { data: assets, isLoading, isError, refetch } = usePublicAssets(activeBounds, selectedTypeId);
   const hasAutoCentered = useRef(false);
-
-  // LOG de Depuração: Veja se os assets estão chegando
-  useEffect(() => {
-    if (assets) {
-      console.log(`[MAPA] Assets carregados: ${assets.length} ativos nos limites: ${activeBounds}`);
-    }
-  }, [assets, activeBounds]);
 
   useEffect(() => {
     if (!assets || assets.length === 0 || hasAutoCentered.current || !mapRef.current) return;
@@ -167,61 +179,68 @@ export default function MapExplorarScreen() {
       />
 
       {isLoading && (
-        <View style={styles.loadingBadge}>
-          <ActivityIndicator size="small" color={colors.primary} />
-        </View>
+        <FadeInView from="none" duration={180} style={styles.loadingBadge}>
+          <ActivityIndicator size="small" color={colors.secondary} />
+          <Text style={styles.loadingText}>Buscando na área</Text>
+        </FadeInView>
       )}
 
       {(!isConnected || isError) && (
-        <View style={styles.offlineBanner}>
-          <MaterialIcons name={!isConnected ? "wifi-off" : "error-outline"} size={16} color="#fff" />
+        <FadeInView from="up" style={styles.offlineBanner}>
+          <MaterialIcons name={!isConnected ? 'wifi-off' : 'error-outline'} size={16} color="#fff" />
           <Text style={styles.offlineText}>
             {!isConnected ? 'Sem conexão com a internet' : 'Erro ao conectar com o servidor'}
           </Text>
-          <TouchableOpacity onPress={retryFetch} style={styles.retryBtn} activeOpacity={0.8}>
+          <PressableScale onPress={retryFetch} style={styles.retryBtn} scaleTo={0.94}>
             <Text style={styles.retryText}>Tentar novamente</Text>
-          </TouchableOpacity>
-        </View>
+          </PressableScale>
+        </FadeInView>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Cluster: halo translúcido + núcleo escuro com borda neon (dimensões vêm do count).
   cluster: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(77, 100, 77, 0.2)',
+    backgroundColor: 'rgba(183, 245, 105, 0.28)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   clusterInner: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.darkGreen,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#fff',
+    borderColor: colors.accent,
   },
   clusterCount: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '700',
+    color: colors.accent,
+    fontSize: 13,
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   loadingBadge: {
     position: 'absolute',
     top: 150,
-    right: 20,
-    backgroundColor: '#fff',
-    padding: 8,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
+    right: spacing.marginMobile,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    paddingVertical: 8,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    shadowColor: '#2d3a2d',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  loadingText: {
+    ...typography.labelSm,
+    color: colors.onSurfaceVariant,
   },
   offlineBanner: {
     position: 'absolute',

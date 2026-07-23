@@ -1,8 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing } from '@/theme/tokens';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { colors, spacing, glass } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
 import { router } from 'expo-router';
 
 interface MapHeaderProps {
@@ -12,6 +16,32 @@ interface MapHeaderProps {
 // Altura fixa do conteúdo do header (botões + padding vertical)
 export const MAP_HEADER_CONTENT_HEIGHT = 48 + 16 + 12; // botão + paddingTop + paddingBottom
 
+/** Scrim do topo: opaco sobre o mapa e dissolvendo para transparente. */
+const SCRIM_COLORS = ['rgba(247,250,245,0.92)', 'rgba(247,250,245,0.55)', 'transparent'] as const;
+
+function GlassButton({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <PressableScale
+      style={styles.glassBtn}
+      scaleTo={0.92}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <BlurView intensity={glass.blur} tint={glass.tint} style={StyleSheet.absoluteFill} />
+      <MaterialIcons name={icon} size={22} color={colors.onSurface} />
+    </PressableScale>
+  );
+}
+
 export function MapHeader({ onLocationPress }: MapHeaderProps) {
   const insets = useSafeAreaInsets();
   // Altura total real do header = safe area top + conteúdo
@@ -19,37 +49,27 @@ export function MapHeader({ onLocationPress }: MapHeaderProps) {
 
   return (
     <>
-      {/* Gradiente de fundo atrás do header */}
-      <View
-        style={[styles.topGradient, { height: headerHeight + 32 }]}
+      {/* Scrim em gradiente atrás do header: contraste sem "faixa" dura */}
+      <LinearGradient
+        colors={SCRIM_COLORS}
+        style={[styles.topGradient, { height: headerHeight + 48 }]}
         pointerEvents="none"
       />
 
       {/* Header posicionado absolutamente */}
-      <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
-        {/* Botão Voltar */}
-        <TouchableOpacity
-          style={styles.glassBtn}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="arrow-back" size={22} color={colors.onSurface} />
-        </TouchableOpacity>
+      <FadeInView from="up" style={[styles.container, { paddingTop: insets.top + 12 }]}>
+        <GlassButton icon="arrow-back" label="Voltar" onPress={() => router.back()} />
 
-        {/* Título centralizado */}
         <Text style={styles.title} numberOfLines={1}>
           EcoInventário
         </Text>
 
-        {/* Botão minha localização */}
-        <TouchableOpacity
-          style={styles.glassBtn}
+        <GlassButton
+          icon="my-location"
+          label="Ir para minha localização"
           onPress={onLocationPress}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="my-location" size={22} color={colors.onSurface} />
-        </TouchableOpacity>
-      </View>
+        />
+      </FadeInView>
     </>
   );
 }
@@ -60,7 +80,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(247, 250, 245, 0.7)',
   },
   container: {
     position: 'absolute',
@@ -78,16 +97,17 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.75)',
+    overflow: 'hidden',
+    backgroundColor: glass.bgStrong,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: glass.border,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowColor: glass.shadowTint,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 4,
   },
   title: {
     fontSize: 18,
