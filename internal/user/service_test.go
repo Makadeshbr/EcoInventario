@@ -28,6 +28,10 @@ type mockUserRepo struct {
 	hasOtherAdminErr    error
 	list                []*user.User
 	updatedHash         string
+
+	persistedPasswordHash  string
+	persistedPasswordCalls int
+	updatePasswordErr      error
 }
 
 // mockRevoker registra as revogacoes de sessao pedidas pelo service.
@@ -60,6 +64,14 @@ func (m *mockUserRepo) Insert(_ context.Context, u *user.User) error {
 func (m *mockUserRepo) Update(_ context.Context, u *user.User) error {
 	m.updatedHash = u.PasswordHash
 	return m.updateErr
+}
+
+// UpdatePassword registra o hash efetivamente persistido. O campo do struct nao
+// serve como prova: o Update geral nao grava password_hash.
+func (m *mockUserRepo) UpdatePassword(_ context.Context, id, orgID, passwordHash string) error {
+	m.persistedPasswordHash = passwordHash
+	m.persistedPasswordCalls++
+	return m.updatePasswordErr
 }
 
 func (m *mockUserRepo) SoftDelete(_ context.Context, id, orgID string) error {
@@ -379,10 +391,13 @@ func TestUserServiceUpdatePassword(t *testing.T) {
 			t.Fatalf("erro inesperado: %v", err)
 		}
 
-		if repo.updatedHash == "" || repo.updatedHash == "hash-antigo" {
-			t.Errorf("hash não foi regravado: got %q", repo.updatedHash)
+		if repo.persistedPasswordCalls != 1 {
+			t.Fatalf("senha não foi persistida: %d chamadas a UpdatePassword", repo.persistedPasswordCalls)
 		}
-		if strings.Contains(repo.updatedHash, password) {
+		if repo.persistedPasswordHash == "" || repo.persistedPasswordHash == "hash-antigo" {
+			t.Errorf("hash não foi regravado: got %q", repo.persistedPasswordHash)
+		}
+		if strings.Contains(repo.persistedPasswordHash, password) {
 			t.Error("hash contém a senha em texto puro")
 		}
 		if len(revoker.revokedUserIDs) != 1 || revoker.revokedUserIDs[0] != "u-1" {
@@ -399,7 +414,7 @@ func TestUserServiceUpdatePassword(t *testing.T) {
 			t.Fatalf("erro inesperado: %v", err)
 		}
 
-		ok, err := auth.VerifyPassword(password, repo.updatedHash, "test-pepper")
+		ok, err := auth.VerifyPassword(password, repo.persistedPasswordHash, "test-pepper")
 		if err != nil {
 			t.Fatalf("erro verificando senha: %v", err)
 		}
@@ -417,11 +432,25 @@ func TestUserServiceUpdatePassword(t *testing.T) {
 			t.Fatalf("erro inesperado: %v", err)
 		}
 
-		if repo.updatedHash != "hash-antigo" {
-			t.Errorf("hash foi alterado sem pedido: got %q", repo.updatedHash)
+		if repo.persistedPasswordCalls != 0 {
+			t.Errorf("gravou senha sem pedido: %d chamadas", repo.persistedPasswordCalls)
 		}
 		if len(revoker.revokedUserIDs) != 0 {
 			t.Errorf("revogou sessões sem troca de senha: %v", revoker.revokedUserIDs)
+		}
+	})
+
+	t.Run("falha ao gravar a senha propaga erro", func(t *testing.T) {
+		repo := &mockUserRepo{stored: newStoredUser(), updatePasswordErr: fmt.Errorf("banco fora")}
+		svc, revoker := newTestSvcWithRevoker(repo)
+
+		password := "novaSenhaSegura1"
+		_, err := svc.Update(ctx, "u-1", user.UpdateRequest{Password: &password})
+		if err == nil {
+			t.Fatal("esperava erro quando a gravação da senha falha")
+		}
+		if len(revoker.revokedUserIDs) != 0 {
+			t.Error("revogou sessões mesmo sem conseguir gravar a senha nova")
 		}
 	})
 

@@ -136,18 +136,27 @@ func (s *Service) Update(ctx context.Context, id string, req UpdateRequest) (*Us
 	}
 
 	passwordReset := req.Password != nil
+	var newHash string
 	if passwordReset {
-		hash, err := auth.HashPassword(*req.Password, s.pepper)
+		h, err := auth.HashPassword(*req.Password, s.pepper)
 		if err != nil {
 			return nil, fmt.Errorf("hashing senha: %w", err)
 		}
-		u.PasswordHash = hash
+		newHash = h
 		// Marcador para a auditoria: registra o evento, nunca o valor.
 		changes["password"] = "redefinida pelo admin"
 	}
 
 	if err := s.repo.Update(ctx, u); err != nil {
 		return nil, fmt.Errorf("atualizando usuário: %w", err)
+	}
+
+	// A senha vai em comando próprio: o Update geral não grava password_hash.
+	if passwordReset {
+		if err := s.repo.UpdatePassword(ctx, u.ID, orgID, newHash); err != nil {
+			return nil, fmt.Errorf("gravando nova senha: %w", err)
+		}
+		u.PasswordHash = newHash
 	}
 
 	// Revoga depois de gravar: se falhar, o admin recebe erro e pode repetir a
