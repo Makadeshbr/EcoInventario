@@ -17,6 +17,10 @@ import { useHomeData } from '@/features/assets/hooks/use-home-data';
 import { useSyncStore } from '@/stores/sync-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { colors, spacing, radius, typography } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { GlassCard } from '@/components/ui/glass-card';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
 import type { Asset } from '@/types/domain';
 
 const STATUS_LABELS: Record<Asset['status'], string> = {
@@ -129,6 +133,7 @@ function StatCard({
   borderStyle,
   accent,
   onPress,
+  delay = 0,
 }: {
   count: number;
   label: string;
@@ -136,28 +141,31 @@ function StatCard({
   borderStyle: object;
   accent: string;
   onPress: () => void;
+  delay?: number;
 }) {
   return (
-    <TouchableOpacity
-      style={[styles.statCard, borderStyle]}
-      onPress={onPress}
-      activeOpacity={0.85}
-    >
-      <MaterialIcons name={icon} size={32} color={accent} style={styles.statIcon} />
-      <Text style={styles.statCount}>{count}</Text>
-      <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
-    </TouchableOpacity>
+    <FadeInView delay={delay} style={styles.statCardWrap}>
+      <PressableScale onPress={onPress} style={styles.statCardWrap}>
+        <GlassCard style={[styles.statCard, borderStyle]}>
+          <View style={[styles.statIconRing, { backgroundColor: `${accent}22` }]}>
+            <MaterialIcons name={icon} size={24} color={accent} />
+          </View>
+          <Text style={styles.statCount}>{count}</Text>
+          <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
+        </GlassCard>
+      </PressableScale>
+    </FadeInView>
   );
 }
 
-function AssetListItem({ asset }: { asset: Asset }) {
+function AssetListItem({ asset, index = 0 }: { asset: Asset; index?: number }) {
   const status = STATUS_COLORS[asset.status];
   return (
-    <TouchableOpacity
-      style={styles.listItem}
-      onPress={() => router.push(`/(app)/(assets)/${asset.id}`)}
-      activeOpacity={0.85}
-    >
+    <FadeInView delay={Math.min(index, 8) * 55}>
+      <PressableScale
+        style={styles.listItem}
+        onPress={() => router.push(`/(app)/(assets)/${asset.id}`)}
+      >
       <View style={styles.listItemThumb}>
         <MaterialIcons name="park" size={32} color={colors.secondary} />
       </View>
@@ -177,7 +185,8 @@ function AssetListItem({ asset }: { asset: Asset }) {
         </View>
         <Text style={styles.listItemTime}>{formatRelativeTime(asset.createdAt)}</Text>
       </View>
-    </TouchableOpacity>
+      </PressableScale>
+    </FadeInView>
   );
 }
 
@@ -187,6 +196,7 @@ export default function HomeScreen() {
   const firstName = user?.name.split(' ')[0] ?? 'Profissional';
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header limpo: só o nome do app */}
       <View style={styles.header}>
@@ -199,10 +209,10 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Greeting */}
-        <View style={styles.greeting}>
+        <FadeInView from="up" style={styles.greeting}>
           <Text style={styles.greetingTitle}>Olá, {firstName}</Text>
           <Text style={styles.greetingSubtitle}>Visão geral do sistema.</Text>
-        </View>
+        </FadeInView>
 
         <SyncIndicator />
 
@@ -217,8 +227,9 @@ export default function HomeScreen() {
                 label="Aprovados"
                 icon="check-circle"
                 borderStyle={styles.cardOrganic1}
-                accent={colors.tertiaryFixedDim}
+                accent={colors.accentDim}
                 onPress={() => router.push('/(app)/(assets)?filter=approved')}
+                delay={40}
               />
               <StatCard
                 count={counts.pending}
@@ -227,6 +238,7 @@ export default function HomeScreen() {
                 borderStyle={styles.cardOrganic2}
                 accent={colors.secondary}
                 onPress={() => router.push('/(app)/(assets)?filter=pending')}
+                delay={100}
               />
             </View>
             <View style={styles.statsRow}>
@@ -237,6 +249,7 @@ export default function HomeScreen() {
                 borderStyle={styles.cardOrganic3}
                 accent={colors.outline}
                 onPress={() => router.push('/(app)/(assets)?filter=draft')}
+                delay={160}
               />
               <StatCard
                 count={counts.rejected}
@@ -245,6 +258,7 @@ export default function HomeScreen() {
                 borderStyle={styles.cardOrganic4}
                 accent={colors.error}
                 onPress={() => router.push('/(app)/(assets)?filter=rejected')}
+                delay={220}
               />
             </View>
           </View>
@@ -259,23 +273,24 @@ export default function HomeScreen() {
         </View>
 
         {recentAssets.length === 0 && !isLoading ? (
-          <View style={styles.emptyState}>
+          <FadeInView style={styles.emptyState}>
             <MaterialIcons name="park" size={48} color={colors.outlineVariant} />
             <Text style={styles.emptyText}>Nenhum asset cadastrado</Text>
-            <TouchableOpacity
+            <PressableScale
               style={styles.emptyButton}
               onPress={() => router.push('/(app)/(assets)/new')}
             >
               <Text style={styles.emptyButtonText}>Criar primeiro asset</Text>
-            </TouchableOpacity>
-          </View>
+            </PressableScale>
+          </FadeInView>
         ) : (
-          recentAssets.map((asset) => <AssetListItem key={asset.id} asset={asset} />)
+          recentAssets.map((asset, i) => <AssetListItem key={asset.id} asset={asset} index={i} />)
         )}
 
         <View style={{ height: 120 }} />
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -286,7 +301,7 @@ const GLASS = {
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: {
     paddingHorizontal: spacing.marginMobile,
     paddingVertical: spacing.gutter,
@@ -340,17 +355,21 @@ const styles = StyleSheet.create({
     gap: spacing.gutter,
     marginBottom: spacing.gutter,
   },
+  statCardWrap: { flex: 1 },
   statCard: {
     flex: 1,
-    ...GLASS,
     padding: spacing.md,
-    minHeight: 160,
+    minHeight: 150,
     justifyContent: 'center',
-    shadowColor: 'rgba(45,58,45,0.05)',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 1,
-    shadowRadius: 32,
-    elevation: 2,
+    alignItems: 'flex-start',
+  },
+  statIconRing: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   cardOrganic1: {
     borderTopLeftRadius: 40,
