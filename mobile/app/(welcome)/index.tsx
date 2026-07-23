@@ -1,7 +1,41 @@
-import { View, Text, StyleSheet, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, radius, typography } from '@/theme/tokens';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { colors, spacing, radius, typography, gradients, glass } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
+
+/**
+ * Scrim vertical: mantém a foto viva no topo e cria contraste real na base,
+ * onde ficam título e botões. Substitui o véu branco chapado que lavava a imagem.
+ */
+const SCRIM_COLORS = [
+  'rgba(247,250,245,0)',
+  'rgba(247,250,245,0.55)',
+  'rgba(247,250,245,0.94)',
+] as const;
+
+function GlassBadge({
+  icon,
+  label,
+  style,
+  delay,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  label: string;
+  style: object;
+  delay: number;
+}) {
+  return (
+    <FadeInView delay={delay} from="up" style={[styles.glassBadge, style]}>
+      <BlurView intensity={glass.blur} tint={glass.tint} style={StyleSheet.absoluteFill} />
+      <MaterialIcons name={icon} size={18} color={colors.onSurface} />
+      <Text style={styles.badgeLabel}>{label}</Text>
+    </FadeInView>
+  );
+}
 
 export default function WelcomeScreen() {
   return (
@@ -10,57 +44,60 @@ export default function WelcomeScreen() {
       style={styles.background}
       resizeMode="cover"
     >
-      {/* Overlay leve pra contraste */}
-      <View style={styles.overlay} />
+      <LinearGradient
+        colors={SCRIM_COLORS}
+        locations={[0, 0.45, 0.78]}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
 
       <View style={styles.container}>
         <View style={styles.content}>
-          
           {/* HERO */}
           <View style={styles.heroArea}>
-            
-            {/* Badge esquerdo */}
-            <View style={[styles.glassBadge, styles.badgeLeft]}>
-              <MaterialIcons name="eco" size={18} color={colors.onSurface} />
-              <Text style={styles.badgeLabel}>VITALITY</Text>
-            </View>
-
-            {/* Badge direito */}
-            <View style={[styles.glassBadge, styles.badgeRight]}>
-              <MaterialIcons name="location-on" size={18} color={colors.onSurface} />
-              <Text style={styles.badgeLabel}>ZONAS</Text>
-            </View>
-
+            <GlassBadge icon="eco" label="VITALITY" style={styles.badgeLeft} delay={320} />
+            <GlassBadge icon="location-on" label="ZONAS" style={styles.badgeRight} delay={440} />
           </View>
 
           {/* AÇÕES */}
           <View style={styles.actionsArea}>
-            <Text style={styles.title}>
-              Bem-vindo ao{'\n'}EcoInventário
-            </Text>
+            <FadeInView from="up" delay={80}>
+              <Text style={styles.title}>
+                Bem-vindo ao{'\n'}EcoInventário
+              </Text>
+            </FadeInView>
 
             <View style={styles.buttons}>
-              <TouchableOpacity
-                style={styles.primaryButton}
-                onPress={() => router.push('/(guest)/(map)')}
-                activeOpacity={0.9}
-              >
-                <MaterialIcons name="explore" size={20} color={colors.onPrimary} />
-                <Text style={styles.primaryButtonText}>Explorar Mapa</Text>
-              </TouchableOpacity>
+              <FadeInView delay={160}>
+                <PressableScale
+                  style={styles.primaryButton}
+                  scaleTo={0.96}
+                  onPress={() => router.push('/(guest)/(map)')}
+                >
+                  <LinearGradient
+                    colors={gradients.accent}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <MaterialIcons name="explore" size={20} color={colors.accentDeep} />
+                  <Text style={styles.primaryButtonText}>Explorar Mapa</Text>
+                </PressableScale>
+              </FadeInView>
 
-              <TouchableOpacity
-                style={styles.secondaryButton}
-                onPress={() => router.push('/(auth)/login')}
-                activeOpacity={0.9}
-              >
-                <Text style={styles.secondaryButtonText}>
-                  Entrar como Profissional
-                </Text>
-              </TouchableOpacity>
+              <FadeInView delay={240}>
+                <PressableScale
+                  style={styles.secondaryButton}
+                  scaleTo={0.96}
+                  onPress={() => router.push('/(auth)/login')}
+                >
+                  <Text style={styles.secondaryButtonText}>
+                    Entrar como Profissional
+                  </Text>
+                </PressableScale>
+              </FadeInView>
             </View>
           </View>
-
         </View>
       </View>
     </ImageBackground>
@@ -70,11 +107,6 @@ export default function WelcomeScreen() {
 const styles = StyleSheet.create({
   background: {
     flex: 1,
-  },
-
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.25)',
   },
 
   container: {
@@ -93,16 +125,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // 🔥 substituto do BlurView (seguro)
   glassBadge: {
     position: 'absolute',
     alignItems: 'center',
+    overflow: 'hidden',
     padding: spacing.sm,
     borderRadius: radius.lg,
-    backgroundColor: 'rgba(255,255,255,0.55)',
+    backgroundColor: glass.bg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
+    borderColor: glass.border,
     minWidth: 80,
+    shadowColor: glass.shadowTint,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    elevation: 4,
   },
 
   badgeLeft: {
@@ -141,22 +178,30 @@ const styles = StyleSheet.create({
   primaryButton: {
     height: 56,
     borderRadius: radius.full,
-    backgroundColor: colors.primary,
+    overflow: 'hidden',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.base,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+    shadowColor: colors.accentDim,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 6,
   },
 
   primaryButtonText: {
     ...typography.labelLg,
-    color: colors.onPrimary,
+    color: colors.accentDeep,
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
 
   secondaryButton: {
     height: 56,
     borderRadius: radius.full,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.55)',
     borderWidth: 1,
     borderColor: colors.secondary,
     alignItems: 'center',
