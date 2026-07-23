@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
   Share,
@@ -17,14 +16,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import QRCode from 'qrcode';
 
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { PhotoLightbox } from '@/components/ui/photo-lightbox';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { FadeInView } from '@/components/ui/fade-in-view';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
 import { useSubmitAsset } from '@/features/assets/hooks/use-submit-asset';
 import { SyncEngine } from '@/sync/sync-engine';
 import { useAuthStore } from '@/stores/auth-store';
-import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { colors, spacing, typography, radius, gradients } from '@/theme/tokens';
 import type { Asset } from '@/types/domain';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -102,6 +106,18 @@ function OfflineQRCode({ value, size }: { value: string, size: number }) {
   }
 }
 
+/** Esqueleto do detalhe: espelha o layout real para evitar salto ao carregar. */
+function DetailSkeleton() {
+  return (
+    <View style={styles.skeletonWrap}>
+      <Skeleton width={140} height={32} radius={radius.full} />
+      <Skeleton height={200} radius={24} style={{ marginTop: spacing.md }} />
+      <Skeleton height={180} radius={24} style={{ marginTop: spacing.md }} />
+      <Skeleton height={120} radius={24} style={{ marginTop: spacing.md }} />
+    </View>
+  );
+}
+
 export default function AssetDetalhesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { asset, media, isLoading, refresh } = useAssetDetail(id);
@@ -113,27 +129,40 @@ export default function AssetDetalhesScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]} edges={['top']}>
-        <ActivityIndicator color={colors.secondary} size="large" />
-      </SafeAreaView>
+      <GradientBackground>
+        <SafeAreaView style={styles.safe} edges={['top']}>
+          <View style={styles.header}>
+            <PressableScale onPress={() => router.back()} style={styles.backBtn}>
+              <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+            </PressableScale>
+            <Text style={styles.headerTitle}>Carregando...</Text>
+            <View style={{ width: 44 }} />
+          </View>
+          <DetailSkeleton />
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   if (!asset) {
     return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Detalhes</Text>
-          <View style={{ width: 40 }} />
-        </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <MaterialIcons name="error-outline" size={64} color={colors.outlineVariant} />
-          <Text style={styles.notFound}>Asset não encontrado</Text>
-        </View>
-      </SafeAreaView>
+      <GradientBackground>
+        <SafeAreaView style={styles.safe} edges={['top']}>
+          <View style={styles.header}>
+            <PressableScale onPress={() => router.back()} style={styles.backBtn}>
+              <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+            </PressableScale>
+            <Text style={styles.headerTitle}>Detalhes</Text>
+            <View style={{ width: 44 }} />
+          </View>
+          <FadeInView from="up" style={styles.notFoundWrap}>
+            <View style={styles.notFoundRing}>
+              <MaterialIcons name="error-outline" size={56} color={colors.outline} />
+            </View>
+            <Text style={styles.notFound}>Asset não encontrado</Text>
+          </FadeInView>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -197,28 +226,29 @@ export default function AssetDetalhesScreen() {
   const lightboxPhotos = photosToShow.map((m) => ({ id: m.id, uri: m.localFilePath }));
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+      <FadeInView from="up" style={styles.header}>
+        <PressableScale onPress={() => router.back()} style={styles.backBtn}>
           <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
-        </TouchableOpacity>
+        </PressableScale>
         <Text style={styles.headerTitle} numberOfLines={1}>{safeAsset.assetTypeName}</Text>
         {canEdit ? (
-          <TouchableOpacity
+          <PressableScale
             onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/edit`)}
             style={styles.editBtn}
           >
             <MaterialIcons name="edit" size={20} color={colors.secondary} />
-          </TouchableOpacity>
+          </PressableScale>
         ) : (
-          <View style={{ width: 40 }} />
+          <View style={{ width: 44 }} />
         )}
-      </View>
+      </FadeInView>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Status + sync row */}
-        <View style={styles.statusRow}>
+        <FadeInView delay={SECTION_DELAY.status} style={styles.statusRow}>
           <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
             <Text style={[styles.statusText, { color: statusColor.text }]}>
               {STATUS_LABELS[safeAsset.status]}
@@ -230,21 +260,66 @@ export default function AssetDetalhesScreen() {
               <Text style={styles.unsyncedText}>Não sincronizado</Text>
             </View>
           )}
-        </View>
+        </FadeInView>
 
         {/* Motivo da rejeição */}
         {safeAsset.status === 'rejected' && safeAsset.rejectionReason && (
-          <View style={styles.rejectionCard}>
+          <FadeInView delay={SECTION_DELAY.status} style={styles.rejectionCard}>
             <MaterialIcons name="cancel" size={18} color={colors.onErrorContainer} />
             <View style={{ flex: 1 }}>
               <Text style={styles.rejectionTitle}>Motivo da rejeição</Text>
               <Text style={styles.rejectionReason}>{safeAsset.rejectionReason}</Text>
             </View>
-          </View>
+          </FadeInView>
+        )}
+
+        {/* Galeria de fotos — subiu para logo abaixo do status: é a evidência
+            de campo mais consultada, então merece o topo da hierarquia. */}
+        {photosToShow.length > 0 && (
+          <FadeInView delay={SECTION_DELAY.gallery} style={styles.gallerySection}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Fotos</Text>
+              <View style={styles.countPill}>
+                <Text style={styles.countPillText}>{photosToShow.length}</Text>
+              </View>
+            </View>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.gallery}
+              contentContainerStyle={styles.galleryContent}
+              snapToInterval={GALLERY_PHOTO_SIZE + spacing.sm}
+              decelerationRate="fast"
+            >
+              {photosToShow.map((m, i) => (
+                <PressableScale
+                  key={m.id}
+                  onPress={() => setLightboxIndex(i)}
+                  style={styles.galleryItem}
+                  scaleTo={0.95}
+                >
+                  <ExpoImage
+                    source={m.localFilePath}
+                    style={styles.galleryPhoto}
+                    contentFit="cover"
+                    transition={250}
+                  />
+                  <LinearGradient
+                    colors={gradients.photoScrim}
+                    style={styles.galleryScrim}
+                    pointerEvents="none"
+                  />
+                  <View style={styles.galleryExpandBadge}>
+                    <MaterialIcons name="zoom-out-map" size={16} color="#fff" />
+                  </View>
+                </PressableScale>
+              ))}
+            </ScrollView>
+          </FadeInView>
         )}
 
         {/* Mapa com sombra e borda limpa */}
-        <View style={styles.mapContainer}>
+        <FadeInView delay={SECTION_DELAY.map} style={styles.mapContainer}>
           <MapView
             style={styles.map}
             region={{
@@ -259,10 +334,10 @@ export default function AssetDetalhesScreen() {
           >
             <Marker coordinate={{ latitude: safeAsset.latitude, longitude: safeAsset.longitude }} />
           </MapView>
-        </View>
+        </FadeInView>
 
         {/* Card de informações - Design Limpo e Sólido */}
-        <View style={styles.infoCard}>
+        <FadeInView delay={SECTION_DELAY.info} style={styles.infoCard}>
           <InfoRow icon="location-on" label="Coordenadas" value={`${safeAsset.latitude.toFixed(5)}, ${safeAsset.longitude.toFixed(5)}`} />
           {safeAsset.gpsAccuracyM !== null && (
             <InfoRow icon="radar" label="Precisão GPS" value={`${safeAsset.gpsAccuracyM.toFixed(0)}m`} />
@@ -271,10 +346,10 @@ export default function AssetDetalhesScreen() {
           {safeAsset.status === 'approved' && safeAsset.approvedBy && (
             <InfoRow icon="verified" label="Aprovado por" value={safeAsset.approvedBy} />
           )}
-        </View>
+        </FadeInView>
 
         {/* QR Code — Card Premium, Fundo Branco e Sombreamento Suave */}
-        <View style={styles.qrCard}>
+        <FadeInView delay={SECTION_DELAY.qr} style={styles.qrCard}>
           <View style={styles.qrHeader}>
             <MaterialIcons name="qr-code" size={18} color={colors.secondary} />
             <Text style={styles.qrTitle}>QR Code</Text>
@@ -288,112 +363,87 @@ export default function AssetDetalhesScreen() {
             {safeAsset.qrCode}
           </Text>
           {/* Botão de compartilhar */}
-          <TouchableOpacity style={styles.qrShareBtn} onPress={handleShareQR} activeOpacity={0.8}>
+          <PressableScale style={styles.qrShareBtn} onPress={handleShareQR}>
             <MaterialIcons name="share" size={16} color={colors.onSecondaryContainer} />
             <Text style={styles.qrShareText}>Compartilhar QR Code</Text>
-          </TouchableOpacity>
-        </View>
+          </PressableScale>
+        </FadeInView>
 
         {/* Notas */}
         {safeAsset.notes && (
-          <View style={styles.notesCard}>
+          <FadeInView delay={SECTION_DELAY.notes} style={styles.notesCard}>
             <Text style={styles.sectionTitle}>Notas</Text>
             <Text style={styles.notesText}>{safeAsset.notes}</Text>
-          </View>
-        )}
-
-        {/* Galeria de fotos */}
-        {photosToShow.length > 0 && (
-          <View style={styles.gallerySection}>
-            <Text style={[styles.sectionTitle, { paddingHorizontal: spacing.marginMobile }]}>
-              Fotos ({photosToShow.length})
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.gallery}>
-              {photosToShow.map((m, i) => (
-                <PressableScale
-                  key={m.id}
-                  onPress={() => setLightboxIndex(i)}
-                  style={styles.galleryItem}
-                >
-                  <ExpoImage
-                    source={m.localFilePath}
-                    style={styles.galleryPhoto}
-                    contentFit="cover"
-                    transition={250}
-                  />
-                  <View style={styles.galleryExpandBadge}>
-                    <MaterialIcons name="zoom-out-map" size={16} color="#fff" />
-                  </View>
-                </PressableScale>
-              ))}
-            </ScrollView>
-          </View>
+          </FadeInView>
         )}
 
         {/* Ações rápidas circulares perfeitamente alinhadas */}
-        <View style={styles.quickActionsRow}>
-          <TouchableOpacity
+        <FadeInView delay={SECTION_DELAY.actions} style={styles.quickActionsRow}>
+          <PressableScale
             style={styles.quickActionBtn}
+            scaleTo={0.94}
             onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/manejo`)}
-            activeOpacity={0.7}
           >
             <View style={styles.quickActionCircle}>
-              <MaterialIcons name="content-cut" size={28} color={colors.onBackground} style={{ marginLeft: 2 }} />
+              <MaterialIcons name="content-cut" size={28} color={colors.secondary} style={{ marginLeft: 2 }} />
             </View>
             <Text style={styles.quickActionLabel}>Manejo</Text>
-          </TouchableOpacity>
+          </PressableScale>
 
-          <TouchableOpacity
+          <PressableScale
             style={styles.quickActionBtn}
+            scaleTo={0.94}
             onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/monitoramento`)}
-            activeOpacity={0.7}
           >
             <View style={styles.quickActionCircle}>
-              <MaterialIcons name="visibility" size={28} color={colors.onBackground} />
+              <MaterialIcons name="visibility" size={28} color={colors.secondary} />
             </View>
             <Text style={styles.quickActionLabel}>Monitorar</Text>
-          </TouchableOpacity>
-        </View>
+          </PressableScale>
+        </FadeInView>
 
         {/* Painel de ações — Sem fundo transparente bugado, estilo Stitch Flat */}
-        <View style={styles.actionsPanel}>
+        <FadeInView delay={SECTION_DELAY.actions} style={styles.actionsPanel}>
           <View style={styles.secondaryActionsRow}>
             {canEdit && (
-              <TouchableOpacity
+              <PressableScale
                 style={styles.secondaryActionBtn}
                 onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/edit`)}
-                activeOpacity={0.7}
               >
                 <MaterialIcons name="edit" size={18} color={colors.secondary} />
                 <Text style={styles.secondaryActionText}>Editar Dados</Text>
-              </TouchableOpacity>
+              </PressableScale>
             )}
-            <TouchableOpacity
-              style={styles.secondaryActionBtn}
-              onPress={() => {}}
-              activeOpacity={0.7}
-            >
+            {/* TODO: Histórico ainda não tem tela — desabilitado para não
+                entregar um botão que não faz nada ao ser tocado. */}
+            <View style={[styles.secondaryActionBtn, styles.buttonDisabled]}>
               <MaterialIcons name="history" size={18} color={colors.outline} />
-              <Text style={[styles.secondaryActionText, { color: colors.outline }]}>Ver Histórico</Text>
-            </TouchableOpacity>
+              <Text style={[styles.secondaryActionText, { color: colors.outline }]}>Histórico em breve</Text>
+            </View>
           </View>
 
           {canSubmit && (
-            <TouchableOpacity
+            <PressableScale
               style={[styles.submitButton, (isSubmitting || isSubmitFlow) && styles.buttonDisabled]}
               onPress={handleSubmit}
               disabled={isSubmitting || isSubmitFlow}
-              activeOpacity={0.85}
+              scaleTo={0.96}
             >
+              <LinearGradient
+                colors={gradients.accent}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
               {isSubmitting || isSubmitFlow
-                ? <ActivityIndicator color={colors.onPrimary} size="small" />
-                : <MaterialIcons name="send" size={20} color={colors.onPrimary} />}
+                ? <ActivityIndicator color={colors.accentDeep} size="small" />
+                : <MaterialIcons name="send" size={20} color={colors.accentDeep} />}
               <Text style={styles.submitButtonText}>
                 {isSubmitting ? 'Enviando...' : 'Enviar para aprovação'}
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           )}
-        </View>
+        </FadeInView>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -405,13 +455,40 @@ export default function AssetDetalhesScreen() {
         onClose={() => setLightboxIndex(null)}
       />
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
+/** Stagger das seções na entrada da tela (ms). */
+const SECTION_DELAY = {
+  status: 60,
+  gallery: 120,
+  map: 180,
+  info: 240,
+  qr: 300,
+  notes: 340,
+  actions: 380,
+} as const;
+
+const GALLERY_PHOTO_SIZE = 200;
+
 const styles = StyleSheet.create({
-  // Fundo principal um pouco mais rico para destacar os cards brancos
-  safe: { flex: 1, backgroundColor: colors.surfaceContainerLow },
+  // Fundo vem do GradientBackground — o safe area fica transparente.
+  safe: { flex: 1, backgroundColor: 'transparent' },
   scrollContent: { paddingBottom: 40 },
+
+  skeletonWrap: { paddingHorizontal: spacing.marginMobile, paddingTop: spacing.sm },
+  notFoundWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  notFoundRing: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
 
   header: {
     flexDirection: 'row',
@@ -602,28 +679,60 @@ const styles = StyleSheet.create({
   notesText: { ...typography.bodyMd, color: colors.onBackground },
 
   gallerySection: { marginBottom: spacing.md },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    paddingHorizontal: spacing.marginMobile,
+  },
+  countPill: {
+    minWidth: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(183,245,105,0.35)',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  countPillText: { ...typography.labelMd, color: colors.accentDeep },
   gallery: { paddingLeft: spacing.marginMobile },
+  galleryContent: { paddingRight: spacing.marginMobile },
   galleryItem: {
     marginRight: spacing.sm,
-    borderRadius: 16,
+    borderRadius: 24,
     overflow: 'hidden',
+    shadowColor: '#2d3a2d',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.14,
+    shadowRadius: 20,
+    elevation: 4,
   },
   galleryPhoto: {
-    width: 160,
-    height: 160,
-    borderRadius: 16,
+    width: GALLERY_PHOTO_SIZE,
+    height: GALLERY_PHOTO_SIZE,
+    borderRadius: 24,
     backgroundColor: colors.surfaceContainerHigh,
+  },
+  // Scrim inferior: dá peso à foto e garante contraste do badge de zoom.
+  galleryScrim: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 72,
   },
   galleryExpandBadge: {
     position: 'absolute',
-    right: 8,
-    bottom: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    right: 10,
+    bottom: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(16,32,0,0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
   },
 
   quickActionsRow: {
@@ -644,6 +753,8 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     backgroundColor: colors.surfaceContainerLowest,
+    borderWidth: 1,
+    borderColor: 'rgba(183,245,105,0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#2d3a2d',
@@ -683,20 +794,28 @@ const styles = StyleSheet.create({
   },
   secondaryActionText: { ...typography.labelLg, color: colors.onSurfaceVariant },
   
+  // CTA primário em neon: mesma linguagem do FAB da lista (ação que avança estado).
   submitButton: {
-    backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: 18,
     borderRadius: radius.full,
-    shadowColor: colors.primary,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+    shadowColor: colors.accentDim,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 4,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  submitButtonText: { ...typography.labelLg, color: colors.onPrimary, fontSize: 16 },
+  submitButtonText: {
+    ...typography.labelLg,
+    color: colors.accentDeep,
+    fontSize: 16,
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
   buttonDisabled: { opacity: 0.4 },
 });
