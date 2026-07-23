@@ -7,15 +7,18 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Image,
   Share,
   Dimensions,
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import QRCode from 'qrcode';
+
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
 import { useSubmitAsset } from '@/features/assets/hooks/use-submit-asset';
@@ -106,6 +109,7 @@ export default function AssetDetalhesScreen() {
   const user = useAuthStore((s) => s.user);
   const submitFlowRef = useRef(false);
   const [isSubmitFlow, setIsSubmitFlow] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (isLoading) {
     return (
@@ -190,6 +194,7 @@ export default function AssetDetalhesScreen() {
   }
 
   const photosToShow = media;
+  const lightboxPhotos = photosToShow.map((m) => ({ id: m.id, uri: m.localFilePath }));
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -304,8 +309,22 @@ export default function AssetDetalhesScreen() {
               Fotos ({photosToShow.length})
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.gallery}>
-              {photosToShow.map((m) => (
-                <Image key={m.id} source={{ uri: m.localFilePath }} style={styles.galleryPhoto} />
+              {photosToShow.map((m, i) => (
+                <PressableScale
+                  key={m.id}
+                  onPress={() => setLightboxIndex(i)}
+                  style={styles.galleryItem}
+                >
+                  <ExpoImage
+                    source={m.localFilePath}
+                    style={styles.galleryPhoto}
+                    contentFit="cover"
+                    transition={250}
+                  />
+                  <View style={styles.galleryExpandBadge}>
+                    <MaterialIcons name="zoom-out-map" size={16} color="#fff" />
+                  </View>
+                </PressableScale>
               ))}
             </ScrollView>
           </View>
@@ -378,6 +397,13 @@ export default function AssetDetalhesScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <PhotoLightbox
+        visible={lightboxIndex !== null}
+        photos={lightboxPhotos}
+        initialIndex={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -577,12 +603,27 @@ const styles = StyleSheet.create({
 
   gallerySection: { marginBottom: spacing.md },
   gallery: { paddingLeft: spacing.marginMobile },
+  galleryItem: {
+    marginRight: spacing.sm,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
   galleryPhoto: {
     width: 160,
     height: 160,
     borderRadius: 16,
-    marginRight: spacing.sm,
     backgroundColor: colors.surfaceContainerHigh,
+  },
+  galleryExpandBadge: {
+    position: 'absolute',
+    right: 8,
+    bottom: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(16,32,0,0.55)',
   },
 
   quickActionsRow: {
