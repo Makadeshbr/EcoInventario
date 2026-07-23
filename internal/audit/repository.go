@@ -114,9 +114,14 @@ func (r *repository) List(ctx context.Context, orgID string, f ListFilters) ([]*
 		args = append(args, f.Cursor)
 	}
 
+	// changes/metadata são JSONB nullable: entradas sem diff (login, delete)
+	// gravam NULL, e NULL não pode ser lido em json.RawMessage. O COALESCE
+	// garante JSON válido para todo registro.
 	query := fmt.Sprintf(`
 		SELECT al.id, al.organization_id, al.entity_type, al.entity_id, al.action,
-		       al.performed_by, COALESCE(u.name, ''), al.changes, al.metadata, al.created_at
+		       al.performed_by, COALESCE(u.name, ''),
+		       COALESCE(al.changes, '{}'::jsonb), COALESCE(al.metadata, '{}'::jsonb),
+		       al.created_at
 		FROM audit_logs al
 		LEFT JOIN users u ON u.id = al.performed_by
 		WHERE %s
