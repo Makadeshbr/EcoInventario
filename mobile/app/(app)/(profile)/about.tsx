@@ -3,9 +3,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
 
 export default function AboutScreen() {
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Sobre o App' }} />
       <View style={styles.content}>
@@ -40,11 +42,12 @@ export default function AboutScreen() {
         <Text style={styles.footerText}>Desenvolvido com 💚 por EcoTech Solutions</Text>
       </View>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   content: {
     padding: spacing.marginMobile,
     gap: spacing.sm,

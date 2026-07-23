@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
 import { Button } from '@/components/ui/button';
 import {
   getConflictById,
@@ -75,12 +76,14 @@ export default function ConflictDetailScreen() {
 
   if (!conflict) {
     return (
+      <GradientBackground>
       <SafeAreaView style={styles.safe} edges={['bottom']}>
         <Stack.Screen options={{ title: 'Resolver Conflito' }} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>Carregando...</Text>
         </View>
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -95,6 +98,7 @@ export default function ConflictDetailScreen() {
   } catch { /* noop */ }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Resolver Conflito' }} />
       <ScrollView contentContainerStyle={styles.content}>
@@ -145,11 +149,12 @@ export default function ConflictDetailScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { ...typography.bodyMd, color: colors.outline },
   content: {

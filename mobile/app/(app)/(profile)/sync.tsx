@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
 import { Button } from '@/components/ui/button';
 import { useSyncStore } from '@/stores/sync-store';
 import { SyncEngine } from '@/sync/sync-engine';
@@ -84,6 +85,7 @@ export default function SyncStatusScreen() {
   }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Status de Sincronização' }} />
       <ScrollView contentContainerStyle={styles.content}>
@@ -131,11 +133,12 @@ export default function SyncStatusScreen() {
 
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   content: {
     padding: spacing.marginMobile,
     gap: spacing.md,

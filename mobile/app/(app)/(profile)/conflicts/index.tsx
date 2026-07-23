@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router, Stack } from 'expo-router';
 import { useCallback } from 'react';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
 import { getConflicts, type ConflictRecord } from '@/sync/conflict-handler';
 
 export default function ConflictsListScreen() {
@@ -35,9 +38,8 @@ export default function ConflictsListScreen() {
     } catch { localNotes = 'Payload inválido'; }
 
     return (
-      <TouchableOpacity
+      <PressableScale
         style={styles.card}
-        activeOpacity={0.8}
         onPress={() => router.push(`/(app)/(profile)/conflicts/${item.id}` as any)}
       >
         <View style={styles.cardHeader}>
@@ -55,11 +57,12 @@ export default function ConflictsListScreen() {
           <Text style={styles.actionText}>Resolver conflito</Text>
           <MaterialIcons name="chevron-right" size={18} color={colors.primary} />
         </View>
-      </TouchableOpacity>
+      </PressableScale>
     );
   }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Conflitos de Sincronização' }} />
       
@@ -68,11 +71,11 @@ export default function ConflictsListScreen() {
           <Text style={styles.emptyText}>Carregando...</Text>
         </View>
       ) : conflicts.length === 0 ? (
-        <View style={styles.emptyContainer}>
+        <FadeInView from="up" style={styles.emptyContainer}>
           <MaterialIcons name="check-circle-outline" size={48} color={colors.secondary} />
           <Text style={styles.emptyTitle}>Tudo certo!</Text>
           <Text style={styles.emptyText}>Nenhum conflito de sincronização encontrado.</Text>
-        </View>
+        </FadeInView>
       ) : (
         <FlatList
           data={conflicts}
@@ -82,11 +85,12 @@ export default function ConflictsListScreen() {
         />
       )}
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   list: {
     padding: spacing.marginMobile,
     gap: spacing.sm,
