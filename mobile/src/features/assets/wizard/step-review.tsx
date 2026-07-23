@@ -2,13 +2,13 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Image,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing } from '@/theme/tokens';
 import type { WizardState } from './wizard-types';
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { wizardStyles as styles } from './wizard-styles';
 
 interface Props {
@@ -71,19 +71,19 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
+        <PressableScale
           style={[styles.primaryButton, isSaving && styles.primaryButtonDisabled]}
           onPress={onSave}
           disabled={isSaving}
-          activeOpacity={0.85}
+         
         >
           {isSaving
-            ? <ActivityIndicator color={colors.onPrimary} size="small" />
-            : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
+            ? <ActivityIndicator color={colors.accentDeep} size="small" />
+            : <MaterialIcons name="send" size={18} color={colors.accentDeep} />}
           <Text style={styles.primaryButtonText}>
             {isSaving ? 'Enviando...' : 'Enviar para revisão'}
           </Text>
-        </TouchableOpacity>
+        </PressableScale>
       </View>
     </View>
   );

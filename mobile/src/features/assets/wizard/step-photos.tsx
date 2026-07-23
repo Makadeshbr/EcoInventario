@@ -2,7 +2,6 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Image,
 } from 'react-native';
@@ -11,6 +10,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { colors, spacing } from '@/theme/tokens';
 import type { WizardState } from './wizard-types';
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { wizardStyles as styles } from './wizard-styles';
 
 interface Props {
@@ -44,12 +44,12 @@ export function StepPhotos({ state, onChange, onNext }: Props) {
       <View style={styles.permissionView}>
         <MaterialIcons name="camera-alt" size={64} color={colors.outlineVariant} />
         <Text style={styles.permissionText}>O app precisa de acesso à câmera</Text>
-        <TouchableOpacity style={styles.primaryButton} onPress={requestPermission} activeOpacity={0.85}>
+        <PressableScale style={styles.primaryButton} onPress={requestPermission}>
           <Text style={styles.primaryButtonText}>Conceder permissão</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.secondaryButton, { marginTop: spacing.xs }]} onPress={onNext}>
+        </PressableScale>
+        <PressableScale style={[styles.secondaryButton, { marginTop: spacing.xs }]} onPress={onNext}>
           <Text style={styles.secondaryButtonText}>Pular fotos</Text>
-        </TouchableOpacity>
+        </PressableScale>
       </View>
     );
   }
@@ -59,14 +59,14 @@ export function StepPhotos({ state, onChange, onNext }: Props) {
       <View style={{ flex: 1 }}>
         <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
         <View style={styles.cameraBar}>
-          <TouchableOpacity onPress={() => setShowCamera(false)} style={styles.cameraCancel}>
+          <PressableScale onPress={() => setShowCamera(false)} style={styles.cameraCancel}>
             <MaterialIcons name="close" size={28} color={colors.onPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={takePhoto} style={styles.shutterButton} disabled={taking}>
+          </PressableScale>
+          <PressableScale onPress={takePhoto} style={styles.shutterButton} disabled={taking}>
             {taking
               ? <ActivityIndicator color={colors.primary} />
               : <View style={styles.shutterInner} />}
-          </TouchableOpacity>
+          </PressableScale>
           <View style={{ width: 48 }} />
         </View>
       </View>
@@ -83,31 +83,31 @@ export function StepPhotos({ state, onChange, onNext }: Props) {
           {state.photoUris.map((uri, i) => (
             <View key={i} style={styles.photoThumb}>
               <Image source={{ uri }} style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }} resizeMode="cover" />
-              <TouchableOpacity
+              <PressableScale
                 style={styles.photoRemove}
                 onPress={() =>
                   onChange({ photoUris: state.photoUris.filter((_, j) => j !== i) })
                 }
               >
                 <MaterialIcons name="close" size={14} color={colors.onPrimary} />
-              </TouchableOpacity>
+              </PressableScale>
             </View>
           ))}
           {state.photoUris.length < 20 && (
-            <TouchableOpacity style={styles.addPhotoBtn} onPress={() => setShowCamera(true)}>
+            <PressableScale style={styles.addPhotoBtn} onPress={() => setShowCamera(true)}>
               <MaterialIcons name="add-a-photo" size={28} color={colors.outline} />
-            </TouchableOpacity>
+            </PressableScale>
           )}
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.primaryButton} onPress={onNext} activeOpacity={0.85}>
+        <PressableScale style={styles.primaryButton} onPress={onNext}>
           <Text style={styles.primaryButtonText}>
             {state.photoUris.length === 0 ? 'Pular fotos' : 'Próximo'}
           </Text>
-          <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
-        </TouchableOpacity>
+          <MaterialIcons name="arrow-forward" size={18} color={colors.accentDeep} />
+        </PressableScale>
       </View>
     </View>
   );
