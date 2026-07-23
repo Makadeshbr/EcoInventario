@@ -1,31 +1,29 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-
 import {
   createAssetType,
   updateAssetType,
   type CreateAssetTypeInput,
   type UpdateAssetTypeInput,
 } from '@/features/admin/api';
-import { getSession } from '@/lib/auth/session';
+import { runAdminAction } from '@/lib/admin-actions';
+import type { ActionResult } from '@/types/action-result';
 
-async function requireAdminToken() {
-  const session = await getSession();
-  if (!session || session.user.role !== 'admin') {
-    throw new Error('FORBIDDEN');
-  }
-  return session.accessToken;
+const ASSET_TYPES_PATH = '/dashboard/asset-types';
+
+export async function createAssetTypeAction(
+  input: CreateAssetTypeInput,
+): Promise<ActionResult> {
+  return runAdminAction(async (session) => {
+    await createAssetType(session.accessToken, input);
+  }, ASSET_TYPES_PATH);
 }
 
-export async function createAssetTypeAction(input: CreateAssetTypeInput) {
-  const token = await requireAdminToken();
-  await createAssetType(token, input);
-  revalidatePath('/dashboard/asset-types');
-}
-
-export async function updateAssetTypeAction(id: string, input: UpdateAssetTypeInput) {
-  const token = await requireAdminToken();
-  await updateAssetType(token, id, input);
-  revalidatePath('/dashboard/asset-types');
+export async function updateAssetTypeAction(
+  id: string,
+  input: UpdateAssetTypeInput,
+): Promise<ActionResult> {
+  return runAdminAction(async (session) => {
+    await updateAssetType(session.accessToken, id, input);
+  }, ASSET_TYPES_PATH);
 }

@@ -5,13 +5,15 @@ import { Check, Pencil, Plus, X } from 'lucide-react';
 
 import type { CreateAssetTypeInput, UpdateAssetTypeInput } from '@/features/admin/api';
 import type { AdminAssetType } from '@/features/admin/schemas';
+import { callAction } from '@/lib/call-action';
+import type { ActionResult } from '@/types/action-result';
 
 import { AdminAssetTypeDialog } from './admin-asset-type-dialog';
 
 type Props = {
   assetTypes: AdminAssetType[];
-  createAssetTypeAction: (input: CreateAssetTypeInput) => Promise<void>;
-  updateAssetTypeAction: (id: string, input: UpdateAssetTypeInput) => Promise<void>;
+  createAssetTypeAction: (input: CreateAssetTypeInput) => Promise<ActionResult | void>;
+  updateAssetTypeAction: (id: string, input: UpdateAssetTypeInput) => Promise<ActionResult | void>;
 };
 
 export function AdminAssetTypesManager({
@@ -34,10 +36,12 @@ export function AdminAssetTypesManager({
     };
     startTransition(async () => {
       setError(null);
-      await createAssetTypeAction(payload).then(
-        () => setCreating(false),
-        () => setError('Nao foi possivel salvar o tipo.'),
+      const err = await callAction(
+        () => createAssetTypeAction(payload),
+        'Nao foi possivel salvar o tipo.',
       );
+      if (err) setError(err);
+      else setCreating(false);
     });
   }
 
@@ -50,30 +54,36 @@ export function AdminAssetTypesManager({
     };
     startTransition(async () => {
       setError(null);
-      await updateAssetTypeAction(assetType.id, payload).then(
-        () => {
-          setItems((current) =>
-            current.map((item) => (item.id === assetType.id ? { ...item, ...payload } : item)),
-          );
-          setEditingId(null);
-        },
-        () => setError('Nao foi possivel atualizar o tipo.'),
+      const err = await callAction(
+        () => updateAssetTypeAction(assetType.id, payload),
+        'Nao foi possivel atualizar o tipo.',
       );
+      if (err) {
+        setError(err);
+        return;
+      }
+      setItems((current) =>
+        current.map((item) => (item.id === assetType.id ? { ...item, ...payload } : item)),
+      );
+      setEditingId(null);
     });
   }
 
   function toggleActive(assetType: AdminAssetType) {
     startTransition(async () => {
       setError(null);
-      await updateAssetTypeAction(assetType.id, { isActive: !assetType.isActive }).then(
-        () => {
-          setItems((current) =>
-            current.map((item) =>
-              item.id === assetType.id ? { ...item, isActive: !assetType.isActive } : item,
-            ),
-          );
-        },
-        () => setError('Nao foi possivel alterar o status.'),
+      const err = await callAction(
+        () => updateAssetTypeAction(assetType.id, { isActive: !assetType.isActive }),
+        'Nao foi possivel alterar o status.',
+      );
+      if (err) {
+        setError(err);
+        return;
+      }
+      setItems((current) =>
+        current.map((item) =>
+          item.id === assetType.id ? { ...item, isActive: !assetType.isActive } : item,
+        ),
       );
     });
   }
