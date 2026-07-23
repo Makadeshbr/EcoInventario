@@ -123,6 +123,53 @@ describe('AdminUsersManager', () => {
       expect(screen.getByText('Email ja cadastrado nesta organizacao')).toBeInTheDocument(),
     );
   });
+
+  test('edicao sem preencher senha nao envia password', async () => {
+    const updateUser = vi.fn().mockResolvedValue({ ok: true });
+
+    render(
+      <AdminUsersManager
+        users={users}
+        currentUserId="user-1"
+        hasMore={false}
+        nextCursor={null}
+        createUserAction={vi.fn().mockResolvedValue({ ok: true })}
+        updateUserAction={updateUser}
+        deleteUserAction={vi.fn().mockResolvedValue({ ok: true })}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /editar tecnico joao/i }));
+    fireEvent.click(screen.getByRole('button', { name: /salvar usuario/i }));
+
+    await waitFor(() => expect(updateUser).toHaveBeenCalled());
+    expect(updateUser.mock.calls[0][1]).not.toHaveProperty('password');
+  });
+
+  test('edicao com senha preenchida envia password para redefinicao', async () => {
+    const updateUser = vi.fn().mockResolvedValue({ ok: true });
+
+    render(
+      <AdminUsersManager
+        users={users}
+        currentUserId="user-1"
+        hasMore={false}
+        nextCursor={null}
+        createUserAction={vi.fn().mockResolvedValue({ ok: true })}
+        updateUserAction={updateUser}
+        deleteUserAction={vi.fn().mockResolvedValue({ ok: true })}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /editar tecnico joao/i }));
+    fireEvent.change(screen.getByLabelText(/nova senha/i), {
+      target: { value: 'senhaRedefinida1' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /salvar usuario/i }));
+
+    await waitFor(() => expect(updateUser).toHaveBeenCalled());
+    expect(updateUser.mock.calls[0][1]).toMatchObject({ password: 'senhaRedefinida1' });
+  });
 });
 
 describe('AdminAssetTypesManager', () => {

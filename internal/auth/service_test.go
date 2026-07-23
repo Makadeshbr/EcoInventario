@@ -22,6 +22,7 @@ type mockRepo struct {
 	foundToken    *auth.RefreshTokenRecord
 	findTokenErr  error
 	revokedFamily string
+	revokedUserID string
 	insertErr     error
 }
 
@@ -49,6 +50,11 @@ func (m *mockRepo) RevokeRefreshToken(_ context.Context, tokenHash string) error
 
 func (m *mockRepo) RevokeFamily(_ context.Context, familyID string) error {
 	m.revokedFamily = familyID
+	return nil
+}
+
+func (m *mockRepo) RevokeAllForUser(_ context.Context, userID string) error {
+	m.revokedUserID = userID
 	return nil
 }
 

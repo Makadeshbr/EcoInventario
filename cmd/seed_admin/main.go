@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/allan/ecoinventario/internal/audit"
+	"github.com/allan/ecoinventario/internal/auth"
 	"github.com/allan/ecoinventario/internal/config"
 	"github.com/allan/ecoinventario/internal/shared"
 	"github.com/allan/ecoinventario/internal/user"
@@ -44,7 +45,7 @@ func main() {
 
 	repo := user.NewRepository(db)
 	auditSvc := audit.NewService(audit.NewRepository(db))
-	svc := user.NewService(repo, auditSvc, cfg.PasswordPepper)
+	svc := user.NewService(repo, auditSvc, cfg.PasswordPepper, auth.NewRepository(db))
 
 	ctx := shared.WithOrgID(context.Background(), defaultOrgID)
 	ctx = shared.WithUserID(ctx, systemUserID)

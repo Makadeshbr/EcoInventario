@@ -26,6 +26,8 @@ export type UpdateUserInput = {
   name?: string;
   role?: UserRole;
   isActive?: boolean;
+  /** Redefine a senha do usuario (acao de admin). Omitir para nao alterar. */
+  password?: string;
 };
 
 export type CreateAssetTypeInput = {
@@ -55,6 +57,7 @@ function userUpdateBody(input: UpdateUserInput) {
     ...(input.name !== undefined ? { name: input.name } : {}),
     ...(input.role !== undefined ? { role: input.role } : {}),
     ...(input.isActive !== undefined ? { is_active: input.isActive } : {}),
+    ...(input.password ? { password: input.password } : {}),
   };
 }
 

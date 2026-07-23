@@ -49,18 +49,23 @@ export function AdminUserDialog({
               className="input-shell h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-on-surface outline-none disabled:opacity-60"
             />
           </label>
-          {!editing ? (
-            <label className="grid gap-2 text-sm font-bold text-on-surface-variant">
-              Senha
-              <input
-                name="password"
-                type="password"
-                required
-                minLength={8}
-                className="input-shell h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-on-surface outline-none"
-              />
-            </label>
-          ) : null}
+          <label className="grid gap-2 text-sm font-bold text-on-surface-variant">
+            {editing ? 'Nova senha (opcional)' : 'Senha'}
+            <input
+              name="password"
+              type="password"
+              required={!editing}
+              minLength={8}
+              autoComplete="new-password"
+              placeholder={editing ? 'Deixe em branco para manter a atual' : undefined}
+              className="input-shell h-12 rounded-full border border-outline-variant bg-white/70 px-4 text-on-surface outline-none"
+            />
+            {editing ? (
+              <span className="px-4 text-xs font-normal text-on-surface-variant">
+                Ao redefinir, as sessoes ativas do usuario sao encerradas.
+              </span>
+            ) : null}
+          </label>
           <label className="grid gap-2 text-sm font-bold text-on-surface-variant">
             Role
             <select

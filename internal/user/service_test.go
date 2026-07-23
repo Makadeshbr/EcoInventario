@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"testing"
 
+	"strings"
+
 	"github.com/allan/ecoinventario/internal/audit"
+	"github.com/allan/ecoinventario/internal/auth"
 	"github.com/allan/ecoinventario/internal/shared"
 	"github.com/allan/ecoinventario/internal/shared/apperror"
 	"github.com/allan/ecoinventario/internal/user"
@@ -24,6 +27,18 @@ type mockUserRepo struct {
 	hasOtherActiveAdmin bool
 	hasOtherAdminErr    error
 	list                []*user.User
+	updatedHash         string
+}
+
+// mockRevoker registra as revogacoes de sessao pedidas pelo service.
+type mockRevoker struct {
+	revokedUserIDs []string
+	err            error
+}
+
+func (m *mockRevoker) RevokeAllForUser(_ context.Context, userID string) error {
+	m.revokedUserIDs = append(m.revokedUserIDs, userID)
+	return m.err
 }
 
 func (m *mockUserRepo) FindByID(_ context.Context, id, orgID string) (*user.User, error) {
@@ -43,6 +58,7 @@ func (m *mockUserRepo) Insert(_ context.Context, u *user.User) error {
 }
 
 func (m *mockUserRepo) Update(_ context.Context, u *user.User) error {
+	m.updatedHash = u.PasswordHash
 	return m.updateErr
 }
 
@@ -67,8 +83,14 @@ func (n *noopAudit) List(_ context.Context, _ string, _ audit.ListFilters) ([]*a
 }
 
 func newTestSvc(repo user.Repository) *user.Service {
+	svc, _ := newTestSvcWithRevoker(repo)
+	return svc
+}
+
+func newTestSvcWithRevoker(repo user.Repository) (*user.Service, *mockRevoker) {
 	auditSvc := audit.NewService(&noopAudit{})
-	return user.NewService(repo, auditSvc, "test-pepper")
+	revoker := &mockRevoker{}
+	return user.NewService(repo, auditSvc, "test-pepper", revoker), revoker
 }
 
 // --- testes ---
@@ -334,4 +356,122 @@ func assertAppError(t *testing.T, err error, wantStatus int) {
 	if appErr.Status != wantStatus {
 		t.Errorf("status: got %d, want %d", appErr.Status, wantStatus)
 	}
+}
+
+// Reset de senha pelo admin: a senha nova precisa virar hash novo e derrubar
+// as sessões existentes, senão um refresh token vazado sobrevive ao reset.
+func TestUserServiceUpdatePassword(t *testing.T) {
+	ctx := shared.WithOrgID(shared.WithUserID(context.Background(), "admin-id"), "org-1")
+
+	newStoredUser := func() *user.User {
+		return &user.User{
+			ID: "u-1", Name: "João", Email: "j@t.com",
+			Role: shared.RoleTech, IsActive: true, PasswordHash: "hash-antigo",
+		}
+	}
+
+	t.Run("troca o hash e revoga as sessões do usuário", func(t *testing.T) {
+		repo := &mockUserRepo{stored: newStoredUser()}
+		svc, revoker := newTestSvcWithRevoker(repo)
+
+		password := "novaSenhaSegura1"
+		if _, err := svc.Update(ctx, "u-1", user.UpdateRequest{Password: &password}); err != nil {
+			t.Fatalf("erro inesperado: %v", err)
+		}
+
+		if repo.updatedHash == "" || repo.updatedHash == "hash-antigo" {
+			t.Errorf("hash não foi regravado: got %q", repo.updatedHash)
+		}
+		if strings.Contains(repo.updatedHash, password) {
+			t.Error("hash contém a senha em texto puro")
+		}
+		if len(revoker.revokedUserIDs) != 1 || revoker.revokedUserIDs[0] != "u-1" {
+			t.Errorf("sessões não revogadas para o usuário: got %v", revoker.revokedUserIDs)
+		}
+	})
+
+	t.Run("a senha nova autentica no hash gravado", func(t *testing.T) {
+		repo := &mockUserRepo{stored: newStoredUser()}
+		svc, _ := newTestSvcWithRevoker(repo)
+
+		password := "novaSenhaSegura1"
+		if _, err := svc.Update(ctx, "u-1", user.UpdateRequest{Password: &password}); err != nil {
+			t.Fatalf("erro inesperado: %v", err)
+		}
+
+		ok, err := auth.VerifyPassword(password, repo.updatedHash, "test-pepper")
+		if err != nil {
+			t.Fatalf("erro verificando senha: %v", err)
+		}
+		if !ok {
+			t.Error("senha nova não confere com o hash gravado")
+		}
+	})
+
+	t.Run("update sem senha não mexe no hash nem revoga sessões", func(t *testing.T) {
+		repo := &mockUserRepo{stored: newStoredUser()}
+		svc, revoker := newTestSvcWithRevoker(repo)
+
+		name := "João Atualizado"
+		if _, err := svc.Update(ctx, "u-1", user.UpdateRequest{Name: &name}); err != nil {
+			t.Fatalf("erro inesperado: %v", err)
+		}
+
+		if repo.updatedHash != "hash-antigo" {
+			t.Errorf("hash foi alterado sem pedido: got %q", repo.updatedHash)
+		}
+		if len(revoker.revokedUserIDs) != 0 {
+			t.Errorf("revogou sessões sem troca de senha: %v", revoker.revokedUserIDs)
+		}
+	})
+
+	t.Run("falha ao revogar sessões propaga erro", func(t *testing.T) {
+		repo := &mockUserRepo{stored: newStoredUser()}
+		auditSvc := audit.NewService(&noopAudit{})
+		revoker := &mockRevoker{err: fmt.Errorf("banco fora")}
+		svc := user.NewService(repo, auditSvc, "test-pepper", revoker)
+
+		password := "novaSenhaSegura1"
+		_, err := svc.Update(ctx, "u-1", user.UpdateRequest{Password: &password})
+		if err == nil {
+			t.Fatal("esperava erro quando a revogação falha")
+		}
+	})
+
+	t.Run("auditoria registra a troca sem gravar a senha", func(t *testing.T) {
+		repo := &mockUserRepo{stored: newStoredUser()}
+		capture := &capturingAudit{}
+		revoker := &mockRevoker{}
+		svc := user.NewService(repo, audit.NewService(capture), "test-pepper", revoker)
+
+		password := "novaSenhaSegura1"
+		if _, err := svc.Update(ctx, "u-1", user.UpdateRequest{Password: &password}); err != nil {
+			t.Fatalf("erro inesperado: %v", err)
+		}
+
+		if len(capture.entries) == 0 {
+			t.Fatal("nenhuma entrada de auditoria registrada")
+		}
+		changes := string(capture.entries[0].Changes)
+		if !strings.Contains(changes, "password") {
+			t.Errorf("auditoria não registrou a troca de senha: %s", changes)
+		}
+		if strings.Contains(changes, password) {
+			t.Errorf("auditoria vazou a senha em texto puro: %s", changes)
+		}
+	})
+}
+
+// capturingAudit guarda as entradas para inspeção nos testes.
+type capturingAudit struct {
+	entries []*audit.LogEntry
+}
+
+func (c *capturingAudit) Insert(_ context.Context, e *audit.LogEntry) error {
+	c.entries = append(c.entries, e)
+	return nil
+}
+
+func (c *capturingAudit) List(_ context.Context, _ string, _ audit.ListFilters) ([]*audit.LogEntry, error) {
+	return nil, nil
 }
