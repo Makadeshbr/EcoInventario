@@ -1,7 +1,5 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-
 import {
   createUser,
   deleteUser,
@@ -9,34 +7,31 @@ import {
   type CreateUserInput,
   type UpdateUserInput,
 } from '@/features/admin/api';
-import { getSession } from '@/lib/auth/session';
+import { ActionRuleError, runAdminAction } from '@/lib/admin-actions';
+import type { ActionResult } from '@/types/action-result';
 
-async function requireAdminSession() {
-  const session = await getSession();
-  if (!session || session.user.role !== 'admin') {
-    throw new Error('FORBIDDEN');
-  }
-  return session;
+const USERS_PATH = '/dashboard/users';
+
+export async function createUserAction(input: CreateUserInput): Promise<ActionResult> {
+  return runAdminAction(async (session) => {
+    await createUser(session.accessToken, input);
+  }, USERS_PATH);
 }
 
-export async function createUserAction(input: CreateUserInput) {
-  const session = await requireAdminSession();
-  await createUser(session.accessToken, input);
-  revalidatePath('/dashboard/users');
+export async function updateUserAction(
+  id: string,
+  input: UpdateUserInput,
+): Promise<ActionResult> {
+  return runAdminAction(async (session) => {
+    await updateUser(session.accessToken, id, input);
+  }, USERS_PATH);
 }
 
-export async function updateUserAction(id: string, input: UpdateUserInput) {
-  const session = await requireAdminSession();
-  await updateUser(session.accessToken, id, input);
-  revalidatePath('/dashboard/users');
-}
-
-export async function deleteUserAction(id: string) {
-  const session = await requireAdminSession();
-  if (id === session.user.id) {
-    throw new Error('SELF_DELETE_BLOCKED');
-  }
-
-  await deleteUser(session.accessToken, id);
-  revalidatePath('/dashboard/users');
+export async function deleteUserAction(id: string): Promise<ActionResult> {
+  return runAdminAction(async (session) => {
+    if (id === session.user.id) {
+      throw new ActionRuleError('Você não pode excluir a própria conta.');
+    }
+    await deleteUser(session.accessToken, id);
+  }, USERS_PATH);
 }

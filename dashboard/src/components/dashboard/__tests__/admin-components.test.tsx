@@ -93,6 +93,36 @@ describe('AdminUsersManager', () => {
       expect(screen.getByText('Email ja cadastrado nesta organizacao')).toBeInTheDocument(),
     );
   });
+
+  test('mostra erro retornado como valor pela action (nao redigido em producao)', async () => {
+    // Server Actions nao devem lancar: em producao o Next redige a mensagem.
+    // Retornando { ok: false, error }, a mensagem real chega intacta a UI.
+    const createUser = vi
+      .fn()
+      .mockResolvedValue({ ok: false, error: 'Email ja cadastrado nesta organizacao' });
+
+    render(
+      <AdminUsersManager
+        users={users}
+        currentUserId="user-1"
+        hasMore={false}
+        nextCursor={null}
+        createUserAction={createUser}
+        updateUserAction={vi.fn().mockResolvedValue({ ok: true })}
+        deleteUserAction={vi.fn().mockResolvedValue({ ok: true })}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /novo usuario/i }));
+    fireEvent.change(screen.getByLabelText(/nome/i), { target: { value: 'Viewer Bia' } });
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'bia@example.com' } });
+    fireEvent.change(screen.getByLabelText(/senha/i), { target: { value: 'senhaSegura123' } });
+    fireEvent.click(screen.getByRole('button', { name: /salvar usuario/i }));
+
+    await waitFor(() =>
+      expect(screen.getByText('Email ja cadastrado nesta organizacao')).toBeInTheDocument(),
+    );
+  });
 });
 
 describe('AdminAssetTypesManager', () => {

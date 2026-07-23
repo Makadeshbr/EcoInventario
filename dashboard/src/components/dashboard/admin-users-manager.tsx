@@ -6,6 +6,8 @@ import { Pencil, Plus, Trash2 } from 'lucide-react';
 
 import type { CreateUserInput, UpdateUserInput } from '@/features/admin/api';
 import type { AdminUser } from '@/features/admin/schemas';
+import { callAction } from '@/lib/call-action';
+import type { ActionResult } from '@/types/action-result';
 import type { UserRole } from '@/types/domain';
 
 import { AdminUserDialog } from './admin-user-dialog';
@@ -27,18 +29,15 @@ type Props = {
   currentUserId: string;
   hasMore: boolean;
   nextCursor: string | null;
-  createUserAction: (input: CreateUserInput) => Promise<void>;
-  updateUserAction: (id: string, input: UpdateUserInput) => Promise<void>;
-  deleteUserAction: (id: string) => Promise<void>;
+  createUserAction: (input: CreateUserInput) => Promise<ActionResult | void>;
+  updateUserAction: (id: string, input: UpdateUserInput) => Promise<ActionResult | void>;
+  deleteUserAction: (id: string) => Promise<ActionResult | void>;
 };
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString('pt-BR');
 }
 
-function errorMessage(err: unknown, fallback: string) {
-  return err instanceof Error && err.message ? err.message : fallback;
-}
 
 export function AdminUsersManager({
   users,
@@ -65,10 +64,12 @@ export function AdminUsersManager({
     };
     startTransition(async () => {
       setError(null);
-      await createUserAction(payload).then(
-        () => setCreating(false),
-        (err) => setError(errorMessage(err, 'Nao foi possivel salvar o usuario.')),
+      const err = await callAction(
+        () => createUserAction(payload),
+        'Nao foi possivel salvar o usuario.',
       );
+      if (err) setError(err);
+      else setCreating(false);
     });
   }
 
@@ -84,19 +85,23 @@ export function AdminUsersManager({
     };
     startTransition(async () => {
       setError(null);
-      await updateUserAction(editing.id, payload).then(
-        () => setEditing(null),
-        (err) => setError(errorMessage(err, 'Nao foi possivel atualizar o usuario.')),
+      const err = await callAction(
+        () => updateUserAction(editing.id, payload),
+        'Nao foi possivel atualizar o usuario.',
       );
+      if (err) setError(err);
+      else setEditing(null);
     });
   }
 
   function toggleActive(user: AdminUser) {
     startTransition(async () => {
       setError(null);
-      await updateUserAction(user.id, { isActive: !user.isActive }).catch(() =>
-        setError('Nao foi possivel alterar o status.'),
+      const err = await callAction(
+        () => updateUserAction(user.id, { isActive: !user.isActive }),
+        'Nao foi possivel alterar o status.',
       );
+      if (err) setError(err);
     });
   }
 
@@ -105,9 +110,11 @@ export function AdminUsersManager({
 
     startTransition(async () => {
       setError(null);
-      await deleteUserAction(user.id).catch((err) =>
-        setError(errorMessage(err, 'Nao foi possivel excluir o usuario.')),
+      const err = await callAction(
+        () => deleteUserAction(user.id),
+        'Nao foi possivel excluir o usuario.',
       );
+      if (err) setError(err);
     });
   }
 
