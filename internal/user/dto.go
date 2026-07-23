@@ -11,10 +11,13 @@ type CreateRequest struct {
 }
 
 // UpdateRequest é o payload de PATCH /api/v1/users/{id} (campos opcionais).
+// Password redefine a senha do usuário (ação de admin); nunca é devolvida em
+// nenhuma resposta nem gravada em audit log.
 type UpdateRequest struct {
 	Name     *string `json:"name"      validate:"omitempty,min=2,max=200"`
 	Role     *string `json:"role"      validate:"omitempty,oneof=tech admin viewer"`
 	IsActive *bool   `json:"is_active"`
+	Password *string `json:"password"  validate:"omitempty,min=8"`
 }
 
 // ListFilters são os filtros opcionais para GET /api/v1/users.

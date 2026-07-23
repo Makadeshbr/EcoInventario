@@ -18,6 +18,7 @@ type Repository interface {
 	FindRefreshToken(ctx context.Context, tokenHash string) (*RefreshTokenRecord, error)
 	RevokeRefreshToken(ctx context.Context, tokenHash string) error
 	RevokeFamily(ctx context.Context, familyID string) error
+	RevokeAllForUser(ctx context.Context, userID string) error
 }
 
 type repository struct {
@@ -107,6 +108,17 @@ func (r *repository) RevokeRefreshToken(ctx context.Context, tokenHash string) e
 	_, err := r.db.ExecContext(ctx, query, tokenHash)
 	if err != nil {
 		return fmt.Errorf("revogando refresh token: %w", err)
+	}
+	return nil
+}
+
+// RevokeAllForUser derruba todos os refresh tokens ativos do usuário. Usado no
+// reset de senha para que sessões antigas não continuem se renovando.
+func (r *repository) RevokeAllForUser(ctx context.Context, userID string) error {
+	query := `UPDATE refresh_tokens SET is_revoked = true WHERE user_id = $1 AND is_revoked = false`
+	_, err := r.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("revogando sessões do usuário: %w", err)
 	}
 	return nil
 }

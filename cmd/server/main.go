@@ -353,7 +353,7 @@ func main() {
 		log.Fatal("falha ao inicializar jwt service:", err)
 	}
 
-	userSvc := user.NewService(userRepo, auditSvc, cfg.PasswordPepper)
+	userSvc := user.NewService(userRepo, auditSvc, cfg.PasswordPepper, authRepo)
 	assetTypeSvc := assettype.NewService(assetTypeRepo, auditSvc)
 	approvalBroker := approval.NewBroker()
 

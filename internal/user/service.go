@@ -15,17 +15,30 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
+// SessionRevoker derruba os refresh tokens de um usuário. Necessário no reset
+// de senha: sem isso, uma sessão já vazada continuaria se renovando após a troca.
+type SessionRevoker interface {
+	RevokeAllForUser(ctx context.Context, userID string) error
+}
+
 // Service implementa a lógica de negócio para usuários.
 type Service struct {
-	repo   Repository
-	audit  *audit.Service
-	pepper string
-	policy adminMutationPolicy
+	repo     Repository
+	audit    *audit.Service
+	pepper   string
+	policy   adminMutationPolicy
+	sessions SessionRevoker
 }
 
 // NewService cria o serviço de usuários.
-func NewService(repo Repository, auditSvc *audit.Service, pepper string) *Service {
-	return &Service{repo: repo, audit: auditSvc, pepper: pepper, policy: adminMutationPolicy{}}
+func NewService(repo Repository, auditSvc *audit.Service, pepper string, sessions SessionRevoker) *Service {
+	return &Service{
+		repo:     repo,
+		audit:    auditSvc,
+		pepper:   pepper,
+		policy:   adminMutationPolicy{},
+		sessions: sessions,
+	}
 }
 
 // Create cria um novo usuário na organização do admin autenticado.
@@ -122,8 +135,37 @@ func (s *Service) Update(ctx context.Context, id string, req UpdateRequest) (*Us
 		u.IsActive = *req.IsActive
 	}
 
+	passwordReset := req.Password != nil
+	var newHash string
+	if passwordReset {
+		h, err := auth.HashPassword(*req.Password, s.pepper)
+		if err != nil {
+			return nil, fmt.Errorf("hashing senha: %w", err)
+		}
+		newHash = h
+		// Marcador para a auditoria: registra o evento, nunca o valor.
+		changes["password"] = "redefinida pelo admin"
+	}
+
 	if err := s.repo.Update(ctx, u); err != nil {
 		return nil, fmt.Errorf("atualizando usuário: %w", err)
+	}
+
+	// A senha vai em comando próprio: o Update geral não grava password_hash.
+	if passwordReset {
+		if err := s.repo.UpdatePassword(ctx, u.ID, orgID, newHash); err != nil {
+			return nil, fmt.Errorf("gravando nova senha: %w", err)
+		}
+		u.PasswordHash = newHash
+	}
+
+	// Revoga depois de gravar: se falhar, o admin recebe erro e pode repetir a
+	// operação (é idempotente). O access token em circulação só expira sozinho,
+	// por ser stateless — a janela é o tempo de vida dele.
+	if passwordReset {
+		if err := s.sessions.RevokeAllForUser(ctx, u.ID); err != nil {
+			return nil, fmt.Errorf("revogando sessões após reset de senha: %w", err)
+		}
 	}
 
 	s.audit.Log(ctx, audit.Entry{

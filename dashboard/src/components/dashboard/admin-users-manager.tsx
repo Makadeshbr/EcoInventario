@@ -78,10 +78,13 @@ export function AdminUsersManager({
     if (!editing) return;
 
     const form = new FormData(event.currentTarget);
+    // Campo de senha em branco = manter a atual; so envia quando preenchido.
+    const newPassword = String(form.get('password') ?? '').trim();
     const payload: UpdateUserInput = {
       name: String(form.get('name') ?? ''),
       role: String(form.get('role') ?? editing.role) as UserRole,
       isActive: form.get('is_active') === 'true',
+      ...(newPassword ? { password: newPassword } : {}),
     };
     startTransition(async () => {
       setError(null);

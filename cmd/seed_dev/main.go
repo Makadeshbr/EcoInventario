@@ -16,13 +16,14 @@ import (
 
 	"github.com/allan/ecoinventario/internal/assettype"
 	"github.com/allan/ecoinventario/internal/audit"
+	"github.com/allan/ecoinventario/internal/auth"
 	"github.com/allan/ecoinventario/internal/config"
 	"github.com/allan/ecoinventario/internal/shared"
 	"github.com/allan/ecoinventario/internal/user"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const defaultOrgID = "00000000-0000-0000-0000-000000000001"
@@ -49,7 +50,7 @@ func main() {
 	auditRepo := audit.NewRepository(db)
 	auditSvc := audit.NewService(auditRepo)
 	userRepo := user.NewRepository(db)
-	userSvc := user.NewService(userRepo, auditSvc, cfg.PasswordPepper)
+	userSvc := user.NewService(userRepo, auditSvc, cfg.PasswordPepper, auth.NewRepository(db))
 	assetTypeRepo := assettype.NewRepository(db)
 	assetTypeSvc := assettype.NewService(assetTypeRepo, auditSvc)
 
@@ -88,7 +89,10 @@ func main() {
 
 	fmt.Println("── Assets aprovados (visíveis no mapa) ──")
 
-	type sample struct{ lat, lng float64; typeID, notes string }
+	type sample struct {
+		lat, lng      float64
+		typeID, notes string
+	}
 	samples := []sample{
 		{lat: -15.7801, lng: -47.9292, typeID: arvoreID, notes: "Ipê Amarelo — Parque da Cidade, Brasília"},
 		{lat: -15.7934, lng: -47.8822, typeID: arvoreID, notes: "Mangabeira — Lago Sul, Brasília"},

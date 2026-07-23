@@ -14,6 +14,7 @@ type Repository interface {
 	FindByEmail(ctx context.Context, email, orgID string) (*User, error)
 	Insert(ctx context.Context, u *User) error
 	Update(ctx context.Context, u *User) error
+	UpdatePassword(ctx context.Context, id, orgID, passwordHash string) error
 	SoftDelete(ctx context.Context, id, orgID string) error
 	HasOtherActiveAdmin(ctx context.Context, orgID, excludeUserID string) (bool, error)
 	List(ctx context.Context, f ListFilters) ([]*User, error)
@@ -71,6 +72,25 @@ func (r *repository) Update(ctx context.Context, u *User) error {
 		return fmt.Errorf("usuário não encontrado para update")
 	}
 	return err
+}
+
+// UpdatePassword grava apenas o hash da senha. Fica separado do Update geral
+// para não arriscar sobrescrever o hash em atualizações de nome/role/status.
+func (r *repository) UpdatePassword(ctx context.Context, id, orgID, passwordHash string) error {
+	query := `
+		UPDATE users
+		SET password_hash = $1, updated_at = now()
+		WHERE id = $2 AND organization_id = $3 AND deleted_at IS NULL
+	`
+	res, err := r.db.ExecContext(ctx, query, passwordHash, id, orgID)
+	if err != nil {
+		return fmt.Errorf("atualizando senha: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return fmt.Errorf("usuário não encontrado para troca de senha")
+	}
+	return nil
 }
 
 func (r *repository) SoftDelete(ctx context.Context, id, orgID string) error {
