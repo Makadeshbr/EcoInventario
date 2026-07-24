@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { motion } from './tokens';
 
@@ -13,7 +14,11 @@ export const stackScreenOptions: NativeStackNavigationOptions = {
   headerShown: false,
   animation: 'slide_from_right',
   animationDuration: motion.duration.base,
-  gestureEnabled: true,
+  // Só no iOS, onde arrastar da borda para voltar é a convenção. No Android o
+  // padrão da plataforma é false: habilitar envolve a tela num reconhecedor de
+  // gesto que pode reivindicar o toque e cancelá-lo, tirando o foco de um
+  // campo de texto logo depois de ele receber — teclado abre e fecha na hora.
+  gestureEnabled: Platform.OS === 'ios',
 };
 
 /**
