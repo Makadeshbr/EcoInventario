@@ -31,6 +31,19 @@ export const colors = {
   accent: '#b7f569',
   accentDim: '#9dd850',
   accentDeep: '#304f00',
+
+  // ── Neo Earth Tones ────────────────────────────────────────────────────────
+  // Contraponto quente à paleta fria de verdes. Sem isto a interface fica
+  // monocromática e o neon precisa carregar sozinho todo o destaque.
+  // Uso: diferenciar tipos de ativo, dados de campo (solo/manejo), estados
+  // de atenção que não são erro, e aquecer gradientes.
+  clay: '#c9704a', // terracota — destaque quente
+  clayDim: '#a85937',
+  claySoft: '#f2e0d6', // fundo de chip/badge quente
+  sand: '#e6dac6', // neutro quente para superfícies
+  sandSoft: '#f5efe4',
+  bark: '#4a3a2c', // texto escuro quente sobre areia
+  moss: '#6b8f5a', // verde intermediário, entre sálvia e neon
 } as const;
 
 export const spacing = {
@@ -141,12 +154,17 @@ export const motion = {
 // ── Gradientes ──────────────────────────────────────────────────────────────
 // Arrays de cor para expo-linear-gradient.
 export const gradients = {
-  canvas: ['#f7faf5', '#eef4ea'],
+  // Canvas com um sopro de areia na base: evita o cinza-esverdeado chapado.
+  canvas: ['#f7faf5', '#eef4ea', '#f2ede3'],
   hero: ['#102000', '#2b4a1a', '#4d644d'], // verde profundo → sálvia
   accent: ['#b7f569', '#9dd850'],
+  // Quente, para superfícies de destaque que não são CTA.
+  earth: ['#c9704a', '#a85937'],
   sheen: ['rgba(255,255,255,0.5)', 'rgba(255,255,255,0.05)'],
   // Scrim escuro para garantir legibilidade de texto sobre fotos.
   photoScrim: ['transparent', 'rgba(16,32,0,0.75)'],
+  // Scrim mais alto e denso, para hero de tela cheia com texto sobreposto.
+  heroScrim: ['rgba(16,32,0,0)', 'rgba(16,32,0,0.45)', 'rgba(16,32,0,0.92)'],
 } as const;
 
 // ── Glass (glassmorphism) ─────────────────────────────────────────────────────

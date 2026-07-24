@@ -9,10 +9,12 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
 import { ECO_MAP_STYLE } from '@/theme/map-style';
 import { usePublicAssets, usePublicAssetTypes } from '@/features/public/queries';
+import type { PublicAssetMarker } from '@/features/public/types';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { MapHeader } from '@/components/map/MapHeader';
 import { MapFilters } from '@/components/map/MapFilters';
 import { MapMarker } from '@/components/map/MapMarker';
+import { MapPreviewSheet } from '@/components/map/MapPreviewSheet';
 import { useMapClusters, type ClusterItem } from '@/hooks/use-map-clusters';
 
 // Região inicial cobre o Sudeste do Brasil — delta grande garante que a
@@ -79,6 +81,7 @@ export default function MapExplorarScreen() {
   const [currentRegion, setCurrentRegion] = useState<Region>(INITIAL_REGION);
   const [activeBounds, setActiveBounds] = useState<string>(regionToBounds(INITIAL_REGION));
   const [selectedTypeId, setSelectedTypeId] = useState<string | undefined>();
+  const [previewAsset, setPreviewAsset] = useState<PublicAssetMarker | null>(null);
   const boundsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { isConnected } = useNetworkStatus();
@@ -164,7 +167,8 @@ export default function MapExplorarScreen() {
             <MapMarker
               key={`asset-${item.asset.id}`}
               asset={item.asset}
-              onPress={() => router.push(`/(guest)/(map)/asset/${item.asset.id}`)}
+              isSelected={previewAsset?.id === item.asset.id}
+              onPress={() => setPreviewAsset(item.asset)}
             />
           );
         })}
@@ -184,6 +188,12 @@ export default function MapExplorarScreen() {
           <Text style={styles.loadingText}>Buscando na área</Text>
         </FadeInView>
       )}
+
+      <MapPreviewSheet
+        asset={previewAsset}
+        onClose={() => setPreviewAsset(null)}
+        onOpenDetail={(assetId) => router.push(`/(guest)/(map)/asset/${assetId}`)}
+      />
 
       {(!isConnected || isError) && (
         <FadeInView from="up" style={styles.offlineBanner}>

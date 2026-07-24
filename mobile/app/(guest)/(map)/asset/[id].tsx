@@ -4,34 +4,74 @@ import {
   View,
   Text,
   StyleSheet,
-  Image,
   FlatList,
   ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
   Dimensions,
   Linking,
   Platform,
+  Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Image as ExpoImage } from 'expo-image';
 import { BlurView } from 'expo-blur';
-import { colors, radius, spacing, typography } from '@/theme/tokens';
+import { LinearGradient } from 'expo-linear-gradient';
+
+import { colors, radius, spacing, typography, glass, gradients } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PhotoLightbox } from '@/components/ui/photo-lightbox';
 import { usePublicAsset } from '@/features/public/queries';
 import { useNetworkStatus } from '@/hooks/use-network-status';
+import { iconForAssetType } from '@/utils/asset-icon';
 import type { PublicMonitoramento } from '@/features/public/types';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const HERO_HEIGHT = Math.round(SCREEN_HEIGHT * 0.52);
+
+type HealthStatus = PublicMonitoramento['health_status'];
 
 const HEALTH_CONFIG: Record<
-  PublicMonitoramento['health_status'],
-  { label: string; bg: string; text: string; border: string; icon: string }
+  HealthStatus,
+  { label: string; tint: string; onTint: string; icon: keyof typeof MaterialIcons.glyphMap }
 > = {
-  healthy:  { label: 'Saudável', bg: '#d4edda', text: '#155724', border: '#b7f569', icon: 'check-circle' },
-  warning:  { label: 'Atenção',  bg: '#fff3cd', text: '#856404', border: '#ffc107', icon: 'warning' },
-  critical: { label: 'Crítico',  bg: '#f8d7da', text: '#721c24', border: '#f5c6cb', icon: 'error' },
-  dead:     { label: 'Morto',    bg: '#e2e3e5', text: '#383d41', border: '#adb5bd', icon: 'dangerous' },
+  healthy: { label: 'Saudável', tint: colors.accent, onTint: colors.accentDeep, icon: 'eco' },
+  warning: { label: 'Atenção', tint: colors.clay, onTint: '#ffffff', icon: 'warning-amber' },
+  critical: { label: 'Crítico', tint: colors.error, onTint: '#ffffff', icon: 'error-outline' },
+  dead: { label: 'Morto', tint: colors.outline, onTint: '#ffffff', icon: 'do-not-disturb-on' },
 };
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function GlassCircleButton({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: keyof typeof MaterialIcons.glyphMap;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <PressableScale
+      style={styles.glassCircle}
+      scaleTo={0.9}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <BlurView intensity={glass.blur} tint={glass.tint} style={StyleSheet.absoluteFill} />
+      <MaterialIcons name={icon} size={22} color={colors.darkGreen} />
+    </PressableScale>
+  );
+}
 
 export default function AssetDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -40,207 +80,362 @@ export default function AssetDetailScreen() {
   const { isConnected } = useNetworkStatus();
   const { data: asset, isLoading, isError } = usePublicAsset(id!);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (isLoading) {
     return (
-      <View style={[styles.loading, { backgroundColor: '#cfeacc' }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.container}>
+        <View style={[styles.heroSkeleton, { height: HERO_HEIGHT }]} />
+        <View style={styles.skeletonSheet}>
+          <Skeleton width="55%" height={28} />
+          <Skeleton width="35%" height={16} style={{ marginTop: spacing.sm }} />
+          <Skeleton height={80} radius={20} style={{ marginTop: spacing.md }} />
+          <Skeleton height={80} radius={20} style={{ marginTop: spacing.sm }} />
+        </View>
       </View>
     );
   }
 
   if (isError || !asset) {
     return (
-      <View style={[styles.error, { paddingTop: insets.top, backgroundColor: '#cfeacc' }]}>
-        <MaterialIcons name={isConnected ? 'error-outline' : 'wifi-off'} size={48} color="#102000" />
-        <Text style={styles.errorText}>
-          {isConnected ? 'Ativo não encontrado ou indisponível.' : 'Conecte-se à internet para ver este ativo.'}
-        </Text>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>Voltar</Text>
-        </TouchableOpacity>
+      <View style={[styles.error, { paddingTop: insets.top }]}>
+        <FadeInView from="up" style={styles.errorInner}>
+          <View style={styles.errorRing}>
+            <MaterialIcons
+              name={isConnected ? 'search-off' : 'wifi-off'}
+              size={52}
+              color={colors.secondary}
+            />
+          </View>
+          <Text style={styles.errorTitle}>
+            {isConnected ? 'Ativo indisponível' : 'Sem conexão'}
+          </Text>
+          <Text style={styles.errorText}>
+            {isConnected
+              ? 'Este registro não está público ou não existe mais.'
+              : 'Conecte-se à internet para ver este ativo.'}
+          </Text>
+          <PressableScale style={styles.backBtn} onPress={() => router.back()}>
+            <MaterialIcons name="arrow-back" size={18} color={colors.accentDeep} />
+            <Text style={styles.backBtnText}>Voltar ao mapa</Text>
+          </PressableScale>
+        </FadeInView>
       </View>
     );
   }
 
-  const latestMonitoramento = asset.monitoramentos[0] ?? null;
-  const healthConfig = latestMonitoramento ? HEALTH_CONFIG[latestMonitoramento.health_status] : null;
-
-  const photos = asset.media.length > 0
-    ? asset.media
-    : [{ id: 'placeholder', url: 'https://via.placeholder.com/400', type: 'image' as const }];
+  const typeName = asset.asset_type.name;
+  const typeIcon = iconForAssetType(typeName) as keyof typeof MaterialIcons.glyphMap;
+  const photos = asset.media;
+  const hasPhotos = photos.length > 0;
+  const latest = asset.monitoramentos[0] ?? null;
+  const health = latest ? HEALTH_CONFIG[latest.health_status] : null;
 
   const openDirections = () => {
     const coords = `${asset.latitude},${asset.longitude}`;
     const url = Platform.OS === 'ios' ? `maps:?q=${coords}` : `geo:${coords}?q=${coords}`;
-    Linking.openURL(url).catch(() => Linking.openURL(`https://maps.google.com/maps?q=${coords}`));
+    Linking.openURL(url).catch(() =>
+      Linking.openURL(`https://maps.google.com/maps?q=${coords}`),
+    );
+  };
+
+  const shareAsset = async () => {
+    try {
+      await Share.share({
+        message:
+          `${typeName} — EcoInventário\n` +
+          `Código: ${asset.qr_code}\n` +
+          `Local: ${asset.latitude.toFixed(5)}, ${asset.longitude.toFixed(5)}\n` +
+          `https://maps.google.com/maps?q=${asset.latitude},${asset.longitude}`,
+        title: `EcoInventário — ${typeName}`,
+      });
+    } catch {
+      // Usuário cancelou o compartilhamento — sem ação necessária
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Header Fixo - Posicionamento Sênior */}
+      {/* Header flutuante sobre o hero */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <View style={styles.headerRow}>
-          <TouchableOpacity style={styles.glassCircle} onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={24} color="#102000" />
-          </TouchableOpacity>
-
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.glassCircle}>
-              <MaterialIcons name="share" size={22} color="#102000" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.glassCircle}>
-              <MaterialIcons name="favorite-border" size={22} color="#102000" />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <GlassCircleButton icon="arrow-back" label="Voltar" onPress={() => router.back()} />
+        <GlassCircleButton icon="share" label="Compartilhar" onPress={shareAsset} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         bounces={false}
       >
-        {/* Canvas da Planta - Ocupando a tela toda lateralmente */}
-        <View style={styles.canvas}>
-          <FlatList
-            data={photos}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id}
-            onMomentumScrollEnd={(e) => {
-              const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-              setActivePhotoIndex(index);
-            }}
-            renderItem={({ item }) => (
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: item.url }}
-                  style={styles.mainImage}
-                  resizeMode="contain"
-                />
+        {/* Hero: foto de ponta a ponta, com scrim garantindo leitura do texto */}
+        <View style={[styles.hero, { height: HERO_HEIGHT }]}>
+          {hasPhotos ? (
+            <FlatList
+              data={photos}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              onMomentumScrollEnd={(e) => {
+                setActivePhotoIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH));
+              }}
+              renderItem={({ item, index }) => (
+                <PressableScale
+                  scaleTo={0.99}
+                  haptic={false}
+                  onPress={() => setLightboxIndex(index)}
+                  style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT }}
+                >
+                  <ExpoImage
+                    source={item.url}
+                    style={StyleSheet.absoluteFill}
+                    contentFit="cover"
+                    transition={300}
+                  />
+                </PressableScale>
+              )}
+            />
+          ) : (
+            <LinearGradient colors={gradients.hero} style={StyleSheet.absoluteFill}>
+              <View style={styles.noPhoto}>
+                <MaterialIcons name={typeIcon} size={72} color="rgba(183,245,105,0.7)" />
+                <Text style={styles.noPhotoText}>Sem fotos publicadas</Text>
               </View>
-            )}
+            </LinearGradient>
+          )}
+
+          <LinearGradient
+            colors={gradients.heroScrim}
+            locations={[0, 0.55, 1]}
+            style={styles.heroScrim}
+            pointerEvents="none"
           />
 
-          {/* Orbiting Badges - Reposicionados para evitar conflito com Header */}
-          <View style={[styles.orbitBadge, styles.badgeLeft]}>
-            <BlurView intensity={25} tint="light" style={styles.badgeBlur}>
-              <View style={[styles.healthRing, { borderColor: healthConfig?.border || '#b7f569' }]}>
-                <Text style={styles.healthPercent}>90%</Text>
-              </View>
-              <MaterialIcons name="monitor-heart" size={14} color="#102000" />
-              <Text style={styles.badgeLabel}>SAÚDE</Text>
-            </BlurView>
+          {/* Identidade sobre o hero */}
+          <View style={styles.heroCaption} pointerEvents="none">
+            <View style={styles.typePill}>
+              <MaterialIcons name={typeIcon} size={13} color={colors.accentDeep} />
+              <Text style={styles.typePillText}>{typeName.toUpperCase()}</Text>
+            </View>
+            <Text style={styles.heroTitle} numberOfLines={2}>
+              {typeName}
+            </Text>
+            <Text style={styles.heroSubtitle} numberOfLines={1}>
+              {asset.organization_name}
+            </Text>
           </View>
 
-          <View style={[styles.orbitBadge, styles.badgeRight]}>
-            <BlurView intensity={25} tint="light" style={styles.badgeBlur}>
-              <View style={styles.phaseIconBox}>
-                <MaterialIcons name="eco" size={18} color="#102000" />
-              </View>
-              <Text style={styles.badgeSubLabel}>FASE</Text>
-              <Text style={styles.badgeValue}>Adulta</Text>
-            </BlurView>
-          </View>
-
-          {photos.length > 1 && (
-            <View style={styles.dots}>
-              {photos.map((_, i) => (
-                <View key={i} style={[styles.dot, i === activePhotoIndex && styles.dotActive]} />
+          {hasPhotos && photos.length > 1 ? (
+            <View style={styles.dots} pointerEvents="none">
+              {photos.map((p, i) => (
+                <View key={p.id} style={[styles.dot, i === activePhotoIndex && styles.dotActive]} />
               ))}
             </View>
-          )}
+          ) : null}
         </View>
 
-        {/* Espaçador para o Bottom Sheet */}
-        <View style={{ height: SCREEN_HEIGHT * 0.55 }} />
-      </ScrollView>
-
-      {/* Floating Bottom Sheet */}
-      <View style={[styles.sheetWrapper, { bottom: insets.bottom + 20 }]}>
-        <BlurView intensity={85} tint="light" style={styles.bottomSheet}>
+        {/* Painel de conteúdo */}
+        <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
-          
-          <ScrollView showsVerticalScrollIndicator={false} style={styles.sheetContent}>
-            <View style={styles.infoSection}>
-              <Text style={styles.assetName}>{asset.asset_type.name}</Text>
-              <Text style={styles.scientificName}>Handroanthus albus</Text>
-              
-              <View style={styles.tagContainer}>
-                <View style={styles.tag}><Text style={styles.tagText}>Nativa</Text></View>
-                <View style={styles.tag}><Text style={styles.tagText}>Floração</Text></View>
+
+          {/* Saúde: só aparece se existir monitoramento real */}
+          {health && latest ? (
+            <FadeInView delay={60} style={[styles.healthCard, { borderColor: health.tint }]}>
+              <View style={[styles.healthIcon, { backgroundColor: health.tint }]}>
+                <MaterialIcons name={health.icon} size={20} color={health.onTint} />
               </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.healthLabel}>{health.label}</Text>
+                <Text style={styles.healthMeta}>
+                  Último monitoramento em {formatDate(latest.created_at)}
+                </Text>
+              </View>
+            </FadeInView>
+          ) : null}
+
+          {/* Ficha do ativo — apenas dados que a API entrega */}
+          <FadeInView delay={110} style={styles.factGrid}>
+            <View style={styles.factCard}>
+              <MaterialIcons name="place" size={18} color={colors.secondary} />
+              <Text style={styles.factLabel}>COORDENADAS</Text>
+              <Text style={styles.factValue}>{asset.latitude.toFixed(5)}</Text>
+              <Text style={styles.factValue}>{asset.longitude.toFixed(5)}</Text>
+            </View>
+            <View style={styles.factCard}>
+              <MaterialIcons name="event" size={18} color={colors.secondary} />
+              <Text style={styles.factLabel}>CADASTRADO</Text>
+              <Text style={styles.factValue}>{formatDate(asset.created_at)}</Text>
+            </View>
+          </FadeInView>
+
+          <FadeInView delay={150} style={styles.qrRow}>
+            <MaterialIcons name="qr-code-2" size={18} color={colors.onSurfaceVariant} />
+            <Text style={styles.qrText} numberOfLines={1} ellipsizeMode="middle">
+              {asset.qr_code}
+            </Text>
+          </FadeInView>
+
+          {/* Manejos */}
+          <FadeInView delay={190} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Manejos</Text>
+              {asset.manejos.length > 0 ? (
+                <View style={styles.countPill}>
+                  <Text style={styles.countPillText}>{asset.manejos.length}</Text>
+                </View>
+              ) : null}
             </View>
 
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Histórico de Manejos</Text>
-                <MaterialIcons name="arrow-forward" size={18} color="#5f5e5e" />
-              </View>
-
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hScroll}>
-                {asset.manejos.length > 0 ? (
-                  asset.manejos.map((m) => (
-                    <View key={m.id} style={styles.manejoCard}>
-                      <Image source={{ uri: m.before_media_url || 'https://via.placeholder.com/150' }} style={styles.manejoImg} />
-                      <View style={styles.manejoMeta}>
-                        <Text style={styles.manejoTitle} numberOfLines={1}>{m.description}</Text>
-                        <Text style={styles.manejoDate}>{new Date(m.created_at).toLocaleDateString('pt-BR')}</Text>
+            {asset.manejos.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.hScrollContent}
+              >
+                {asset.manejos.map((m) => (
+                  <View key={m.id} style={styles.manejoCard}>
+                    {m.before_media_url ? (
+                      <ExpoImage
+                        source={m.before_media_url}
+                        style={styles.manejoImg}
+                        contentFit="cover"
+                        transition={220}
+                      />
+                    ) : (
+                      <View style={[styles.manejoImg, styles.manejoImgEmpty]}>
+                        <MaterialIcons name="content-cut" size={24} color={colors.secondary} />
                       </View>
+                    )}
+                    <View style={styles.manejoMeta}>
+                      <Text style={styles.manejoTitle} numberOfLines={2}>
+                        {m.description}
+                      </Text>
+                      <Text style={styles.manejoDate}>{formatDate(m.created_at)}</Text>
                     </View>
-                  ))
-                ) : (
-                  <Text style={styles.emptyText}>Nenhum manejo registrado.</Text>
-                )}
+                  </View>
+                ))}
               </ScrollView>
-            </View>
+            ) : (
+              <Text style={styles.emptyText}>Nenhum manejo registrado.</Text>
+            )}
+          </FadeInView>
 
-            <View style={styles.section}>
+          {/* Monitoramentos */}
+          <FadeInView delay={230} style={styles.section}>
+            <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Monitoramentos</Text>
               {asset.monitoramentos.length > 0 ? (
-                asset.monitoramentos.map((m) => {
-                  const cfg = HEALTH_CONFIG[m.health_status];
-                  return (
-                    <View key={m.id} style={styles.monitorCard}>
-                      <View style={[styles.statusIndicator, { backgroundColor: cfg.border }]} />
-                      <View style={styles.monitorInfo}>
-                        <View style={styles.monitorRow}>
-                          <Text style={[styles.statusLabel, { color: cfg.text }]}>{cfg.label}</Text>
-                          <Text style={styles.monitorDate}>{new Date(m.created_at).toLocaleDateString('pt-BR')}</Text>
-                        </View>
-                        {m.notes ? <Text style={styles.monitorNotes}>{m.notes}</Text> : null}
-                      </View>
-                    </View>
-                  );
-                })
-              ) : (
-                <Text style={styles.emptyText}>Nenhum monitoramento registrado.</Text>
-              )}
+                <View style={styles.countPill}>
+                  <Text style={styles.countPillText}>{asset.monitoramentos.length}</Text>
+                </View>
+              ) : null}
             </View>
-          </ScrollView>
 
-          <TouchableOpacity style={styles.actionBtn} onPress={openDirections} activeOpacity={0.9}>
-            <MaterialIcons name="directions" size={20} color="#fff" />
-            <Text style={styles.actionBtnText}>Como chegar</Text>
-          </TouchableOpacity>
-        </BlurView>
+            {asset.monitoramentos.length > 0 ? (
+              asset.monitoramentos.map((m) => {
+                const cfg = HEALTH_CONFIG[m.health_status];
+                return (
+                  <View key={m.id} style={styles.monitorCard}>
+                    <View style={[styles.statusRail, { backgroundColor: cfg.tint }]} />
+                    <View style={styles.monitorInfo}>
+                      <View style={styles.monitorRow}>
+                        <Text style={styles.statusLabel}>{cfg.label}</Text>
+                        <Text style={styles.monitorDate}>{formatDate(m.created_at)}</Text>
+                      </View>
+                      {m.notes ? <Text style={styles.monitorNotes}>{m.notes}</Text> : null}
+                    </View>
+                  </View>
+                );
+              })
+            ) : (
+              <Text style={styles.emptyText}>Nenhum monitoramento registrado.</Text>
+            )}
+          </FadeInView>
+
+          <View style={{ height: 120 }} />
+        </View>
+      </ScrollView>
+
+      {/* CTA fixo */}
+      <View style={[styles.ctaWrap, { paddingBottom: insets.bottom + spacing.gutter }]}>
+        <LinearGradient
+          colors={['rgba(247,250,245,0)', 'rgba(247,250,245,0.95)']}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <PressableScale style={styles.actionBtn} scaleTo={0.97} onPress={openDirections}>
+          <LinearGradient
+            colors={gradients.accent}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          <MaterialIcons name="directions" size={20} color={colors.accentDeep} />
+          <Text style={styles.actionBtnText}>Como chegar</Text>
+        </PressableScale>
       </View>
+
+      <PhotoLightbox
+        visible={lightboxIndex !== null}
+        photos={photos.map((p) => ({ id: p.id, uri: p.url }))}
+        initialIndex={lightboxIndex ?? 0}
+        onClose={() => setLightboxIndex(null)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, backgroundColor: colors.background },
+  scrollContent: { paddingBottom: 0 },
+
+  heroSkeleton: { backgroundColor: colors.surfaceContainerHigh },
+  skeletonSheet: {
     flex: 1,
-    backgroundColor: '#cfeacc',
+    marginTop: -32,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    backgroundColor: colors.background,
+    padding: spacing.marginMobile,
   },
-  loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  error: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  errorText: { ...typography.bodyMd, marginBottom: 20, textAlign: 'center' },
-  backBtn: { backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: radius.full },
-  backBtnText: { color: '#fff', fontWeight: 'bold' },
+
+  error: { flex: 1, backgroundColor: colors.background },
+  errorInner: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.marginMobile,
+    gap: spacing.base,
+  },
+  errorRing: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(183,245,105,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(183,245,105,0.5)',
+    marginBottom: spacing.sm,
+  },
+  errorTitle: { ...typography.headlineMd, color: colors.primary },
+  errorText: {
+    ...typography.bodyMd,
+    fontSize: 14,
+    color: colors.onSurfaceVariant,
+    textAlign: 'center',
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    marginTop: spacing.sm,
+  },
+  backBtnText: { ...typography.labelLg, color: colors.accentDeep },
 
   header: {
     position: 'absolute',
@@ -248,190 +443,231 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-  },
-  headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: spacing.marginMobile,
   },
   glassCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerActions: { flexDirection: 'row', gap: 10 },
-
-  scrollContent: { paddingTop: 0 },
-  canvas: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT * 0.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  imageContainer: {
-    width: SCREEN_WIDTH,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  mainImage: {
-    width: '100%', // Agora consome toda a lateral se necessário
-    height: '100%',
-    transform: [{ scale: 1.1 }], // Leve zoom para garantir o preenchimento sênior
-  },
-
-  orbitBadge: {
-    position: 'absolute',
-    borderRadius: 30,
     overflow: 'hidden',
-    zIndex: 50,
-    elevation: 10,
-  },
-  badgeBlur: {
-    padding: 10,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  // Reposicionados para não bater no Header
-  badgeLeft: { 
-    left: 15, 
-    top: '35%', // Baixei o badge da saúde
-  },
-  badgeRight: { 
-    right: 15, 
-    top: '55%', 
-  },
-
-  healthRing: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: 2,
-    borderColor: '#b7f569',
+    backgroundColor: glass.bgStrong,
+    borderWidth: 1,
+    borderColor: glass.border,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 4,
+    shadowColor: glass.shadowTint,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  healthPercent: { fontSize: 10, fontWeight: '900', color: '#102000' },
-  badgeLabel: { fontSize: 8, fontWeight: 'bold', color: '#102000' },
-  
-  phaseIconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
-  },
-  badgeSubLabel: { fontSize: 8, color: '#102000', opacity: 0.6 },
-  badgeValue: { fontSize: 10, fontWeight: 'bold', color: '#102000' },
 
+  hero: { width: '100%', backgroundColor: colors.surfaceContainerHigh },
+  heroScrim: { position: 'absolute', left: 0, right: 0, bottom: 0, height: '65%' },
+  noPhoto: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  noPhotoText: { ...typography.labelLg, color: 'rgba(255,255,255,0.7)' },
+  heroCaption: {
+    position: 'absolute',
+    left: spacing.marginMobile,
+    right: spacing.marginMobile,
+    bottom: 56,
+    gap: 4,
+  },
+  typePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.full,
+    backgroundColor: colors.accent,
+  },
+  typePillText: {
+    ...typography.labelMd,
+    fontSize: 10,
+    letterSpacing: 1,
+    color: colors.accentDeep,
+  },
+  heroTitle: {
+    ...typography.headlineLg,
+    color: '#ffffff',
+    marginTop: 6,
+  },
+  heroSubtitle: {
+    ...typography.bodyMd,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.85)',
+  },
   dots: {
     position: 'absolute',
     bottom: 30,
-    width: '100%',
+    alignSelf: 'center',
     flexDirection: 'row',
-    justifyContent: 'center',
     gap: 6,
   },
-  dot: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: 'rgba(16,32,0,0.1)' },
-  dotActive: { width: 14, backgroundColor: colors.secondary },
-
-  sheetWrapper: {
-    position: 'absolute',
-    left: 20,
-    right: 20,
-    zIndex: 100,
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.45)',
   },
-  bottomSheet: {
-    borderRadius: 32,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    maxHeight: SCREEN_HEIGHT * 0.55,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    shadowColor: '#102000',
-    shadowOffset: { width: 0, height: 15 },
-    shadowOpacity: 0.15,
-    shadowRadius: 30,
-    elevation: 10,
+  dotActive: { width: 18, backgroundColor: colors.accent },
+
+  sheet: {
+    marginTop: -32,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.marginMobile,
+    paddingTop: spacing.sm,
   },
   sheetHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: 'rgba(16, 32, 0, 0.1)',
-    borderRadius: 2,
     alignSelf: 'center',
-    marginBottom: 20,
+    width: 44,
+    height: 5,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(68,71,72,0.2)',
+    marginBottom: spacing.md,
   },
-  sheetContent: { flexShrink: 1 },
-  infoSection: { marginBottom: 24 },
-  assetName: { fontSize: 32, fontWeight: '900', color: '#102000', letterSpacing: -1 },
-  scientificName: { fontSize: 15, fontStyle: 'italic', color: '#5f5e5e', marginBottom: 12 },
-  tagContainer: { flexDirection: 'row', gap: 8 },
-  tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  tagText: { fontSize: 10, fontWeight: '700', color: '#102000' },
 
-  section: { marginBottom: 24 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontSize: 12, fontWeight: '900', color: '#102000', textTransform: 'uppercase', letterSpacing: 1 },
-  
-  hScroll: { marginHorizontal: -24, paddingHorizontal: 24 },
+  healthCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: 20,
+    borderWidth: 1,
+    backgroundColor: colors.surfaceContainerLowest,
+    marginBottom: spacing.md,
+  },
+  healthIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  healthLabel: { ...typography.labelLg, color: colors.primary },
+  healthMeta: { ...typography.labelSm, color: colors.onSurfaceVariant, marginTop: 1 },
+
+  factGrid: { flexDirection: 'row', gap: spacing.sm },
+  factCard: {
+    flex: 1,
+    padding: spacing.sm,
+    borderRadius: 20,
+    backgroundColor: colors.surfaceContainerLowest,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.8)',
+    gap: 2,
+    shadowColor: '#2d3a2d',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+    elevation: 1,
+  },
+  factLabel: {
+    ...typography.labelMd,
+    fontSize: 10,
+    letterSpacing: 0.8,
+    color: colors.outline,
+    marginTop: 4,
+  },
+  factValue: { ...typography.labelLg, color: colors.onBackground },
+
+  qrRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    backgroundColor: colors.surfaceContainer,
+  },
+  qrText: { ...typography.labelSm, color: colors.onSurfaceVariant, flex: 1 },
+
+  section: { marginTop: spacing.md },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: { ...typography.headlineMd, fontSize: 18, color: colors.primary },
+  countPill: {
+    minWidth: 24,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(183,245,105,0.35)',
+    alignItems: 'center',
+  },
+  countPillText: { ...typography.labelMd, color: colors.accentDeep },
+  hScrollContent: { gap: spacing.sm, paddingRight: spacing.sm },
+
   manejoCard: {
-    width: 125,
-    marginRight: 12,
+    width: 168,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255,255,255,0.8)',
   },
-  manejoImg: { width: '100%', height: 85 },
-  manejoMeta: { padding: 10 },
-  manejoTitle: { fontSize: 11, fontWeight: 'bold', color: '#102000' },
-  manejoDate: { fontSize: 9, color: '#5f5e5e' },
+  manejoImg: { width: '100%', height: 110, backgroundColor: colors.surfaceContainerHigh },
+  manejoImgEmpty: { alignItems: 'center', justifyContent: 'center' },
+  manejoMeta: { padding: spacing.base, gap: 2 },
+  manejoTitle: { ...typography.labelLg, fontSize: 13, color: colors.onBackground },
+  manejoDate: { ...typography.labelSm, color: colors.outline },
 
   monitorCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
-    padding: 12,
-    marginBottom: 8,
+    overflow: 'hidden',
+    borderRadius: 20,
+    backgroundColor: colors.surfaceContainerLowest,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255,255,255,0.8)',
+    marginBottom: spacing.base,
   },
-  statusIndicator: { width: 3, borderRadius: 2, marginRight: 12 },
-  monitorInfo: { flex: 1 },
-  monitorRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
-  statusLabel: { fontSize: 12, fontWeight: '800' },
-  monitorDate: { fontSize: 9, color: '#5f5e5e' },
-  monitorNotes: { fontSize: 11, color: '#102000', lineHeight: 16, opacity: 0.8 },
+  statusRail: { width: 5 },
+  monitorInfo: { flex: 1, padding: spacing.sm, gap: 2 },
+  monitorRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  statusLabel: { ...typography.labelLg, color: colors.primary },
+  monitorDate: { ...typography.labelSm, color: colors.outline },
+  monitorNotes: { ...typography.bodyMd, fontSize: 13, color: colors.onSurfaceVariant },
 
-  emptyText: { fontSize: 11, fontStyle: 'italic', color: '#5f5e5e' },
+  emptyText: { ...typography.bodyMd, fontSize: 14, color: colors.outline },
 
+  ctaWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: spacing.marginMobile,
+    paddingTop: spacing.lg,
+  },
   actionBtn: {
-    backgroundColor: '#000',
-    borderRadius: 30,
-    paddingVertical: 18,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 10,
+    justifyContent: 'center',
+    gap: spacing.xs,
+    height: 56,
+    borderRadius: radius.full,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+    shadowColor: colors.accentDim,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  actionBtnText: { color: '#fff', fontSize: 15, fontWeight: '900' },
+  actionBtnText: {
+    ...typography.labelLg,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    fontSize: 16,
+    color: colors.accentDeep,
+  },
 });
