@@ -17,17 +17,13 @@ import { useLogin } from '@/features/auth/hooks/use-login';
 import { colors, spacing, radius, typography, gradients } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { PressableScale } from '@/components/ui/pressable-scale';
-import { FadeInView } from '@/components/ui/fade-in-view';
 import { Icon } from '@/components/ui/icon';
-
-type Field = 'email' | 'password';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [focused, setFocused] = useState<Field | null>(null);
 
   const { handleLogin, isLoading, error } = useLogin();
 
@@ -45,11 +41,6 @@ export default function LoginScreen() {
     handleLogin(result.data);
   }
 
-  /** Borda do campo: erro > foco > repouso. */
-  function fieldStyle(field: Field, hasError: boolean) {
-    if (hasError) return styles.inputErrorState;
-    return focused === field ? styles.inputFocused : null;
-  }
 
   return (
     <GradientBackground>
@@ -65,7 +56,7 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Header */}
-          <FadeInView from="up" style={styles.header}>
+          <View style={styles.header}>
             <View style={styles.iconCircle}>
               <Icon name="leaf" size={32} color={colors.accentDeep} />
             </View>
@@ -73,37 +64,34 @@ export default function LoginScreen() {
               <Text style={styles.title}>Acesso Profissional</Text>
               <Text style={styles.subtitle}>Sistemas de controle e monitoramento</Text>
             </View>
-          </FadeInView>
+          </View>
 
           {/* Erro de API */}
           {error && (
-            <FadeInView style={styles.apiError}>
+            <View style={styles.apiError}>
               <Icon name="error" size={18} color={colors.onErrorContainer} />
               <Text style={styles.apiErrorText}>{error}</Text>
-            </FadeInView>
+            </View>
           )}
 
-          {/* Formulário em painel de vidro.
-              Sem animação de entrada aqui de propósito: um container animado
-              com translate desloca o conteúdo mas mantém a área de toque na
-              posição antiga, e o toque cai no campo errado. */}
+          {/* Formulário. Nada de animado nem de nativo entre a ScrollView e os
+              campos: o passo 1 do wizard, que sempre funcionou, tem essa mesma
+              estrutura plana. Aqui era onde o foco morria. */}
           <View style={styles.formWrap}>
             <View style={styles.form}>
               {/* Email */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>E-mail</Text>
-                <View style={[styles.inputRow, fieldStyle('email', !!emailError)]}>
+                <View style={[styles.inputRow, emailError ? styles.inputErrorState : null]}>
                   <Icon
                     name="mail"
                     size={20}
-                    color={focused === 'email' ? colors.secondary : colors.outline}
+                    color={colors.outline}
                   />
                   <TextInput
                     style={styles.input}
                     value={email}
                     onChangeText={setEmail}
-                    onFocus={() => setFocused('email')}
-                    onBlur={() => setFocused(null)}
                     placeholder="credencial@ecoinventario.com"
                     placeholderTextColor={colors.outline}
                     keyboardType="email-address"
@@ -120,18 +108,16 @@ export default function LoginScreen() {
               {/* Senha */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>Senha</Text>
-                <View style={[styles.inputRow, fieldStyle('password', !!passwordError)]}>
+                <View style={[styles.inputRow, passwordError ? styles.inputErrorState : null]}>
                   <Icon
                     name="lock"
                     size={20}
-                    color={focused === 'password' ? colors.secondary : colors.outline}
+                    color={colors.outline}
                   />
                   <TextInput
                     style={styles.input}
                     value={password}
                     onChangeText={setPassword}
-                    onFocus={() => setFocused('password')}
-                    onBlur={() => setFocused(null)}
                     placeholder="••••••••"
                     placeholderTextColor={colors.outline}
                     secureTextEntry
@@ -166,7 +152,7 @@ export default function LoginScreen() {
           </View>
 
           {/* Voltar */}
-          <FadeInView delay={200}>
+          <View>
             <PressableScale
               style={styles.backLink}
               haptic={false}
@@ -175,7 +161,7 @@ export default function LoginScreen() {
             >
               <Text style={styles.backLinkText}>← Voltar</Text>
             </PressableScale>
-          </FadeInView>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </GradientBackground>
