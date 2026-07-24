@@ -16,7 +16,6 @@ import { loginSchema } from '@/features/auth/schemas';
 import { useLogin } from '@/features/auth/hooks/use-login';
 import { colors, spacing, radius, typography, gradients } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
-import { GlassCard } from '@/components/ui/glass-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
 import { Icon } from '@/components/ui/icon';
@@ -89,7 +88,7 @@ export default function LoginScreen() {
               com translate desloca o conteúdo mas mantém a área de toque na
               posição antiga, e o toque cai no campo errado. */}
           <View style={styles.formWrap}>
-            <GlassCard strong style={styles.form} radius={32}>
+            <View style={styles.form}>
               {/* Email */}
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>E-mail</Text>
@@ -163,7 +162,7 @@ export default function LoginScreen() {
                   {isLoading ? 'Entrando…' : 'Entrar'}
                 </Text>
               </PressableScale>
-            </GlassCard>
+            </View>
           </View>
 
           {/* Voltar */}
@@ -190,9 +189,10 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingHorizontal: spacing.marginMobile,
-    paddingVertical: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
   },
   header: {
     alignItems: 'center',
@@ -255,6 +255,15 @@ const styles = StyleSheet.create({
   form: {
     padding: spacing.md,
     gap: spacing.md,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.72)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.85)',
+    shadowColor: '#2d3a2d',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 4,
   },
   fieldGroup: {
     gap: spacing.base,
