@@ -10,6 +10,7 @@ import { FadeInView } from '@/components/ui/fade-in-view';
 import { ECO_MAP_STYLE } from '@/theme/map-style';
 import { usePublicAssets, usePublicAssetTypes } from '@/features/public/queries';
 import type { PublicAssetMarker } from '@/features/public/types';
+import { useMapUiStore } from '@/stores/map-ui-store';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { MapHeader } from '@/components/map/MapHeader';
 import { MapFilters } from '@/components/map/MapFilters';
@@ -83,6 +84,17 @@ export default function MapExplorarScreen() {
   const [selectedTypeId, setSelectedTypeId] = useState<string | undefined>();
   const [previewAsset, setPreviewAsset] = useState<PublicAssetMarker | null>(null);
   const boundsTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const setPreviewOpen = useMapUiStore((s) => s.setPreviewOpen);
+
+  // A tab bar do visitante vive fora desta tela e é pintada por cima dela.
+  // Avisamos o layout para que ela saia enquanto a prévia estiver aberta,
+  // senão o CTA "Ver detalhes" fica embaixo da barra e não recebe toque.
+  useEffect(() => {
+    setPreviewOpen(previewAsset !== null);
+  }, [previewAsset, setPreviewOpen]);
+
+  // Ao sair da tela a barra precisa voltar, mesmo com a prévia aberta.
+  useEffect(() => () => setPreviewOpen(false), [setPreviewOpen]);
 
   const { isConnected } = useNetworkStatus();
   const { data: assetTypes } = usePublicAssetTypes();

@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors, spacing, typography, glass, gradients, motion } from '@/theme/tokens';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { useMapUiStore } from '@/stores/map-ui-store';
 
 const TABS = [
   { name: '(map)', label: 'Mapa', icon: 'map' as const },
@@ -15,10 +16,13 @@ const TABS = [
 
 function GuestTabBar({ state, navigation }: BottomTabBarProps) {
   const pathname = usePathname();
-  
+  const isPreviewOpen = useMapUiStore((s) => s.isPreviewOpen);
+
   // Esconde o TabBar se estiver em uma tela de detalhe (asset/[id])
   const isDetailScreen = pathname.includes('/asset/');
-  if (isDetailScreen) return null;
+  // ...e enquanto a prévia do ativo estiver aberta no mapa: a barra é pintada
+  // por cima da tela e cobriria o CTA da prévia.
+  if (isDetailScreen || isPreviewOpen) return null;
 
   return (
     <View style={styles.container} pointerEvents="box-none">
