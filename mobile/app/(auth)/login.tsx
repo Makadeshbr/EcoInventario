@@ -186,10 +186,13 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
+  // Sem flexGrow de propósito: com ele o conteúdo estica para preencher a
+  // ScrollView, então toda vez que o teclado abre (adjustResize encolhe a
+  // janela) o container re-mede e re-layouta os campos, e o TextInput perde o
+  // foco — o teclado aparecia e sumia na hora. O passo do wizard, que tem
+  // campo de texto e sempre funcionou, usa exatamente este formato: só padding.
   scroll: {
-    flexGrow: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
     paddingHorizontal: spacing.marginMobile,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
