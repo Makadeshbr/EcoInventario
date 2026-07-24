@@ -6,7 +6,6 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
-  ActivityIndicator,
   Image,
   Animated,
 } from 'react-native';
@@ -16,11 +15,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useHomeData } from '@/features/assets/hooks/use-home-data';
 import { useSyncStore } from '@/stores/sync-store';
 import { useAuthStore } from '@/stores/auth-store';
-import { colors, spacing, radius, typography } from '@/theme/tokens';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, radius, typography, gradients } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { GlassCard } from '@/components/ui/glass-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Asset } from '@/types/domain';
 
 const STATUS_LABELS: Record<Asset['status'], string> = {
@@ -198,27 +199,43 @@ export default function HomeScreen() {
   return (
     <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header limpo: só o nome do app */}
-      <View style={styles.header}>
-        <Text style={styles.logoText}>EcoInventário</Text>
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Greeting */}
-        <FadeInView from="up" style={styles.greeting}>
-          <Text style={styles.greetingTitle}>Olá, {firstName}</Text>
-          <Text style={styles.greetingSubtitle}>Visão geral do sistema.</Text>
-        </FadeInView>
+        {/* Hero: bloco escuro que ancora o topo e dá profundidade ao canvas
+            claro. Os cards de estatística flutuam sobre a borda inferior. */}
+        <View style={styles.hero}>
+          <LinearGradient
+            colors={gradients.hero}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          {/* Brilho neon difuso no canto, para o bloco não ficar chapado */}
+          <View style={styles.heroGlow} pointerEvents="none" />
 
-        <SyncIndicator />
+          <FadeInView from="up" style={styles.heroContent}>
+            <Text style={styles.heroBrand}>ECOINVENTÁRIO</Text>
+            <Text style={styles.heroTitle}>Olá, {firstName}</Text>
+            <Text style={styles.heroSubtitle}>Visão geral do sistema.</Text>
+            <SyncIndicator />
+          </FadeInView>
+        </View>
 
         {/* Stats 2×2 — duas linhas explícitas para evitar overflow com flexWrap */}
         {isLoading ? (
-          <ActivityIndicator color={colors.secondary} style={{ marginVertical: spacing.md }} />
+          <View style={styles.statsGrid}>
+            <View style={styles.statsRow}>
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+            </View>
+            <View style={styles.statsRow}>
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+            </View>
+          </View>
         ) : (
           <View style={styles.statsGrid}>
             <View style={styles.statsRow}>
@@ -322,7 +339,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
   },
-  content: { paddingHorizontal: spacing.marginMobile, paddingBottom: 40 },
+  content: { paddingBottom: 40 },
+  hero: {
+    overflow: 'hidden',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingHorizontal: spacing.marginMobile,
+    paddingTop: spacing.md,
+    // O bloco desce atrás dos cards; os cards sobem com margem negativa.
+    paddingBottom: 96,
+    marginBottom: -72,
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: -70,
+    right: -50,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(183,245,105,0.18)',
+  },
+  heroContent: { gap: 2 },
+  heroBrand: {
+    ...typography.labelMd,
+    letterSpacing: 2.4,
+    color: 'rgba(183,245,105,0.85)',
+    marginBottom: spacing.base,
+  },
+  heroTitle: {
+    ...typography.headlineLg,
+    color: '#ffffff',
+  },
+  heroSubtitle: {
+    ...typography.bodyMd,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+    marginBottom: spacing.base,
+  },
   greeting: { marginBottom: spacing.md },
   greetingTitle: {
     ...typography.headlineLg,
@@ -337,7 +390,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    marginBottom: spacing.sm,
+    marginTop: spacing.base,
+    marginBottom: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: radius.default,
@@ -349,6 +403,7 @@ const styles = StyleSheet.create({
   statsGrid: {
     marginBottom: spacing.lg,
     gap: spacing.gutter,
+    paddingHorizontal: spacing.marginMobile,
   },
   statsRow: {
     flexDirection: 'row',
@@ -407,6 +462,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   sectionHeader: {
+    paddingHorizontal: spacing.marginMobile,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
@@ -416,6 +472,7 @@ const styles = StyleSheet.create({
   seeAll: { ...typography.labelLg, color: colors.secondary },
   listItem: {
     ...GLASS,
+    marginHorizontal: spacing.marginMobile,
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.gutter,
@@ -452,6 +509,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   emptyState: {
+    paddingHorizontal: spacing.marginMobile,
     alignItems: 'center',
     paddingVertical: spacing.xl,
     gap: spacing.sm,

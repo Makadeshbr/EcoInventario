@@ -13,8 +13,8 @@ import { FadeInView } from '@/components/ui/fade-in-view';
  */
 const SCRIM_COLORS = [
   'rgba(247,250,245,0)',
-  'rgba(247,250,245,0.55)',
-  'rgba(247,250,245,0.94)',
+  'rgba(247,250,245,0.5)',
+  'rgba(245,239,228,0.96)',
 ] as const;
 
 function GlassBadge({
@@ -163,11 +163,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    alignSelf: 'center',
+    marginBottom: spacing.sm,
+  },
+  brandDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accentDim,
+  },
+  brandText: {
+    ...typography.labelMd,
+    letterSpacing: 2.2,
+    color: colors.secondary,
+  },
   title: {
-    ...typography.headlineLg,
+    ...typography.display,
+    fontSize: 40,
+    lineHeight: 46,
     color: colors.onBackground,
     textAlign: 'center',
-    marginBottom: spacing.lg,
+  },
+  subtitle: {
+    ...typography.bodyMd,
+    fontSize: 15,
+    color: colors.onSurfaceVariant,
+    textAlign: 'center',
+    marginTop: spacing.base,
+    marginBottom: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
 
   buttons: {
