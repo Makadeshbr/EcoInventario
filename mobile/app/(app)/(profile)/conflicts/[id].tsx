@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import {
   resolveConflictForceLocal,
   type ConflictRecord,
 } from '@/sync/conflict-handler';
+import { Icon } from '@/components/ui/icon';
 
 export default function ConflictDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -103,7 +103,7 @@ export default function ConflictDetailScreen() {
       <Stack.Screen options={{ title: 'Resolver Conflito' }} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.infoBox}>
-          <MaterialIcons name="info-outline" size={20} color={colors.secondary} />
+          <Icon name="info" size={20} color={colors.secondary} />
           <Text style={styles.infoText}>
             Este item foi modificado no servidor enquanto você estava offline. Escolha qual versão manter.
           </Text>

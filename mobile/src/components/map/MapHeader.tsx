@@ -1,13 +1,13 @@
 import React from 'react';
 import { Text, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { colors, spacing, glass } from '@/theme/tokens';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
 import { router } from 'expo-router';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 interface MapHeaderProps {
   onLocationPress: () => void;
@@ -24,7 +24,7 @@ function GlassButton({
   label,
   onPress,
 }: {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   label: string;
   onPress: () => void;
 }) {
@@ -37,7 +37,7 @@ function GlassButton({
       accessibilityLabel={label}
     >
       <BlurView intensity={glass.blur} tint={glass.tint} style={StyleSheet.absoluteFill} />
-      <MaterialIcons name={icon} size={22} color={colors.onSurface} />
+      <Icon name={icon} size={22} color={colors.onSurface} />
     </PressableScale>
   );
 }
@@ -58,14 +58,14 @@ export function MapHeader({ onLocationPress }: MapHeaderProps) {
 
       {/* Header posicionado absolutamente */}
       <FadeInView from="up" style={[styles.container, { paddingTop: insets.top + 12 }]}>
-        <GlassButton icon="arrow-back" label="Voltar" onPress={() => router.back()} />
+        <GlassButton icon="back" label="Voltar" onPress={() => router.back()} />
 
         <Text style={styles.title} numberOfLines={1}>
           EcoInventário
         </Text>
 
         <GlassButton
-          icon="my-location"
+          icon="myLocation"
           label="Ir para minha localização"
           onPress={onLocationPress}
         />

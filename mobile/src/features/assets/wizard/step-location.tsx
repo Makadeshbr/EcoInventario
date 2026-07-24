@@ -7,7 +7,6 @@ import {
   Animated,
 } from 'react-native';
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { colors } from '@/theme/tokens';
@@ -15,6 +14,7 @@ import { GPS_ACCURACY_THRESHOLD_M } from '@/constants/config';
 import type { WizardState } from './wizard-types';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { wizardStyles as styles } from './wizard-styles';
+import { Icon } from '@/components/ui/icon';
 
 interface Props {
   state: WizardState;
@@ -157,7 +157,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
       <View style={styles.infoCard}>
         <View style={styles.infoRow}>
           <View style={styles.infoIconWrap}>
-            <MaterialIcons name="my-location" size={20} color={colors.onSecondaryContainer} />
+            <Icon name="myLocation" size={20} color={colors.onSecondaryContainer} />
           </View>
           <View>
             <Text style={styles.infoLabel}>Coordenadas</Text>
@@ -172,7 +172,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
         </View>
         <View style={[styles.infoRow, styles.infoRowBorderless]}>
           <View style={[styles.infoIconWrap, { backgroundColor: colors.surfaceContainerHigh }]}>
-            <MaterialIcons name="radar" size={20} color={colors.outline} />
+            <Icon name="radar" size={20} color={colors.outline} />
           </View>
           <View>
             <Text style={styles.infoLabel}>Precisão</Text>
@@ -210,7 +210,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
             />
           </View>
           <PressableScale style={styles.secondaryButton} onPress={applyManualLocation}>
-            <MaterialIcons name="edit-location" size={18} color={colors.secondary} />
+            <Icon name="editLocation" size={18} color={colors.secondary} />
             <Text style={styles.secondaryButtonText}>Usar coordenadas</Text>
           </PressableScale>
         </View>
@@ -218,7 +218,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
 
       {hasCoords && manualAdjusting && (
         <View style={styles.reviewNotice}>
-          <MaterialIcons name="touch-app" size={16} color={colors.secondary} />
+          <Icon name="tap" size={16} color={colors.secondary} />
           <Text style={styles.reviewNoticeText}>
             Toque no mapa ou arraste o PIN para marcar o ponto exato.
           </Text>
@@ -232,7 +232,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
           disabled={!hasCoords}
          
         >
-          <MaterialIcons name="edit-location-alt" size={18} color={colors.secondary} />
+          <Icon name="editLocation" size={18} color={colors.secondary} />
           <Text style={styles.secondaryButtonText}>
             {manualAdjusting ? 'Fixar PIN' : 'Ajustar no mapa'}
           </Text>
@@ -245,7 +245,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
         >
           {capturing
             ? <ActivityIndicator color={colors.secondary} size="small" />
-            : <MaterialIcons name="gps-fixed" size={18} color={colors.secondary} />}
+            : <Icon name="myLocation" size={18} color={colors.secondary} />}
           <Text style={styles.secondaryButtonText}>
             {capturing ? 'Capturando...' : 'Recapturar GPS'}
           </Text>
@@ -257,7 +257,7 @@ export function StepLocation({ state, onChange, onNext }: Props) {
          
         >
           <Text style={styles.primaryButtonText}>Próximo</Text>
-          <MaterialIcons name="arrow-forward" size={18} color={colors.accentDeep} />
+          <Icon name="forward" size={18} color={colors.accentDeep} />
         </PressableScale>
       </View>
     </View>

@@ -2,7 +2,6 @@ import { View, Text, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { motion } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
@@ -18,6 +17,7 @@ import { StepTypeNotes } from '@/features/assets/wizard/step-type-notes';
 import { StepLocation } from '@/features/assets/wizard/step-location';
 import { StepPhotos } from '@/features/assets/wizard/step-photos';
 import { StepReview } from '@/features/assets/wizard/step-review';
+import { Icon } from '@/components/ui/icon';
 
 export default function CriarAssetScreen() {
   const [step, setStep] = useState<Step>(1);
@@ -90,7 +90,7 @@ export default function CriarAssetScreen() {
             style={styles.backButton}
             onPress={() => (step === 1 ? router.back() : setStep((s) => (s - 1) as Step))}
           >
-            <MaterialIcons name="arrow-back" size={20} color={styles.stepTitle.color} />
+            <Icon name="back" size={20} color={styles.stepTitle.color} />
           </PressableScale>
           <View style={{ alignItems: 'center' }}>
             <Text style={styles.stepIndicator}>Passo {step} de 4</Text>

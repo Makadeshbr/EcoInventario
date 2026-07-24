@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useCreateMonitoramento } from '@/features/assets/hooks/use-create-monitoramento';
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
 import { SyncEngine } from '@/sync/sync-engine';
@@ -21,9 +20,10 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Icon } from '@/components/ui/icon';
 
 const HEALTH_OPTIONS = [
-  { id: 'healthy', label: 'Saudável', icon: 'check-circle', color: '#304f00', bg: 'rgba(183,245,105,0.3)' },
+  { id: 'healthy', label: 'Saudável', icon: 'success', color: '#304f00', bg: 'rgba(183,245,105,0.3)' },
   { id: 'warning', label: 'Atenção (Pragas/Doenças)', icon: 'warning', color: '#8a6500', bg: '#ffefa3' },
   { id: 'critical', label: 'Crítico (Risco de morte)', icon: 'error', color: colors.onErrorContainer, bg: colors.errorContainer },
   { id: 'dead', label: 'Morta/Caída', icon: 'cancel', color: colors.onSurfaceVariant, bg: colors.surfaceVariant },
@@ -100,7 +100,7 @@ export default function CriarMonitoramentoScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <PressableScale style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+          <Icon name="back" size={20} color={colors.onBackground} />
         </PressableScale>
         <Text style={styles.headerTitle}>Monitoramento</Text>
         <View style={{ width: 44 }} />
@@ -112,7 +112,7 @@ export default function CriarMonitoramentoScreen() {
       >
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.assetContextCard}>
-            <MaterialIcons name="park" size={20} color={colors.secondary} />
+            <Icon name="tree" size={20} color={colors.secondary} />
             <Text style={styles.assetContextText} numberOfLines={1}>{asset.assetTypeName}</Text>
           </View>
 
@@ -130,7 +130,7 @@ export default function CriarMonitoramentoScreen() {
                   onPress={() => setHealthStatus(opt.id)}
                  
                 >
-                  <MaterialIcons
+                  <Icon
                     name={opt.icon as any}
                     size={20}
                     color={isActive ? opt.color : colors.outline}
@@ -158,7 +158,7 @@ export default function CriarMonitoramentoScreen() {
 
           {!isConnected && (
             <View style={styles.offlineNotice}>
-              <MaterialIcons name="cloud-off" size={16} color={colors.secondary} />
+              <Icon name="cloudOff" size={16} color={colors.secondary} />
               <Text style={styles.offlineNoticeText}>
                 Este monitoramento será salvo offline e sincronizado automaticamente.
               </Text>
@@ -177,7 +177,7 @@ export default function CriarMonitoramentoScreen() {
           >
             {isSaving || isSubmittingFlow
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
-              : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
+              : <Icon name="send" size={18} color={colors.onPrimary} />}
             <Text style={styles.saveButtonText}>
               {isSaving || isSubmittingFlow ? 'Enviando...' : 'Enviar avaliação'}
             </Text>

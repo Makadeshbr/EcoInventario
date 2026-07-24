@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons } from '@expo/vector-icons';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -18,6 +17,7 @@ import { colors, spacing, radius, typography, glass, gradients, motion } from '@
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { iconForAssetType } from '@/utils/asset-icon';
 import type { PublicAssetMarker } from '@/features/public/types';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SHEET_HEIGHT = 232;
@@ -71,7 +71,7 @@ export function MapPreviewSheet({ asset, onClose, onOpenDetail }: MapPreviewShee
   if (!asset) return null;
 
   const typeName = asset.asset_type?.name ?? 'Ativo';
-  const icon = iconForAssetType(typeName) as keyof typeof MaterialIcons.glyphMap;
+  const icon = iconForAssetType(typeName);
 
   return (
     <GestureDetector gesture={pan}>
@@ -100,14 +100,14 @@ export function MapPreviewSheet({ asset, onClose, onOpenDetail }: MapPreviewShee
                 end={{ x: 1, y: 1 }}
                 style={[styles.thumb, styles.thumbFallback]}
               >
-                <MaterialIcons name={icon} size={34} color={colors.accentDeep} />
+                <Icon name={icon} size={34} color={colors.accentDeep} />
               </LinearGradient>
             )}
           </View>
 
           <View style={styles.info}>
             <View style={styles.typePill}>
-              <MaterialIcons name={icon} size={13} color={colors.accentDeep} />
+              <Icon name={icon} size={13} color={colors.accentDeep} />
               <Text style={styles.typePillText} numberOfLines={1}>
                 {typeName.toUpperCase()}
               </Text>
@@ -118,13 +118,13 @@ export function MapPreviewSheet({ asset, onClose, onOpenDetail }: MapPreviewShee
             </Text>
 
             <View style={styles.metaRow}>
-              <MaterialIcons name="place" size={14} color={colors.onSurfaceVariant} />
+              <Icon name="place" size={14} color={colors.onSurfaceVariant} />
               <Text style={styles.metaText} numberOfLines={1}>
                 {asset.latitude.toFixed(5)}, {asset.longitude.toFixed(5)}
               </Text>
             </View>
             <View style={styles.metaRow}>
-              <MaterialIcons name="qr-code-2" size={14} color={colors.onSurfaceVariant} />
+              <Icon name="qrCode" size={14} color={colors.onSurfaceVariant} />
               <Text style={styles.metaText} numberOfLines={1} ellipsizeMode="middle">
                 {asset.qr_code}
               </Text>
@@ -138,7 +138,7 @@ export function MapPreviewSheet({ asset, onClose, onOpenDetail }: MapPreviewShee
             accessibilityRole="button"
             accessibilityLabel="Fechar prévia"
           >
-            <MaterialIcons name="close" size={18} color={colors.onSurfaceVariant} />
+            <Icon name="close" size={18} color={colors.onSurfaceVariant} />
           </PressableScale>
         </View>
 
@@ -154,7 +154,7 @@ export function MapPreviewSheet({ asset, onClose, onOpenDetail }: MapPreviewShee
             style={StyleSheet.absoluteFill}
           />
           <Text style={styles.ctaText}>Ver detalhes</Text>
-          <MaterialIcons name="arrow-forward" size={18} color={colors.accentDeep} />
+          <Icon name="forward" size={18} color={colors.accentDeep} />
         </PressableScale>
       </Animated.View>
     </GestureDetector>

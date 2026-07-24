@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Marker } from 'react-native-maps';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '@/theme/tokens';
 import { iconForAssetType } from '@/utils/asset-icon';
+import { Icon } from '@/components/ui/icon';
 
 interface MapMarkerProps {
   asset: {
@@ -47,8 +47,8 @@ export function MapMarker({ asset, onPress, isSelected = false }: MapMarkerProps
         {isSelected ? <View style={styles.halo} /> : null}
 
         <View style={[styles.balloon, isSelected && styles.balloonSelected]}>
-          <MaterialIcons
-            name={iconForAssetType(asset.asset_type?.name) as keyof typeof MaterialIcons.glyphMap}
+          <Icon
+            name={iconForAssetType(asset.asset_type?.name)}
             size={isSelected ? 24 : 22}
             color={isSelected ? colors.accentDeep : '#ffffff'}
           />

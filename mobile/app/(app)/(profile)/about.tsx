@@ -1,9 +1,9 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
+import { Icon } from '@/components/ui/icon';
 
 export default function AboutScreen() {
   return (
@@ -14,7 +14,7 @@ export default function AboutScreen() {
 
         <View style={styles.logoContainer}>
           <View style={styles.logoCircle}>
-            <MaterialIcons name="eco" size={64} color={colors.primary} />
+            <Icon name="leaf" size={64} color={colors.primary} />
           </View>
           <Text style={styles.appName}>EcoInventario</Text>
           <Text style={styles.appVersion}>Versão 1.0.0 (Build 42)</Text>
@@ -30,11 +30,11 @@ export default function AboutScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Suporte Técnico</Text>
           <View style={styles.supportRow}>
-            <MaterialIcons name="email" size={18} color={colors.outline} />
+            <Icon name="mail" size={18} color={colors.outline} />
             <Text style={styles.supportText}>suporte@ecoinventario.com</Text>
           </View>
           <View style={styles.supportRow}>
-            <MaterialIcons name="phone" size={18} color={colors.outline} />
+            <Icon name="phone" size={18} color={colors.outline} />
             <Text style={styles.supportText}>0800 123 4567</Text>
           </View>
         </View>

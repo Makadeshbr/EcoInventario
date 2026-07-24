@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { colors, spacing, radius, typography, gradients, glass } from '@/theme/tokens';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 /**
  * Scrim vertical: mantém a foto viva no topo e cria contraste real na base,
@@ -23,7 +23,7 @@ function GlassBadge({
   style,
   delay,
 }: {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   label: string;
   style: object;
   delay: number;
@@ -31,7 +31,7 @@ function GlassBadge({
   return (
     <FadeInView delay={delay} from="up" style={[styles.glassBadge, style]}>
       <BlurView intensity={glass.blur} tint={glass.tint} style={StyleSheet.absoluteFill} />
-      <MaterialIcons name={icon} size={18} color={colors.onSurface} />
+      <Icon name={icon} size={18} color={colors.onSurface} />
       <Text style={styles.badgeLabel}>{label}</Text>
     </FadeInView>
   );
@@ -55,8 +55,8 @@ export default function WelcomeScreen() {
         <View style={styles.content}>
           {/* HERO */}
           <View style={styles.heroArea}>
-            <GlassBadge icon="eco" label="VITALITY" style={styles.badgeLeft} delay={320} />
-            <GlassBadge icon="location-on" label="ZONAS" style={styles.badgeRight} delay={440} />
+            <GlassBadge icon="leaf" label="VITALITY" style={styles.badgeLeft} delay={320} />
+            <GlassBadge icon="place" label="ZONAS" style={styles.badgeRight} delay={440} />
           </View>
 
           {/* AÇÕES */}
@@ -80,7 +80,7 @@ export default function WelcomeScreen() {
                     end={{ x: 1, y: 1 }}
                     style={StyleSheet.absoluteFill}
                   />
-                  <MaterialIcons name="explore" size={20} color={colors.accentDeep} />
+                  <Icon name="explore" size={20} color={colors.accentDeep} />
                   <Text style={styles.primaryButtonText}>Explorar Mapa</Text>
                 </PressableScale>
               </FadeInView>

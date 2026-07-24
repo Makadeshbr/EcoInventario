@@ -7,10 +7,10 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
-import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Icon } from '@/components/ui/icon';
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0';
 
@@ -26,7 +26,7 @@ export default function SobreScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
-          <MaterialIcons name="eco" size={28} color={colors.secondary} />
+          <Icon name="leaf" size={28} color={colors.secondary} />
           <Text style={styles.headerTitle}>EcoInventário</Text>
           <Text style={styles.headerVersion}>v{APP_VERSION}</Text>
         </View>
@@ -56,7 +56,7 @@ export default function SobreScreen() {
           {/* Card Impacto */}
           <View style={[styles.card, styles.cardLarge]}>
             <View style={styles.cardHeader}>
-              <MaterialIcons name="public" size={28} color={colors.secondary} />
+              <Icon name="globe" size={28} color={colors.secondary} />
               <Text style={styles.cardTitle}>Impacto</Text>
             </View>
             <Text style={styles.cardBody}>
@@ -80,7 +80,7 @@ export default function SobreScreen() {
         {/* Card Contato */}
         <View style={[styles.card, styles.contactCard]}>
           <View style={styles.cardHeader}>
-            <MaterialIcons name="mail-outline" size={24} color={colors.secondary} />
+            <Icon name="mail" size={24} color={colors.secondary} />
             <Text style={styles.cardTitle}>Contato</Text>
           </View>
           <Text style={styles.cardBody}>
@@ -92,7 +92,7 @@ export default function SobreScreen() {
            
           >
             <Text style={styles.contactEmail}>{CONTACT_EMAIL}</Text>
-            <MaterialIcons name="open-in-new" size={16} color={colors.secondary} />
+            <Icon name="externalLink" size={16} color={colors.secondary} />
           </PressableScale>
         </View>
 
@@ -104,7 +104,7 @@ export default function SobreScreen() {
             onPress={() => router.push('/(auth)/login')}
            
           >
-            <MaterialIcons name="login" size={20} color={colors.onPrimary} />
+            <Icon name="login" size={20} color={colors.onPrimary} />
             <Text style={styles.ctaBtnText}>Login Profissional</Text>
           </PressableScale>
         </View>

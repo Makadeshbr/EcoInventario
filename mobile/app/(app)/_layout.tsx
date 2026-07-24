@@ -5,12 +5,12 @@ import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanim
 import { SyncEngine } from '@/sync/sync-engine';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSyncStore } from '@/stores/sync-store';
 import { colors, typography, gradients, motion } from '@/theme/tokens';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Icon } from '@/components/ui/icon';
 
 type NestedRouteState = {
   index?: number;
@@ -19,8 +19,8 @@ type NestedRouteState = {
 
 const TABS = [
   { icon: 'home' as const, label: 'Home' },
-  { icon: 'assignment' as const, label: 'Assets' },
-  { icon: 'center-focus-strong' as const, label: 'Scanner' },
+  { icon: 'list' as const, label: 'Assets' },
+  { icon: 'myLocation' as const, label: 'Scanner' },
   { icon: 'person' as const, label: 'Perfil' },
 ] as const;
 
@@ -84,7 +84,7 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
                     style={StyleSheet.absoluteFill}
                   />
                 ) : null}
-                <MaterialIcons
+                <Icon
                   name={TABS[index].icon}
                   size={24}
                   color={isActive ? colors.accentDeep : colors.outline}

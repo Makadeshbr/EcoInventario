@@ -12,7 +12,6 @@ import {
 import { Image as ExpoImage } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import QRCode from 'qrcode';
 
@@ -30,6 +29,7 @@ import { SyncEngine } from '@/sync/sync-engine';
 import { useAuthStore } from '@/stores/auth-store';
 import { colors, spacing, typography, radius, gradients } from '@/theme/tokens';
 import type { Asset } from '@/types/domain';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const QR_SIZE = Math.min(SCREEN_WIDTH - spacing.marginMobile * 2 - spacing.md * 2, 200);
@@ -59,13 +59,13 @@ function formatDateTime(iso: string): string {
 }
 
 function InfoRow({ icon, label, value }: {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   label: string;
   value: string;
 }) {
   return (
     <View style={styles.infoRow}>
-      <MaterialIcons name={icon} size={20} color={colors.secondary} style={styles.infoIcon} />
+      <Icon name={icon} size={20} color={colors.secondary} style={styles.infoIcon} />
       <View style={styles.infoTexts}>
         <Text style={styles.infoLabel}>{label}</Text>
         <Text style={styles.infoValue}>{value}</Text>
@@ -133,7 +133,7 @@ export default function AssetDetalhesScreen() {
         <SafeAreaView style={styles.safe} edges={['top']}>
           <View style={styles.header}>
             <PressableScale onPress={() => router.back()} style={styles.backBtn}>
-              <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+              <Icon name="back" size={20} color={colors.onBackground} />
             </PressableScale>
             <Text style={styles.headerTitle}>Carregando...</Text>
             <View style={{ width: 44 }} />
@@ -150,14 +150,14 @@ export default function AssetDetalhesScreen() {
         <SafeAreaView style={styles.safe} edges={['top']}>
           <View style={styles.header}>
             <PressableScale onPress={() => router.back()} style={styles.backBtn}>
-              <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+              <Icon name="back" size={20} color={colors.onBackground} />
             </PressableScale>
             <Text style={styles.headerTitle}>Detalhes</Text>
             <View style={{ width: 44 }} />
           </View>
           <FadeInView from="up" style={styles.notFoundWrap}>
             <View style={styles.notFoundRing}>
-              <MaterialIcons name="error-outline" size={56} color={colors.outline} />
+              <Icon name="error" size={56} color={colors.outline} />
             </View>
             <Text style={styles.notFound}>Asset não encontrado</Text>
           </FadeInView>
@@ -231,7 +231,7 @@ export default function AssetDetalhesScreen() {
       {/* Header */}
       <FadeInView from="up" style={styles.header}>
         <PressableScale onPress={() => router.back()} style={styles.backBtn}>
-          <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+          <Icon name="back" size={20} color={colors.onBackground} />
         </PressableScale>
         <Text style={styles.headerTitle} numberOfLines={1}>{safeAsset.assetTypeName}</Text>
         {canEdit ? (
@@ -239,7 +239,7 @@ export default function AssetDetalhesScreen() {
             onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/edit`)}
             style={styles.editBtn}
           >
-            <MaterialIcons name="edit" size={20} color={colors.secondary} />
+            <Icon name="edit" size={20} color={colors.secondary} />
           </PressableScale>
         ) : (
           <View style={{ width: 44 }} />
@@ -256,7 +256,7 @@ export default function AssetDetalhesScreen() {
           </View>
           {!safeAsset.isSynced && (
             <View style={styles.unsyncedBadge}>
-              <MaterialIcons name="cloud-off" size={14} color={colors.outline} />
+              <Icon name="cloudOff" size={14} color={colors.outline} />
               <Text style={styles.unsyncedText}>Não sincronizado</Text>
             </View>
           )}
@@ -265,7 +265,7 @@ export default function AssetDetalhesScreen() {
         {/* Motivo da rejeição */}
         {safeAsset.status === 'rejected' && safeAsset.rejectionReason && (
           <FadeInView delay={SECTION_DELAY.status} style={styles.rejectionCard}>
-            <MaterialIcons name="cancel" size={18} color={colors.onErrorContainer} />
+            <Icon name="cancel" size={18} color={colors.onErrorContainer} />
             <View style={{ flex: 1 }}>
               <Text style={styles.rejectionTitle}>Motivo da rejeição</Text>
               <Text style={styles.rejectionReason}>{safeAsset.rejectionReason}</Text>
@@ -310,7 +310,7 @@ export default function AssetDetalhesScreen() {
                     pointerEvents="none"
                   />
                   <View style={styles.galleryExpandBadge}>
-                    <MaterialIcons name="zoom-out-map" size={16} color="#fff" />
+                    <Icon name="expand" size={16} color="#fff" />
                   </View>
                 </PressableScale>
               ))}
@@ -338,11 +338,11 @@ export default function AssetDetalhesScreen() {
 
         {/* Card de informações - Design Limpo e Sólido */}
         <FadeInView delay={SECTION_DELAY.info} style={styles.infoCard}>
-          <InfoRow icon="location-on" label="Coordenadas" value={`${safeAsset.latitude.toFixed(5)}, ${safeAsset.longitude.toFixed(5)}`} />
+          <InfoRow icon="place" label="Coordenadas" value={`${safeAsset.latitude.toFixed(5)}, ${safeAsset.longitude.toFixed(5)}`} />
           {safeAsset.gpsAccuracyM !== null && (
             <InfoRow icon="radar" label="Precisão GPS" value={`${safeAsset.gpsAccuracyM.toFixed(0)}m`} />
           )}
-          <InfoRow icon="event" label="Criado em" value={formatDateTime(safeAsset.createdAt)} />
+          <InfoRow icon="calendar" label="Criado em" value={formatDateTime(safeAsset.createdAt)} />
           {safeAsset.status === 'approved' && safeAsset.approvedBy && (
             <InfoRow icon="verified" label="Aprovado por" value={safeAsset.approvedBy} />
           )}
@@ -351,7 +351,7 @@ export default function AssetDetalhesScreen() {
         {/* QR Code — Card Premium, Fundo Branco e Sombreamento Suave */}
         <FadeInView delay={SECTION_DELAY.qr} style={styles.qrCard}>
           <View style={styles.qrHeader}>
-            <MaterialIcons name="qr-code" size={18} color={colors.secondary} />
+            <Icon name="qrCode" size={18} color={colors.secondary} />
             <Text style={styles.qrTitle}>QR Code</Text>
           </View>
           <View style={styles.qrWrapper}>
@@ -364,7 +364,7 @@ export default function AssetDetalhesScreen() {
           </Text>
           {/* Botão de compartilhar */}
           <PressableScale style={styles.qrShareBtn} onPress={handleShareQR}>
-            <MaterialIcons name="share" size={16} color={colors.onSecondaryContainer} />
+            <Icon name="share" size={16} color={colors.onSecondaryContainer} />
             <Text style={styles.qrShareText}>Compartilhar QR Code</Text>
           </PressableScale>
         </FadeInView>
@@ -385,7 +385,7 @@ export default function AssetDetalhesScreen() {
             onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/manejo`)}
           >
             <View style={styles.quickActionCircle}>
-              <MaterialIcons name="content-cut" size={28} color={colors.secondary} style={{ marginLeft: 2 }} />
+              <Icon name="cut" size={28} color={colors.secondary} style={{ marginLeft: 2 }} />
             </View>
             <Text style={styles.quickActionLabel}>Manejo</Text>
           </PressableScale>
@@ -396,7 +396,7 @@ export default function AssetDetalhesScreen() {
             onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/monitoramento`)}
           >
             <View style={styles.quickActionCircle}>
-              <MaterialIcons name="visibility" size={28} color={colors.secondary} />
+              <Icon name="visibility" size={28} color={colors.secondary} />
             </View>
             <Text style={styles.quickActionLabel}>Monitorar</Text>
           </PressableScale>
@@ -410,14 +410,14 @@ export default function AssetDetalhesScreen() {
                 style={styles.secondaryActionBtn}
                 onPress={() => router.push(`/(app)/(assets)/${safeAsset.id}/edit`)}
               >
-                <MaterialIcons name="edit" size={18} color={colors.secondary} />
+                <Icon name="edit" size={18} color={colors.secondary} />
                 <Text style={styles.secondaryActionText}>Editar Dados</Text>
               </PressableScale>
             )}
             {/* TODO: Histórico ainda não tem tela — desabilitado para não
                 entregar um botão que não faz nada ao ser tocado. */}
             <View style={[styles.secondaryActionBtn, styles.buttonDisabled]}>
-              <MaterialIcons name="history" size={18} color={colors.outline} />
+              <Icon name="history" size={18} color={colors.outline} />
               <Text style={[styles.secondaryActionText, { color: colors.outline }]}>Histórico em breve</Text>
             </View>
           </View>
@@ -437,7 +437,7 @@ export default function AssetDetalhesScreen() {
               />
               {isSubmitting || isSubmitFlow
                 ? <ActivityIndicator color={colors.accentDeep} size="small" />
-                : <MaterialIcons name="send" size={20} color={colors.accentDeep} />}
+                : <Icon name="send" size={20} color={colors.accentDeep} />}
               <Text style={styles.submitButtonText}>
                 {isSubmitting ? 'Enviando...' : 'Enviar para aprovação'}
               </Text>

@@ -3,7 +3,6 @@ import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import MapView, { Marker, Region } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
@@ -17,6 +16,7 @@ import { MapFilters } from '@/components/map/MapFilters';
 import { MapMarker } from '@/components/map/MapMarker';
 import { MapPreviewSheet } from '@/components/map/MapPreviewSheet';
 import { useMapClusters, type ClusterItem } from '@/hooks/use-map-clusters';
+import { Icon } from '@/components/ui/icon';
 
 // Região inicial cobre o Sudeste do Brasil — delta grande garante que a
 // primeira query inclui assets cadastrados na região SP/RJ/MG antes de
@@ -209,7 +209,7 @@ export default function MapExplorarScreen() {
 
       {(!isConnected || isError) && (
         <FadeInView from="up" style={styles.offlineBanner}>
-          <MaterialIcons name={!isConnected ? 'wifi-off' : 'error-outline'} size={16} color="#fff" />
+          <Icon name={!isConnected ? 'offline' : 'error'} size={16} color="#fff" />
           <Text style={styles.offlineText}>
             {!isConnected ? 'Sem conexão com a internet' : 'Erro ao conectar com o servidor'}
           </Text>

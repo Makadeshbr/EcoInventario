@@ -12,7 +12,6 @@ import {
   Share,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,6 +25,7 @@ import { usePublicAsset } from '@/features/public/queries';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { iconForAssetType } from '@/utils/asset-icon';
 import type { PublicMonitoramento } from '@/features/public/types';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = Math.round(SCREEN_HEIGHT * 0.52);
@@ -34,12 +34,12 @@ type HealthStatus = PublicMonitoramento['health_status'];
 
 const HEALTH_CONFIG: Record<
   HealthStatus,
-  { label: string; tint: string; onTint: string; icon: keyof typeof MaterialIcons.glyphMap }
+  { label: string; tint: string; onTint: string; icon: IconName }
 > = {
-  healthy: { label: 'Saudável', tint: colors.accent, onTint: colors.accentDeep, icon: 'eco' },
-  warning: { label: 'Atenção', tint: colors.clay, onTint: '#ffffff', icon: 'warning-amber' },
-  critical: { label: 'Crítico', tint: colors.error, onTint: '#ffffff', icon: 'error-outline' },
-  dead: { label: 'Morto', tint: colors.outline, onTint: '#ffffff', icon: 'do-not-disturb-on' },
+  healthy: { label: 'Saudável', tint: colors.accent, onTint: colors.accentDeep, icon: 'leaf' },
+  warning: { label: 'Atenção', tint: colors.clay, onTint: '#ffffff', icon: 'warning' },
+  critical: { label: 'Crítico', tint: colors.error, onTint: '#ffffff', icon: 'error' },
+  dead: { label: 'Morto', tint: colors.outline, onTint: '#ffffff', icon: 'blocked' },
 };
 
 function formatDate(iso: string): string {
@@ -55,7 +55,7 @@ function GlassCircleButton({
   label,
   onPress,
 }: {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   label: string;
   onPress: () => void;
 }) {
@@ -68,7 +68,7 @@ function GlassCircleButton({
       accessibilityLabel={label}
     >
       <BlurView intensity={glass.blur} tint={glass.tint} style={StyleSheet.absoluteFill} />
-      <MaterialIcons name={icon} size={22} color={colors.darkGreen} />
+      <Icon name={icon} size={22} color={colors.darkGreen} />
     </PressableScale>
   );
 }
@@ -101,8 +101,8 @@ export default function AssetDetailScreen() {
       <View style={[styles.error, { paddingTop: insets.top }]}>
         <FadeInView from="up" style={styles.errorInner}>
           <View style={styles.errorRing}>
-            <MaterialIcons
-              name={isConnected ? 'search-off' : 'wifi-off'}
+            <Icon
+              name={isConnected ? 'search' : 'offline'}
               size={52}
               color={colors.secondary}
             />
@@ -116,7 +116,7 @@ export default function AssetDetailScreen() {
               : 'Conecte-se à internet para ver este ativo.'}
           </Text>
           <PressableScale style={styles.backBtn} onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={18} color={colors.accentDeep} />
+            <Icon name="back" size={18} color={colors.accentDeep} />
             <Text style={styles.backBtnText}>Voltar ao mapa</Text>
           </PressableScale>
         </FadeInView>
@@ -125,7 +125,7 @@ export default function AssetDetailScreen() {
   }
 
   const typeName = asset.asset_type.name;
-  const typeIcon = iconForAssetType(typeName) as keyof typeof MaterialIcons.glyphMap;
+  const typeIcon = iconForAssetType(typeName);
   const photos = asset.media;
   const hasPhotos = photos.length > 0;
   const latest = asset.monitoramentos[0] ?? null;
@@ -158,7 +158,7 @@ export default function AssetDetailScreen() {
     <View style={styles.container}>
       {/* Header flutuante sobre o hero */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
-        <GlassCircleButton icon="arrow-back" label="Voltar" onPress={() => router.back()} />
+        <GlassCircleButton icon="back" label="Voltar" onPress={() => router.back()} />
         <GlassCircleButton icon="share" label="Compartilhar" onPress={shareAsset} />
       </View>
 
@@ -198,7 +198,7 @@ export default function AssetDetailScreen() {
           ) : (
             <LinearGradient colors={gradients.hero} style={StyleSheet.absoluteFill}>
               <View style={styles.noPhoto}>
-                <MaterialIcons name={typeIcon} size={72} color="rgba(183,245,105,0.7)" />
+                <Icon name={typeIcon} size={72} color="rgba(183,245,105,0.7)" />
                 <Text style={styles.noPhotoText}>Sem fotos publicadas</Text>
               </View>
             </LinearGradient>
@@ -214,7 +214,7 @@ export default function AssetDetailScreen() {
           {/* Identidade sobre o hero */}
           <View style={styles.heroCaption} pointerEvents="none">
             <View style={styles.typePill}>
-              <MaterialIcons name={typeIcon} size={13} color={colors.accentDeep} />
+              <Icon name={typeIcon} size={13} color={colors.accentDeep} />
               <Text style={styles.typePillText}>{typeName.toUpperCase()}</Text>
             </View>
             <Text style={styles.heroTitle} numberOfLines={2}>
@@ -242,7 +242,7 @@ export default function AssetDetailScreen() {
           {health && latest ? (
             <FadeInView delay={60} style={[styles.healthCard, { borderColor: health.tint }]}>
               <View style={[styles.healthIcon, { backgroundColor: health.tint }]}>
-                <MaterialIcons name={health.icon} size={20} color={health.onTint} />
+                <Icon name={health.icon} size={20} color={health.onTint} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.healthLabel}>{health.label}</Text>
@@ -256,20 +256,20 @@ export default function AssetDetailScreen() {
           {/* Ficha do ativo — apenas dados que a API entrega */}
           <FadeInView delay={110} style={styles.factGrid}>
             <View style={styles.factCard}>
-              <MaterialIcons name="place" size={18} color={colors.secondary} />
+              <Icon name="place" size={18} color={colors.secondary} />
               <Text style={styles.factLabel}>COORDENADAS</Text>
               <Text style={styles.factValue}>{asset.latitude.toFixed(5)}</Text>
               <Text style={styles.factValue}>{asset.longitude.toFixed(5)}</Text>
             </View>
             <View style={styles.factCard}>
-              <MaterialIcons name="event" size={18} color={colors.secondary} />
+              <Icon name="calendar" size={18} color={colors.secondary} />
               <Text style={styles.factLabel}>CADASTRADO</Text>
               <Text style={styles.factValue}>{formatDate(asset.created_at)}</Text>
             </View>
           </FadeInView>
 
           <FadeInView delay={150} style={styles.qrRow}>
-            <MaterialIcons name="qr-code-2" size={18} color={colors.onSurfaceVariant} />
+            <Icon name="qrCode" size={18} color={colors.onSurfaceVariant} />
             <Text style={styles.qrText} numberOfLines={1} ellipsizeMode="middle">
               {asset.qr_code}
             </Text>
@@ -303,7 +303,7 @@ export default function AssetDetailScreen() {
                       />
                     ) : (
                       <View style={[styles.manejoImg, styles.manejoImgEmpty]}>
-                        <MaterialIcons name="content-cut" size={24} color={colors.secondary} />
+                        <Icon name="cut" size={24} color={colors.secondary} />
                       </View>
                     )}
                     <View style={styles.manejoMeta}>
@@ -370,7 +370,7 @@ export default function AssetDetailScreen() {
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
           />
-          <MaterialIcons name="directions" size={20} color={colors.accentDeep} />
+          <Icon name="directions" size={20} color={colors.accentDeep} />
           <Text style={styles.actionBtnText}>Como chegar</Text>
         </PressableScale>
       </View>

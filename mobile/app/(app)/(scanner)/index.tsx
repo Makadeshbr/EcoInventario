@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   cancelAnimation,
@@ -21,6 +20,7 @@ import { FadeInView } from '@/components/ui/fade-in-view';
 import { getAssetByQR } from '@/features/assets/repository';
 import { api } from '@/api/client';
 import { useAuthStore } from '@/stores/auth-store';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 type ScanMode = 'idle' | 'scanning' | 'found' | 'notfound';
 
@@ -63,11 +63,11 @@ function ScanLine({ active }: { active: boolean }) {
   );
 }
 
-const STATUS_ICON: Record<ScanMode, keyof typeof MaterialIcons.glyphMap> = {
-  idle: 'qr-code-scanner',
+const STATUS_ICON: Record<ScanMode, IconName> = {
+  idle: 'qrScan',
   scanning: 'sync',
-  found: 'check-circle',
-  notfound: 'error-outline',
+  found: 'success',
+  notfound: 'error',
 };
 
 export default function ScannerProfissionalScreen() {
@@ -150,7 +150,7 @@ export default function ScannerProfissionalScreen() {
         <SafeAreaView style={styles.permissionSafe}>
           <FadeInView from="up" style={styles.centerBox}>
             <View style={styles.centerRing}>
-              <MaterialIcons name="camera-alt" size={56} color={colors.secondary} />
+              <Icon name="camera" size={56} color={colors.secondary} />
             </View>
             <Text style={styles.centerTitle}>Permissão de Câmera</Text>
             <Text style={styles.centerText}>
@@ -172,7 +172,7 @@ export default function ScannerProfissionalScreen() {
         <SafeAreaView style={styles.permissionSafe}>
           <FadeInView from="up" style={styles.centerBox}>
             <View style={styles.centerRing}>
-              <MaterialIcons name="lock" size={56} color={colors.outline} />
+              <Icon name="lock" size={56} color={colors.outline} />
             </View>
             <Text style={styles.centerTitle}>Acesso Restrito</Text>
             <Text style={styles.centerText}>
@@ -230,7 +230,7 @@ export default function ScannerProfissionalScreen() {
         <View style={styles.overlayBottom}>
           {/* key força a re-entrada da animação a cada mudança de estado */}
           <FadeInView key={mode} from="up" duration={motion.duration.fast} style={styles.statusPill}>
-            <MaterialIcons name={STATUS_ICON[mode]} size={18} color={statusColor} />
+            <Icon name={STATUS_ICON[mode]} size={18} color={statusColor} />
             <Text style={[styles.statusLabel, { color: statusColor }]}>
               {statusLabel}
             </Text>

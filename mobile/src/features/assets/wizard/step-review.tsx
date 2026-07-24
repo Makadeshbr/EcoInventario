@@ -5,11 +5,11 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing } from '@/theme/tokens';
 import type { WizardState } from './wizard-types';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { wizardStyles as styles } from './wizard-styles';
+import { Icon } from '@/components/ui/icon';
 
 interface Props {
   state: WizardState;
@@ -38,7 +38,7 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
 
         {statusMessage && (
           <View style={styles.reviewNotice}>
-            <MaterialIcons name="sync" size={16} color={colors.secondary} />
+            <Icon name="sync" size={16} color={colors.secondary} />
             <Text style={styles.reviewNoticeText}>{statusMessage}</Text>
           </View>
         )}
@@ -62,7 +62,7 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
 
         {!isConnected && (
           <View style={styles.reviewNotice}>
-            <MaterialIcons name="cloud-off" size={16} color={colors.secondary} />
+            <Icon name="cloudOff" size={16} color={colors.secondary} />
             <Text style={styles.reviewNoticeText}>
               O asset ficará aguardando conexão para ser enviado à revisão.
             </Text>
@@ -79,7 +79,7 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
         >
           {isSaving
             ? <ActivityIndicator color={colors.accentDeep} size="small" />
-            : <MaterialIcons name="send" size={18} color={colors.accentDeep} />}
+            : <Icon name="send" size={18} color={colors.accentDeep} />}
           <Text style={styles.primaryButtonText}>
             {isSaving ? 'Enviando...' : 'Enviar para revisão'}
           </Text>

@@ -7,13 +7,13 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSyncStore } from '@/stores/sync-store';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 const ROLE_LABELS: Record<string, string> = {
   tech: 'Técnico de Campo',
@@ -43,7 +43,7 @@ function MenuRow({
   badge,
   destructive,
 }: {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   label: string;
   onPress: () => void;
   badge?: number;
@@ -52,7 +52,7 @@ function MenuRow({
   return (
     <PressableScale style={styles.menuRow} onPress={onPress} scaleTo={0.98}>
       <View style={[styles.menuIconWrap, destructive && styles.menuIconWrapDestructive]}>
-        <MaterialIcons
+        <Icon
           name={icon}
           size={20}
           color={destructive ? colors.error : colors.onSecondaryContainer}
@@ -66,8 +66,8 @@ function MenuRow({
           <Text style={styles.badgeText}>{badge}</Text>
         </View>
       ) : (
-        <MaterialIcons
-          name="chevron-right"
+        <Icon
+          name="chevronRight"
           size={20}
           color={destructive ? colors.error : colors.outline}
         />
@@ -122,11 +122,11 @@ export default function PerfilScreen() {
             style={styles.syncBanner}
             onPress={() => router.push('/(app)/(profile)/sync')}
           >
-            <MaterialIcons name="sync" size={18} color={colors.secondary} />
+            <Icon name="sync" size={18} color={colors.secondary} />
             <Text style={styles.syncBannerText}>
               {pendingTotal} {pendingTotal === 1 ? 'item' : 'itens'} aguardando sincronização
             </Text>
-            <MaterialIcons name="chevron-right" size={18} color={colors.secondary} />
+            <Icon name="chevronRight" size={18} color={colors.secondary} />
           </PressableScale>
         )}
 
@@ -164,7 +164,7 @@ export default function PerfilScreen() {
           style={styles.logoutButton}
           onPress={handleLogout}
         >
-          <MaterialIcons name="logout" size={20} color={colors.onErrorContainer} />
+          <Icon name="logout" size={20} color={colors.onErrorContainer} />
           <Text style={styles.logoutText}>Sair da Conta</Text>
         </PressableScale>
 

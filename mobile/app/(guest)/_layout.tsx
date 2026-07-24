@@ -1,16 +1,16 @@
 import { Tabs, usePathname } from 'expo-router';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors, spacing, typography, glass, gradients, motion } from '@/theme/tokens';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { useMapUiStore } from '@/stores/map-ui-store';
+import { Icon } from '@/components/ui/icon';
 
 const TABS = [
   { name: '(map)', label: 'Mapa', icon: 'map' as const },
-  { name: '(scanner)', label: 'Scanner', icon: 'qr-code-scanner' as const },
+  { name: '(scanner)', label: 'Scanner', icon: 'qrScan' as const },
   { name: '(about)', label: 'Sobre', icon: 'info' as const },
 ] as const;
 
@@ -61,7 +61,7 @@ function GuestTabBar({ state, navigation }: BottomTabBarProps) {
                     end={{ x: 1, y: 1 }}
                     style={StyleSheet.absoluteFill}
                   />
-                  <MaterialIcons name="qr-code-scanner" size={26} color={colors.accentDeep} />
+                  <Icon name="qrScan" size={26} color={colors.accentDeep} />
                 </View>
               </PressableScale>
             );
@@ -77,7 +77,7 @@ function GuestTabBar({ state, navigation }: BottomTabBarProps) {
               accessibilityState={{ selected: isActive }}
               accessibilityLabel={tab.label}
             >
-              <MaterialIcons
+              <Icon
                 name={tab.icon}
                 size={24}
                 color={isActive ? colors.primary : colors.onSurfaceVariant}

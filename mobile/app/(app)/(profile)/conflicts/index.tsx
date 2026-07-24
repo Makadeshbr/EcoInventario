@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, router, Stack } from 'expo-router';
 import { useCallback } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
 import { getConflicts, type ConflictRecord } from '@/sync/conflict-handler';
+import { Icon } from '@/components/ui/icon';
 
 export default function ConflictsListScreen() {
   const [conflicts, setConflicts] = useState<ConflictRecord[]>([]);
@@ -43,7 +43,7 @@ export default function ConflictsListScreen() {
         onPress={() => router.push(`/(app)/(profile)/conflicts/${item.id}` as any)}
       >
         <View style={styles.cardHeader}>
-          <MaterialIcons name="warning" size={20} color={colors.error} />
+          <Icon name="warning" size={20} color={colors.error} />
           <Text style={styles.entityType}>
             {item.entity_type === 'asset' ? 'Ativo' : item.entity_type}
           </Text>
@@ -55,7 +55,7 @@ export default function ConflictsListScreen() {
         <Text style={styles.cardPreview} numberOfLines={2}>{localNotes}</Text>
         <View style={styles.cardFooter}>
           <Text style={styles.actionText}>Resolver conflito</Text>
-          <MaterialIcons name="chevron-right" size={18} color={colors.primary} />
+          <Icon name="chevronRight" size={18} color={colors.primary} />
         </View>
       </PressableScale>
     );
@@ -72,7 +72,7 @@ export default function ConflictsListScreen() {
         </View>
       ) : conflicts.length === 0 ? (
         <FadeInView from="up" style={styles.emptyContainer}>
-          <MaterialIcons name="check-circle-outline" size={48} color={colors.secondary} />
+          <Icon name="success" size={48} color={colors.secondary} />
           <Text style={styles.emptyTitle}>Tudo certo!</Text>
           <Text style={styles.emptyText}>Nenhum conflito de sincronização encontrado.</Text>
         </FadeInView>

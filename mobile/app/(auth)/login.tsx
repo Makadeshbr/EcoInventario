@@ -11,7 +11,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { loginSchema } from '@/features/auth/schemas';
 import { useLogin } from '@/features/auth/hooks/use-login';
@@ -20,6 +19,7 @@ import { GradientBackground } from '@/components/ui/gradient-background';
 import { GlassCard } from '@/components/ui/glass-card';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
+import { Icon } from '@/components/ui/icon';
 
 type Field = 'email' | 'password';
 
@@ -68,7 +68,7 @@ export default function LoginScreen() {
           {/* Header */}
           <FadeInView from="up" style={styles.header}>
             <View style={styles.iconCircle}>
-              <MaterialIcons name="eco" size={32} color={colors.accentDeep} />
+              <Icon name="leaf" size={32} color={colors.accentDeep} />
             </View>
             <View style={styles.headerText}>
               <Text style={styles.title}>Acesso Profissional</Text>
@@ -79,7 +79,7 @@ export default function LoginScreen() {
           {/* Erro de API */}
           {error && (
             <FadeInView style={styles.apiError}>
-              <MaterialIcons name="error-outline" size={18} color={colors.onErrorContainer} />
+              <Icon name="error" size={18} color={colors.onErrorContainer} />
               <Text style={styles.apiErrorText}>{error}</Text>
             </FadeInView>
           )}
@@ -94,7 +94,7 @@ export default function LoginScreen() {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>E-mail</Text>
                 <View style={[styles.inputRow, fieldStyle('email', !!emailError)]}>
-                  <MaterialIcons
+                  <Icon
                     name="mail"
                     size={20}
                     color={focused === 'email' ? colors.secondary : colors.outline}
@@ -122,7 +122,7 @@ export default function LoginScreen() {
               <View style={styles.fieldGroup}>
                 <Text style={styles.label}>Senha</Text>
                 <View style={[styles.inputRow, fieldStyle('password', !!passwordError)]}>
-                  <MaterialIcons
+                  <Icon
                     name="lock"
                     size={20}
                     color={focused === 'password' ? colors.secondary : colors.outline}

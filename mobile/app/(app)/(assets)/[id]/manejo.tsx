@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useRef } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useCreateManejo } from '@/features/assets/hooks/use-create-manejo';
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
@@ -23,6 +22,7 @@ import { useNetworkStatus } from '@/hooks/use-network-status';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { PressableScale } from '@/components/ui/pressable-scale';
+import { Icon } from '@/components/ui/icon';
 
 export default function CriarManejoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -124,7 +124,7 @@ export default function CriarManejoScreen() {
         <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
         <View style={styles.cameraBar}>
           <PressableScale onPress={() => setActiveCamera(null)} style={styles.cameraCancel}>
-            <MaterialIcons name="close" size={28} color={colors.onPrimary} />
+            <Icon name="close" size={28} color={colors.onPrimary} />
           </PressableScale>
           <PressableScale onPress={takePhoto} style={styles.shutterButton} disabled={taking}>
             {taking
@@ -144,7 +144,7 @@ export default function CriarManejoScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <PressableScale style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+          <Icon name="back" size={20} color={colors.onBackground} />
         </PressableScale>
         <Text style={styles.headerTitle}>Registrar Manejo</Text>
         <View style={{ width: 44 }} />
@@ -156,7 +156,7 @@ export default function CriarManejoScreen() {
       >
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.assetContextCard}>
-            <MaterialIcons name="park" size={20} color={colors.secondary} />
+            <Icon name="tree" size={20} color={colors.secondary} />
             <Text style={styles.assetContextText} numberOfLines={1}>{asset.assetTypeName}</Text>
           </View>
 
@@ -181,12 +181,12 @@ export default function CriarManejoScreen() {
                 <View style={styles.photoThumb}>
                   <Image source={{ uri: beforePhotoUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                   <PressableScale style={styles.photoRemove} onPress={() => setBeforePhotoUri(undefined)}>
-                    <MaterialIcons name="close" size={14} color={colors.onSurfaceVariant} />
+                    <Icon name="close" size={14} color={colors.onSurfaceVariant} />
                   </PressableScale>
                 </View>
               ) : (
                 <PressableScale style={styles.addPhotoBtn} onPress={() => openCamera('before')}>
-                  <MaterialIcons name="add-a-photo" size={24} color={colors.outline} />
+                  <Icon name="addPhoto" size={24} color={colors.outline} />
                   <Text style={styles.addPhotoText}>Adicionar</Text>
                 </PressableScale>
               )}
@@ -198,12 +198,12 @@ export default function CriarManejoScreen() {
                 <View style={styles.photoThumb}>
                   <Image source={{ uri: afterPhotoUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
                   <PressableScale style={styles.photoRemove} onPress={() => setAfterPhotoUri(undefined)}>
-                    <MaterialIcons name="close" size={14} color={colors.onSurfaceVariant} />
+                    <Icon name="close" size={14} color={colors.onSurfaceVariant} />
                   </PressableScale>
                 </View>
               ) : (
                 <PressableScale style={styles.addPhotoBtn} onPress={() => openCamera('after')}>
-                  <MaterialIcons name="add-a-photo" size={24} color={colors.outline} />
+                  <Icon name="addPhoto" size={24} color={colors.outline} />
                   <Text style={styles.addPhotoText}>Adicionar</Text>
                 </PressableScale>
               )}
@@ -212,7 +212,7 @@ export default function CriarManejoScreen() {
 
           {!isConnected && (
             <View style={styles.offlineNotice}>
-              <MaterialIcons name="cloud-off" size={16} color={colors.secondary} />
+              <Icon name="cloudOff" size={16} color={colors.secondary} />
               <Text style={styles.offlineNoticeText}>
                 Este manejo será salvo offline e sincronizado automaticamente.
               </Text>
@@ -231,7 +231,7 @@ export default function CriarManejoScreen() {
           >
             {isSaving || isSubmittingFlow
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
-              : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
+              : <Icon name="send" size={18} color={colors.onPrimary} />}
             <Text style={styles.saveButtonText}>
               {isSaving || isSubmittingFlow ? 'Enviando...' : 'Enviar manejo'}
             </Text>

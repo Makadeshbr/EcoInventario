@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useHomeData } from '@/features/assets/hooks/use-home-data';
 import { useSyncStore } from '@/stores/sync-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -23,6 +22,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Asset } from '@/types/domain';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 const STATUS_LABELS: Record<Asset['status'], string> = {
   draft: 'Rascunho',
@@ -72,7 +72,7 @@ function SyncIndicator() {
 
   if (!visible && status.state === 'idle') return null;
 
-  type BannerInfo = { icon: keyof typeof MaterialIcons.glyphMap; color: string; label: string; bg: string };
+  type BannerInfo = { icon: IconName; color: string; label: string; bg: string };
 
   const map: Record<string, BannerInfo> = {
     syncing: {
@@ -82,7 +82,7 @@ function SyncIndicator() {
       bg: colors.surfaceContainerLow,
     },
     synced: {
-      icon: 'cloud-done',
+      icon: 'cloudDone',
       color: '#2e7d32',
       label: (() => {
         if (status.state !== 'synced') return 'Sincronizado';
@@ -93,13 +93,13 @@ function SyncIndicator() {
       bg: 'rgba(46,125,50,0.12)',
     },
     error: {
-      icon: 'sync-problem',
+      icon: 'syncProblem',
       color: colors.error,
       label: 'Erro na sincronização',
       bg: colors.errorContainer,
     },
     offline: {
-      icon: 'cloud-off',
+      icon: 'cloudOff',
       color: colors.outline,
       label: (() => {
         if (status.state !== 'offline') return 'Sem conexão';
@@ -121,7 +121,7 @@ function SyncIndicator() {
 
   return (
     <Animated.View style={[styles.syncBanner, { backgroundColor: info.bg, opacity }]}>
-      <MaterialIcons name={info.icon} size={16} color={info.color} />
+      <Icon name={info.icon} size={16} color={info.color} />
       <Text style={[styles.syncLabel, { color: info.color }]}>{info.label}</Text>
     </Animated.View>
   );
@@ -138,7 +138,7 @@ function StatCard({
 }: {
   count: number;
   label: string;
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   borderStyle: object;
   accent: string;
   onPress: () => void;
@@ -149,7 +149,7 @@ function StatCard({
       <PressableScale onPress={onPress} style={styles.statCardWrap}>
         <GlassCard style={[styles.statCard, borderStyle]}>
           <View style={[styles.statIconRing, { backgroundColor: `${accent}22` }]}>
-            <MaterialIcons name={icon} size={24} color={accent} />
+            <Icon name={icon} size={24} color={accent} />
           </View>
           <Text style={styles.statCount}>{count}</Text>
           <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
@@ -168,7 +168,7 @@ function AssetListItem({ asset, index = 0 }: { asset: Asset; index?: number }) {
         onPress={() => router.push(`/(app)/(assets)/${asset.id}`)}
       >
       <View style={styles.listItemThumb}>
-        <MaterialIcons name="park" size={32} color={colors.secondary} />
+        <Icon name="tree" size={32} color={colors.secondary} />
       </View>
       <View style={styles.listItemBody}>
         <Text style={styles.listItemTitle} numberOfLines={1}>{asset.assetTypeName}</Text>
@@ -242,7 +242,7 @@ export default function HomeScreen() {
               <StatCard
                 count={counts.approved}
                 label="Aprovados"
-                icon="check-circle"
+                icon="success"
                 borderStyle={styles.cardOrganic1}
                 accent={colors.accentDim}
                 onPress={() => router.push('/(app)/(assets)?filter=approved')}
@@ -251,7 +251,7 @@ export default function HomeScreen() {
               <StatCard
                 count={counts.pending}
                 label="Pendentes"
-                icon="pending-actions"
+                icon="pending"
                 borderStyle={styles.cardOrganic2}
                 accent={colors.secondary}
                 onPress={() => router.push('/(app)/(assets)?filter=pending')}
@@ -262,7 +262,7 @@ export default function HomeScreen() {
               <StatCard
                 count={counts.draft}
                 label="Rascunhos"
-                icon="edit-note"
+                icon="notes"
                 borderStyle={styles.cardOrganic3}
                 accent={colors.outline}
                 onPress={() => router.push('/(app)/(assets)?filter=draft')}
@@ -291,7 +291,7 @@ export default function HomeScreen() {
 
         {recentAssets.length === 0 && !isLoading ? (
           <FadeInView style={styles.emptyState}>
-            <MaterialIcons name="park" size={48} color={colors.outlineVariant} />
+            <Icon name="tree" size={48} color={colors.outlineVariant} />
             <Text style={styles.emptyText}>Nenhum asset cadastrado</Text>
             <PressableScale
               style={styles.emptyButton}

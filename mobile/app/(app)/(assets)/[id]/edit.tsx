@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
 import { useUpdateAsset } from '@/features/assets/hooks/use-update-asset';
 import { useAuthStore } from '@/stores/auth-store';
@@ -21,6 +20,7 @@ import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { GradientBackground } from '@/components/ui/gradient-background';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import type { AssetType } from '@/types/domain';
+import { Icon } from '@/components/ui/icon';
 
 export default function EditarAssetScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -82,13 +82,13 @@ export default function EditarAssetScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <PressableScale style={styles.backBtn} onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+            <Icon name="back" size={20} color={colors.onBackground} />
           </PressableScale>
           <Text style={styles.headerTitle}>Editar Asset</Text>
           <View style={{ width: 40 }} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.marginMobile }}>
-          <MaterialIcons name="lock" size={64} color={colors.outlineVariant} />
+          <Icon name="lock" size={64} color={colors.outlineVariant} />
           <Text style={styles.lockedText}>
             Edição disponível apenas para assets com status "Rascunho" ou "Rejeitado" do próprio usuário.
           </Text>
@@ -116,7 +116,7 @@ export default function EditarAssetScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <PressableScale style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
+          <Icon name="back" size={20} color={colors.onBackground} />
         </PressableScale>
         <Text style={styles.headerTitle}>Editar Asset</Text>
         <View style={{ width: 40 }} />
@@ -130,7 +130,7 @@ export default function EditarAssetScreen() {
           {/* Status warning for rejected */}
           {asset.status === 'rejected' && asset.rejectionReason && (
             <View style={styles.rejectionBanner}>
-              <MaterialIcons name="info" size={16} color={colors.onErrorContainer} />
+              <Icon name="info" size={16} color={colors.onErrorContainer} />
               <Text style={styles.rejectionText}>{asset.rejectionReason}</Text>
             </View>
           )}
@@ -174,7 +174,7 @@ export default function EditarAssetScreen() {
           {/* Read-only GPS info */}
           <Text style={[styles.fieldLabel, { marginTop: spacing.md }]}>Localização GPS</Text>
           <View style={styles.gpsReadOnly}>
-            <MaterialIcons name="location-on" size={20} color={colors.secondary} />
+            <Icon name="place" size={20} color={colors.secondary} />
             <Text style={styles.gpsText}>
               {asset.latitude.toFixed(5)}, {asset.longitude.toFixed(5)}
             </Text>
@@ -202,7 +202,7 @@ export default function EditarAssetScreen() {
           >
             {isSaving
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
-              : <MaterialIcons name="save" size={18} color={colors.onPrimary} />}
+              : <Icon name="save" size={18} color={colors.onPrimary} />}
             <Text style={styles.saveButtonText}>
               {isSaving ? 'Salvando...' : 'Salvar alterações'}
             </Text>

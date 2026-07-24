@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAssetsList, type AssetsFilter } from '@/features/assets/hooks/use-assets-list';
 import { colors, spacing, radius, typography, gradients } from '@/theme/tokens';
@@ -19,6 +18,7 @@ import { PressableScale } from '@/components/ui/pressable-scale';
 import { FadeInView } from '@/components/ui/fade-in-view';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Asset } from '@/types/domain';
+import { Icon } from '@/components/ui/icon';
 
 const FILTERS: { key: AssetsFilter; label: string }[] = [
   { key: 'all', label: 'Todos' },
@@ -70,7 +70,7 @@ function AssetCard({ asset, index }: { asset: Asset; index: number }) {
 
         {/* Ícone dentro de um anel tingido pelo status — integrado ao glass do card */}
         <View style={[styles.cardThumb, { backgroundColor: `${statusColor.rail}1f` }]}>
-          <MaterialIcons name="park" size={28} color={colors.secondary} />
+          <Icon name="tree" size={28} color={colors.secondary} />
         </View>
 
         <View style={styles.cardBody}>
@@ -88,9 +88,9 @@ function AssetCard({ asset, index }: { asset: Asset; index: number }) {
         {/* Ícone de sync — alinhado ao Stitch (cloud_done / cloud_off) */}
         <View style={styles.syncIcon}>
           {asset.isSynced ? (
-            <MaterialIcons name="cloud-done" size={22} color={colors.secondary} />
+            <Icon name="cloudDone" size={22} color={colors.secondary} />
           ) : (
-            <MaterialIcons name="cloud-off" size={22} color={colors.outline} />
+            <Icon name="cloudOff" size={22} color={colors.outline} />
           )}
         </View>
       </PressableScale>
@@ -127,7 +127,7 @@ function EmptyState() {
   return (
     <FadeInView style={styles.emptyState} from="up">
       <View style={styles.emptyRing}>
-        <MaterialIcons name="park" size={56} color={colors.secondary} />
+        <Icon name="tree" size={56} color={colors.secondary} />
       </View>
       <Text style={styles.emptyTitle}>Nenhum asset por aqui</Text>
       <Text style={styles.emptySubtitle}>Cadastre o primeiro registro deste filtro</Text>
@@ -135,7 +135,7 @@ function EmptyState() {
         style={styles.emptyButton}
         onPress={() => router.push('/(app)/(assets)/new')}
       >
-        <MaterialIcons name="add" size={20} color={colors.onPrimary} />
+        <Icon name="add" size={20} color={colors.onPrimary} />
         <Text style={styles.emptyButtonText}>Novo registro</Text>
       </PressableScale>
     </FadeInView>
@@ -184,7 +184,7 @@ export default function AssetsListScreen() {
             style={styles.headerAction}
             onPress={() => router.push('/(app)/(scanner)')}
           >
-            <MaterialIcons name="qr-code-scanner" size={22} color={colors.secondary} />
+            <Icon name="qrScan" size={22} color={colors.secondary} />
           </PressableScale>
         </FadeInView>
 
@@ -258,7 +258,7 @@ export default function AssetsListScreen() {
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
-            <MaterialIcons name="add" size={30} color={colors.accentDeep} />
+            <Icon name="add" size={30} color={colors.accentDeep} />
           </PressableScale>
         </FadeInView>
       </SafeAreaView>

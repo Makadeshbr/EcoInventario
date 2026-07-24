@@ -9,10 +9,10 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
-import { MaterialIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { PressableScale } from './pressable-scale';
 import { motion } from '@/theme/tokens';
+import { Icon } from '@/components/ui/icon';
 
 const MAX_SCALE = 4;
 const SWIPE_THRESHOLD = 90; // distância p/ trocar de foto
@@ -160,7 +160,7 @@ export function PhotoLightbox({ photos, initialIndex, visible, onClose }: PhotoL
       <View style={styles.backdrop}>
         <SafeAreaView style={styles.header} edges={['top']}>
           <PressableScale style={styles.closeBtn} onPress={onClose} hitSlop={12}>
-            <MaterialIcons name="close" size={24} color="#fff" />
+            <Icon name="close" size={24} color="#fff" />
           </PressableScale>
           {photos.length > 1 && (
             <View style={styles.counterPill}>

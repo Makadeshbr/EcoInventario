@@ -6,12 +6,12 @@ import {
   Image,
 } from 'react-native';
 import { useRef, useState } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { colors, spacing } from '@/theme/tokens';
 import type { WizardState } from './wizard-types';
 import { PressableScale } from '@/components/ui/pressable-scale';
 import { wizardStyles as styles } from './wizard-styles';
+import { Icon } from '@/components/ui/icon';
 
 interface Props {
   state: WizardState;
@@ -42,7 +42,7 @@ export function StepPhotos({ state, onChange, onNext }: Props) {
   if (!permission?.granted) {
     return (
       <View style={styles.permissionView}>
-        <MaterialIcons name="camera-alt" size={64} color={colors.outlineVariant} />
+        <Icon name="camera" size={64} color={colors.outlineVariant} />
         <Text style={styles.permissionText}>O app precisa de acesso à câmera</Text>
         <PressableScale style={styles.primaryButton} onPress={requestPermission}>
           <Text style={styles.primaryButtonText}>Conceder permissão</Text>
@@ -60,7 +60,7 @@ export function StepPhotos({ state, onChange, onNext }: Props) {
         <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
         <View style={styles.cameraBar}>
           <PressableScale onPress={() => setShowCamera(false)} style={styles.cameraCancel}>
-            <MaterialIcons name="close" size={28} color={colors.onPrimary} />
+            <Icon name="close" size={28} color={colors.onPrimary} />
           </PressableScale>
           <PressableScale onPress={takePhoto} style={styles.shutterButton} disabled={taking}>
             {taking
@@ -89,13 +89,13 @@ export function StepPhotos({ state, onChange, onNext }: Props) {
                   onChange({ photoUris: state.photoUris.filter((_, j) => j !== i) })
                 }
               >
-                <MaterialIcons name="close" size={14} color={colors.onPrimary} />
+                <Icon name="close" size={14} color={colors.onPrimary} />
               </PressableScale>
             </View>
           ))}
           {state.photoUris.length < 20 && (
             <PressableScale style={styles.addPhotoBtn} onPress={() => setShowCamera(true)}>
-              <MaterialIcons name="add-a-photo" size={28} color={colors.outline} />
+              <Icon name="addPhoto" size={28} color={colors.outline} />
             </PressableScale>
           )}
         </View>
@@ -106,7 +106,7 @@ export function StepPhotos({ state, onChange, onNext }: Props) {
           <Text style={styles.primaryButtonText}>
             {state.photoUris.length === 0 ? 'Pular fotos' : 'Próximo'}
           </Text>
-          <MaterialIcons name="arrow-forward" size={18} color={colors.accentDeep} />
+          <Icon name="forward" size={18} color={colors.accentDeep} />
         </PressableScale>
       </View>
     </View>
