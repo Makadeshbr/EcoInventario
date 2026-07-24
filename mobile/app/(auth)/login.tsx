@@ -54,9 +54,11 @@ export default function LoginScreen() {
 
   return (
     <GradientBackground>
+      {/* No Android o adjustResize nativo já reposiciona o conteúdo; usar
+          behavior="height" aqui soma dois ajustes e o teclado fecha sozinho. */}
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -82,8 +84,11 @@ export default function LoginScreen() {
             </FadeInView>
           )}
 
-          {/* Formulário em painel de vidro */}
-          <FadeInView delay={120} style={styles.formWrap}>
+          {/* Formulário em painel de vidro.
+              Sem animação de entrada aqui de propósito: um container animado
+              com translate desloca o conteúdo mas mantém a área de toque na
+              posição antiga, e o toque cai no campo errado. */}
+          <View style={styles.formWrap}>
             <GlassCard strong style={styles.form} radius={32}>
               {/* Email */}
               <View style={styles.fieldGroup}>
@@ -108,7 +113,9 @@ export default function LoginScreen() {
                     testID="input-email"
                   />
                 </View>
-                {emailError && <Text style={styles.fieldError}>{emailError}</Text>}
+                <Text style={styles.fieldError} numberOfLines={1}>
+                  {emailError ?? ''}
+                </Text>
               </View>
 
               {/* Senha */}
@@ -132,7 +139,9 @@ export default function LoginScreen() {
                     testID="input-password"
                   />
                 </View>
-                {passwordError && <Text style={styles.fieldError}>{passwordError}</Text>}
+                <Text style={styles.fieldError} numberOfLines={1}>
+                  {passwordError ?? ''}
+                </Text>
               </View>
 
               {/* Botão Entrar */}
@@ -155,7 +164,7 @@ export default function LoginScreen() {
                 </Text>
               </PressableScale>
             </GlassCard>
-          </FadeInView>
+          </View>
 
           {/* Voltar */}
           <FadeInView delay={200}>
@@ -287,6 +296,9 @@ const styles = StyleSheet.create({
     ...typography.labelSm,
     color: colors.error,
     paddingLeft: spacing.gutter,
+    // Altura reservada mesmo sem erro: a mensagem aparecer não pode empurrar
+    // o layout, senão as áreas de toque se deslocam sob o dedo do usuário.
+    minHeight: 16,
   },
   submitButton: {
     height: 64,

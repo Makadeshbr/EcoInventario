@@ -104,8 +104,11 @@ export default function CriarAssetScreen() {
 
         <ProgressBar step={step} />
 
-        {/* key: cada passo entra com fade + slide em vez de trocar seco */}
-        <FadeInView key={step} style={{ flex: 1 }} duration={motion.duration.base}>
+        {/* Sem animação de entrada aqui: os passos 1 e 2 têm campos de texto, e
+            um container animado com translate deixa a área de toque defasada
+            da posição visual — o toque cai no campo errado. A sensação de
+            avanço fica por conta do título e da barra de progresso. */}
+        <View style={{ flex: 1 }}>
           {step === 1 && <StepTypeNotes state={state} onChange={patch} onNext={() => setStep(2)} />}
           {step === 2 && <StepLocation state={state} onChange={patch} onNext={() => setStep(3)} />}
           {step === 3 && <StepPhotos state={state} onChange={patch} onNext={() => setStep(4)} />}
@@ -118,7 +121,7 @@ export default function CriarAssetScreen() {
               statusMessage={statusMessage}
             />
           )}
-        </FadeInView>
+        </View>
       </SafeAreaView>
     </GradientBackground>
   );
