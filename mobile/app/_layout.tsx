@@ -1,6 +1,7 @@
 // TODO: Sem teste — config/infra
 import { useEffect, useRef, useState } from 'react';
 import { Stack } from 'expo-router';
+import { rootStackScreenOptions } from '@/theme/navigation';
 import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -109,7 +110,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F0E8" translucent={false} />
 
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={rootStackScreenOptions}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(welcome)" />
         <Stack.Screen name="(guest)" />
