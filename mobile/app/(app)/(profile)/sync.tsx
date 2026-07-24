@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Alert, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
 import { Button } from '@/components/ui/button';
 import { useSyncStore } from '@/stores/sync-store';
 import { SyncEngine } from '@/sync/sync-engine';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 export default function SyncStatusScreen() {
   const { status, lastSyncAt, pendingMetadataCount, pendingMediaCount } = useSyncStore();
@@ -63,12 +64,12 @@ export default function SyncStatusScreen() {
     }
   }
 
-  function getStatusIcon(): keyof typeof MaterialIcons.glyphMap {
+  function getStatusIcon(): IconName {
     switch (syncState) {
       case 'syncing': return 'sync';
-      case 'error': return 'error-outline';
-      case 'offline': return 'cloud-off';
-      case 'synced': return 'cloud-done';
+      case 'error': return 'error';
+      case 'offline': return 'cloudOff';
+      case 'synced': return 'cloudDone';
       default: return 'cloud';
     }
   }
@@ -84,12 +85,13 @@ export default function SyncStatusScreen() {
   }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Status de Sincronização' }} />
       <ScrollView contentContainerStyle={styles.content}>
         
         <View style={styles.statusCard}>
-          <MaterialIcons name={getStatusIcon()} size={48} color={getStatusColor()} />
+          <Icon name={getStatusIcon()} size={48} color={getStatusColor()} />
           <Text style={[styles.statusTitle, { color: getStatusColor() }]}>
             {getStatusLabel()}
           </Text>
@@ -131,11 +133,12 @@ export default function SyncStatusScreen() {
 
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   content: {
     padding: spacing.marginMobile,
     gap: spacing.md,

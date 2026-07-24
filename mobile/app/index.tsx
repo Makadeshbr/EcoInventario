@@ -1,9 +1,9 @@
 // TODO: Sem teste — scaffolding (navegação gerenciada por useSplashNavigation)
 import { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useSplashNavigation } from '@/hooks/use-splash-navigation';
 import { colors, spacing, typography } from '@/theme/tokens';
+import { Icon } from '@/components/ui/icon';
 
 export default function SplashScreen() {
   useSplashNavigation();
@@ -29,7 +29,7 @@ export default function SplashScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.center}>
-        <MaterialIcons name="eco" size={80} color={colors.primary} />
+        <Icon name="leaf" size={80} color={colors.primary} />
         <Text style={styles.brand}>EcoInventário</Text>
       </View>
       <View style={styles.loadingWrapper}>

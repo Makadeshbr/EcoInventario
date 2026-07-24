@@ -3,18 +3,18 @@ import {
   Text,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { useState, useEffect } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { getAssetTypes } from '@/features/assets/repository';
 import { colors, spacing } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
 import type { AssetType } from '@/types/domain';
 import type { WizardState } from './wizard-types';
 import { wizardStyles as styles } from './wizard-styles';
+import { Icon } from '@/components/ui/icon';
 
 interface Props {
   state: WizardState;
@@ -46,7 +46,7 @@ export function StepTypeNotes({ state, onChange, onNext }: Props) {
           <ActivityIndicator color={colors.secondary} />
         ) : types.length === 0 ? (
           <View style={styles.emptyTypes}>
-            <MaterialIcons name="warning" size={24} color={colors.outline} />
+            <Icon name="warning" size={24} color={colors.outline} />
             <Text style={styles.emptyTypesText}>
               Nenhum tipo disponível. Sincronize quando online.
             </Text>
@@ -54,18 +54,18 @@ export function StepTypeNotes({ state, onChange, onNext }: Props) {
         ) : (
           <View style={styles.typeList}>
             {types.map((t) => (
-              <TouchableOpacity
+              <PressableScale
                 key={t.id}
                 style={[styles.typeChip, state.assetTypeId === t.id && styles.typeChipActive]}
                 onPress={() => onChange({ assetTypeId: t.id, assetTypeName: t.name })}
-                activeOpacity={0.8}
+                scaleTo={0.94}
               >
                 <Text
                   style={[styles.typeChipText, state.assetTypeId === t.id && styles.typeChipTextActive]}
                 >
                   {t.name}
                 </Text>
-              </TouchableOpacity>
+              </PressableScale>
             ))}
           </View>
         )}
@@ -85,15 +85,15 @@ export function StepTypeNotes({ state, onChange, onNext }: Props) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
+        <PressableScale
           style={[styles.primaryButton, !canAdvance && styles.primaryButtonDisabled]}
           onPress={onNext}
           disabled={!canAdvance}
-          activeOpacity={0.85}
+          scaleTo={0.96}
         >
           <Text style={styles.primaryButtonText}>Próximo</Text>
-          <MaterialIcons name="arrow-forward" size={18} color={colors.onPrimary} />
-        </TouchableOpacity>
+          <Icon name="forward" size={18} color={colors.accentDeep} />
+        </PressableScale>
       </View>
     </KeyboardAvoidingView>
   );

@@ -4,7 +4,6 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,7 +13,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, useRef } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useCreateManejo } from '@/features/assets/hooks/use-create-manejo';
 import { useAssetDetail } from '@/features/assets/hooks/use-asset-detail';
@@ -22,6 +20,9 @@ import { SyncEngine } from '@/sync/sync-engine';
 import { getEntitySyncStatus } from '@/sync/entity-sync-status';
 import { useNetworkStatus } from '@/hooks/use-network-status';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { Icon } from '@/components/ui/icon';
 
 export default function CriarManejoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,19 +43,23 @@ export default function CriarManejoScreen() {
 
   if (isLoading) {
     return (
+      <GradientBackground>
       <SafeAreaView style={[styles.safe, { justifyContent: 'center', alignItems: 'center' }]} edges={['top']}>
         <ActivityIndicator color={colors.secondary} size="large" />
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   if (!asset) {
     return (
+      <GradientBackground>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={styles.notFound}>Asset não encontrado.</Text>
         </View>
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -118,14 +123,14 @@ export default function CriarManejoScreen() {
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
         <View style={styles.cameraBar}>
-          <TouchableOpacity onPress={() => setActiveCamera(null)} style={styles.cameraCancel}>
-            <MaterialIcons name="close" size={28} color={colors.onPrimary} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={takePhoto} style={styles.shutterButton} disabled={taking}>
+          <PressableScale onPress={() => setActiveCamera(null)} style={styles.cameraCancel}>
+            <Icon name="close" size={28} color={colors.onPrimary} />
+          </PressableScale>
+          <PressableScale onPress={takePhoto} style={styles.shutterButton} disabled={taking}>
             {taking
               ? <ActivityIndicator color={colors.primary} />
               : <View style={styles.shutterInner} />}
-          </TouchableOpacity>
+          </PressableScale>
           <View style={{ width: 48 }} />
         </View>
       </View>
@@ -135,11 +140,12 @@ export default function CriarManejoScreen() {
   const canSave = description.trim().length > 0;
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={20} color={colors.onBackground} />
-        </TouchableOpacity>
+        <PressableScale style={styles.backBtn} onPress={() => router.back()}>
+          <Icon name="back" size={20} color={colors.onBackground} />
+        </PressableScale>
         <Text style={styles.headerTitle}>Registrar Manejo</Text>
         <View style={{ width: 44 }} />
       </View>
@@ -150,7 +156,7 @@ export default function CriarManejoScreen() {
       >
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.assetContextCard}>
-            <MaterialIcons name="park" size={20} color={colors.secondary} />
+            <Icon name="tree" size={20} color={colors.secondary} />
             <Text style={styles.assetContextText} numberOfLines={1}>{asset.assetTypeName}</Text>
           </View>
 
@@ -174,15 +180,15 @@ export default function CriarManejoScreen() {
               {beforePhotoUri ? (
                 <View style={styles.photoThumb}>
                   <Image source={{ uri: beforePhotoUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
-                  <TouchableOpacity style={styles.photoRemove} onPress={() => setBeforePhotoUri(undefined)}>
-                    <MaterialIcons name="close" size={14} color={colors.onSurfaceVariant} />
-                  </TouchableOpacity>
+                  <PressableScale style={styles.photoRemove} onPress={() => setBeforePhotoUri(undefined)}>
+                    <Icon name="close" size={14} color={colors.onSurfaceVariant} />
+                  </PressableScale>
                 </View>
               ) : (
-                <TouchableOpacity style={styles.addPhotoBtn} onPress={() => openCamera('before')}>
-                  <MaterialIcons name="add-a-photo" size={24} color={colors.outline} />
+                <PressableScale style={styles.addPhotoBtn} onPress={() => openCamera('before')}>
+                  <Icon name="addPhoto" size={24} color={colors.outline} />
                   <Text style={styles.addPhotoText}>Adicionar</Text>
-                </TouchableOpacity>
+                </PressableScale>
               )}
             </View>
 
@@ -191,22 +197,22 @@ export default function CriarManejoScreen() {
               {afterPhotoUri ? (
                 <View style={styles.photoThumb}>
                   <Image source={{ uri: afterPhotoUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
-                  <TouchableOpacity style={styles.photoRemove} onPress={() => setAfterPhotoUri(undefined)}>
-                    <MaterialIcons name="close" size={14} color={colors.onSurfaceVariant} />
-                  </TouchableOpacity>
+                  <PressableScale style={styles.photoRemove} onPress={() => setAfterPhotoUri(undefined)}>
+                    <Icon name="close" size={14} color={colors.onSurfaceVariant} />
+                  </PressableScale>
                 </View>
               ) : (
-                <TouchableOpacity style={styles.addPhotoBtn} onPress={() => openCamera('after')}>
-                  <MaterialIcons name="add-a-photo" size={24} color={colors.outline} />
+                <PressableScale style={styles.addPhotoBtn} onPress={() => openCamera('after')}>
+                  <Icon name="addPhoto" size={24} color={colors.outline} />
                   <Text style={styles.addPhotoText}>Adicionar</Text>
-                </TouchableOpacity>
+                </PressableScale>
               )}
             </View>
           </View>
 
           {!isConnected && (
             <View style={styles.offlineNotice}>
-              <MaterialIcons name="cloud-off" size={16} color={colors.secondary} />
+              <Icon name="cloudOff" size={16} color={colors.secondary} />
               <Text style={styles.offlineNoticeText}>
                 Este manejo será salvo offline e sincronizado automaticamente.
               </Text>
@@ -217,27 +223,28 @@ export default function CriarManejoScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <TouchableOpacity
+          <PressableScale
             style={[styles.saveButton, (!canSave || isSaving || isSubmittingFlow) && styles.saveButtonDisabled]}
             onPress={handleSave}
             disabled={!canSave || isSaving || isSubmittingFlow}
-            activeOpacity={0.85}
+           
           >
             {isSaving || isSubmittingFlow
               ? <ActivityIndicator color={colors.onPrimary} size="small" />
-              : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
+              : <Icon name="send" size={18} color={colors.onPrimary} />}
             <Text style={styles.saveButtonText}>
               {isSaving || isSubmittingFlow ? 'Enviando...' : 'Enviar manejo'}
             </Text>
-          </TouchableOpacity>
+          </PressableScale>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.surfaceContainerLow },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',

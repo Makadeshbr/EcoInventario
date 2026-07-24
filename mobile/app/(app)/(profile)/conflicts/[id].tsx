@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
 import { Button } from '@/components/ui/button';
 import {
   getConflictById,
@@ -11,6 +11,7 @@ import {
   resolveConflictForceLocal,
   type ConflictRecord,
 } from '@/sync/conflict-handler';
+import { Icon } from '@/components/ui/icon';
 
 export default function ConflictDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -75,12 +76,14 @@ export default function ConflictDetailScreen() {
 
   if (!conflict) {
     return (
+      <GradientBackground>
       <SafeAreaView style={styles.safe} edges={['bottom']}>
         <Stack.Screen options={{ title: 'Resolver Conflito' }} />
         <View style={styles.loading}>
           <Text style={styles.loadingText}>Carregando...</Text>
         </View>
       </SafeAreaView>
+      </GradientBackground>
     );
   }
 
@@ -95,11 +98,12 @@ export default function ConflictDetailScreen() {
   } catch { /* noop */ }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Resolver Conflito' }} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.infoBox}>
-          <MaterialIcons name="info-outline" size={20} color={colors.secondary} />
+          <Icon name="info" size={20} color={colors.secondary} />
           <Text style={styles.infoText}>
             Este item foi modificado no servidor enquanto você estava offline. Escolha qual versão manter.
           </Text>
@@ -145,11 +149,12 @@ export default function ConflictDetailScreen() {
         </View>
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { ...typography.bodyMd, color: colors.outline },
   content: {

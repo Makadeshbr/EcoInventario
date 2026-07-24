@@ -3,15 +3,17 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSyncStore } from '@/stores/sync-store';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 const ROLE_LABELS: Record<string, string> = {
   tech: 'Técnico de Campo',
@@ -41,16 +43,16 @@ function MenuRow({
   badge,
   destructive,
 }: {
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   label: string;
   onPress: () => void;
   badge?: number;
   destructive?: boolean;
 }) {
   return (
-    <TouchableOpacity style={styles.menuRow} onPress={onPress} activeOpacity={0.7}>
+    <PressableScale style={styles.menuRow} onPress={onPress} scaleTo={0.98}>
       <View style={[styles.menuIconWrap, destructive && styles.menuIconWrapDestructive]}>
-        <MaterialIcons
+        <Icon
           name={icon}
           size={20}
           color={destructive ? colors.error : colors.onSecondaryContainer}
@@ -64,13 +66,13 @@ function MenuRow({
           <Text style={styles.badgeText}>{badge}</Text>
         </View>
       ) : (
-        <MaterialIcons
-          name="chevron-right"
+        <Icon
+          name="chevronRight"
           size={20}
           color={destructive ? colors.error : colors.outline}
         />
       )}
-    </TouchableOpacity>
+    </PressableScale>
   );
 }
 
@@ -98,38 +100,38 @@ export default function PerfilScreen() {
   const pendingTotal = pendingMetadataCount + pendingMediaCount;
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
         {/* Avatar + identidade */}
-        <View style={styles.profileCard}>
+        <FadeInView from="up" style={styles.profileCard}>
           <Avatar name={user.name} />
           <Text style={styles.userName}>{user.name}</Text>
           <Text style={styles.userRole}>
             {ROLE_LABELS[user.role] ?? user.role}
           </Text>
           <Text style={styles.userEmail}>{user.email}</Text>
-        </View>
+        </FadeInView>
 
         {/* Sync status bar */}
         {pendingTotal > 0 && (
-          <TouchableOpacity
+          <PressableScale
             style={styles.syncBanner}
             onPress={() => router.push('/(app)/(profile)/sync')}
-            activeOpacity={0.85}
           >
-            <MaterialIcons name="sync" size={18} color={colors.secondary} />
+            <Icon name="sync" size={18} color={colors.secondary} />
             <Text style={styles.syncBannerText}>
               {pendingTotal} {pendingTotal === 1 ? 'item' : 'itens'} aguardando sincronização
             </Text>
-            <MaterialIcons name="chevron-right" size={18} color={colors.secondary} />
-          </TouchableOpacity>
+            <Icon name="chevronRight" size={18} color={colors.secondary} />
+          </PressableScale>
         )}
 
         {/* Menu principal */}
-        <View style={styles.menuCard}>
+        <FadeInView delay={90} style={styles.menuCard}>
           <MenuRow
             icon="sync"
             label="Sincronização"
@@ -155,21 +157,21 @@ export default function PerfilScreen() {
             label="Sobre o App"
             onPress={() => router.push('/(app)/(profile)/about')}
           />
-        </View>
+        </FadeInView>
 
         {/* Logout */}
-        <TouchableOpacity
+        <PressableScale
           style={styles.logoutButton}
           onPress={handleLogout}
-          activeOpacity={0.85}
         >
-          <MaterialIcons name="logout" size={20} color={colors.onErrorContainer} />
+          <Icon name="logout" size={20} color={colors.onErrorContainer} />
           <Text style={styles.logoutText}>Sair da Conta</Text>
-        </TouchableOpacity>
+        </PressableScale>
 
         <View style={{ height: 120 }} />
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -180,7 +182,7 @@ const GLASS = {
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   content: {
     paddingHorizontal: spacing.marginMobile,
     paddingTop: spacing.lg,
@@ -204,8 +206,9 @@ const styles = StyleSheet.create({
     height: 96,
     borderRadius: 48,
     backgroundColor: colors.secondaryContainer,
-    borderWidth: 4,
-    borderColor: colors.surfaceContainerLowest,
+    borderWidth: 3,
+    // Anel neon assina a identidade sem competir com o conteudo.
+    borderColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,

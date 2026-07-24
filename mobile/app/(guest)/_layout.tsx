@@ -1,25 +1,33 @@
 import { Tabs, usePathname } from 'expo-router';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { colors, spacing, typography } from '@/theme/tokens';
+import { colors, spacing, typography, glass, gradients, motion } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { useMapUiStore } from '@/stores/map-ui-store';
+import { Icon } from '@/components/ui/icon';
 
 const TABS = [
   { name: '(map)', label: 'Mapa', icon: 'map' as const },
-  { name: '(scanner)', label: 'Scanner', icon: 'qr-code-scanner' as const },
+  { name: '(scanner)', label: 'Scanner', icon: 'qrScan' as const },
   { name: '(about)', label: 'Sobre', icon: 'info' as const },
 ] as const;
 
 function GuestTabBar({ state, navigation }: BottomTabBarProps) {
   const pathname = usePathname();
-  
+  const isPreviewOpen = useMapUiStore((s) => s.isPreviewOpen);
+
   // Esconde o TabBar se estiver em uma tela de detalhe (asset/[id])
   const isDetailScreen = pathname.includes('/asset/');
-  if (isDetailScreen) return null;
+  // ...e enquanto a prévia do ativo estiver aberta no mapa: a barra é pintada
+  // por cima da tela e cobriria o CTA da prévia.
+  if (isDetailScreen || isPreviewOpen) return null;
 
   return (
     <View style={styles.container} pointerEvents="box-none">
       <View style={styles.pill}>
+        <BlurView intensity={glass.blur} tint={glass.tint} style={StyleSheet.absoluteFill} />
         {TABS.map((tab, index) => {
           const isActive = state.index === index;
           const isScanner = tab.name === '(scanner)';
@@ -37,27 +45,39 @@ function GuestTabBar({ state, navigation }: BottomTabBarProps) {
 
           if (isScanner) {
             return (
-              <TouchableOpacity
+              <PressableScale
                 key={tab.name}
                 onPress={onPress}
-                activeOpacity={0.8}
+                scaleTo={motion.scale.pressInStrong}
                 style={styles.tab}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isActive }}
+                accessibilityLabel={tab.label}
               >
                 <View style={[styles.scannerButton, isActive && styles.scannerButtonActive]}>
-                  <MaterialIcons name="qr-code-scanner" size={26} color={colors.onPrimary} />
+                  <LinearGradient
+                    colors={gradients.accent}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                  <Icon name="qrScan" size={26} color={colors.accentDeep} />
                 </View>
-              </TouchableOpacity>
+              </PressableScale>
             );
           }
 
           return (
-            <TouchableOpacity
+            <PressableScale
               key={tab.name}
               onPress={onPress}
-              activeOpacity={0.7}
+              scaleTo={motion.scale.pressInStrong}
               style={styles.tab}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={tab.label}
             >
-              <MaterialIcons
+              <Icon
                 name={tab.icon}
                 size={24}
                 color={isActive ? colors.primary : colors.onSurfaceVariant}
@@ -65,7 +85,7 @@ function GuestTabBar({ state, navigation }: BottomTabBarProps) {
               <Text style={[styles.tabLabel, isActive && styles.tabLabelActive]}>
                 {tab.label}
               </Text>
-            </TouchableOpacity>
+            </PressableScale>
           );
         })}
       </View>
@@ -102,9 +122,10 @@ const styles = StyleSheet.create({
     width: '88%',
     maxWidth: 420,
     borderRadius: 9999,
-    backgroundColor: 'rgba(255,255,255,0.82)',
+    overflow: 'hidden',
+    backgroundColor: glass.bgStrong,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.5)',
+    borderColor: glass.border,
     paddingVertical: spacing.base,
     paddingHorizontal: spacing.gutter,
     shadowColor: '#000',
@@ -124,17 +145,20 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: colors.primary,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    shadowColor: colors.accentDim,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
     elevation: 6,
   },
   scannerButtonActive: {
-    backgroundColor: colors.secondary,
+    shadowOpacity: 0.75,
+    shadowRadius: 20,
   },
   tabLabel: {
     ...typography.labelSm,

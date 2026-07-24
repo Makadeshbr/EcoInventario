@@ -1,13 +1,16 @@
 import { Tabs, Redirect } from 'expo-router';
-import { View, TouchableOpacity, StyleSheet, AppState } from 'react-native';
+import { View, StyleSheet, AppState } from 'react-native';
 import { useEffect } from 'react';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { SyncEngine } from '@/sync/sync-engine';
 import { BlurView } from 'expo-blur';
-import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useAuthStore } from '@/stores/auth-store';
 import { useSyncStore } from '@/stores/sync-store';
-import { colors } from '@/theme/tokens';
+import { colors, typography, gradients, motion } from '@/theme/tokens';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { Icon } from '@/components/ui/icon';
 
 type NestedRouteState = {
   index?: number;
@@ -16,8 +19,8 @@ type NestedRouteState = {
 
 const TABS = [
   { icon: 'home' as const, label: 'Home' },
-  { icon: 'assignment' as const, label: 'Assets' },
-  { icon: 'center-focus-strong' as const, label: 'Scanner' },
+  { icon: 'list' as const, label: 'Assets' },
+  { icon: 'myLocation' as const, label: 'Scanner' },
   { icon: 'person' as const, label: 'Perfil' },
 ] as const;
 
@@ -49,7 +52,7 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
           const hasBadge = badges[index] > 0;
 
           return (
-            <TouchableOpacity
+            <PressableScale
               key={route.key}
               onPress={() => {
                 const event = navigation.emit({
@@ -62,16 +65,43 @@ function GlassTabBar({ state, navigation }: BottomTabBarProps) {
                   navigation.navigate(route.name, undefined, { merge: true });
                 }
               }}
-              activeOpacity={0.8}
-              style={[styles.tab, isActive && styles.activeTab]}
+              scaleTo={motion.scale.pressInStrong}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={TABS[index].label}
+              style={styles.tabHitbox}
             >
-              <MaterialIcons
-                name={TABS[index].icon}
-                size={24}
-                color={isActive ? colors.onPrimary : '#757575'}
-              />
-              {hasBadge && <View style={styles.badge} />}
-            </TouchableOpacity>
+              {/* A pill cresce/encolhe com mola quando a aba muda */}
+              <Animated.View
+                layout={LinearTransition.springify().damping(motion.spring.snappy.damping)}
+                style={[styles.tab, isActive && styles.activeTab]}
+              >
+                {isActive ? (
+                  <LinearGradient
+                    colors={gradients.accent}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={StyleSheet.absoluteFill}
+                  />
+                ) : null}
+                <Icon
+                  name={TABS[index].icon}
+                  size={24}
+                  color={isActive ? colors.accentDeep : colors.outline}
+                />
+                {isActive ? (
+                  <Animated.Text
+                    entering={FadeIn.duration(motion.duration.fast)}
+                    exiting={FadeOut.duration(motion.duration.instant)}
+                    style={styles.tabLabel}
+                    numberOfLines={1}
+                  >
+                    {TABS[index].label}
+                  </Animated.Text>
+                ) : null}
+                {hasBadge && <View style={styles.badge} />}
+              </Animated.View>
+            </PressableScale>
           );
         })}
       </BlurView>
@@ -99,27 +129,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  tab: {
-    padding: 12,
-    borderRadius: 9999,
+  tabHitbox: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    overflow: 'hidden',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 9999,
     position: 'relative',
   },
   activeTab: {
-    backgroundColor: colors.primary,
+    paddingHorizontal: 18,
+    // Halo neon acompanha a aba ativa.
+    shadowColor: colors.accentDim,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  tabLabel: {
+    ...typography.labelMd,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    color: colors.accentDeep,
   },
   badge: {
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
     backgroundColor: colors.error,
+    borderWidth: 1,
+    borderColor: '#fff',
   },
 });
 

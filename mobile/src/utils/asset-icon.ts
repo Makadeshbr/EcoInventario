@@ -1,29 +1,31 @@
-// Mapeia o nome de um tipo de árvore para um ícone do MaterialIcons.
+import type { IconName } from '@/components/ui/icon';
+
+// Mapeia o nome de um tipo de árvore para um ícone do design system.
 // Objetivo: marcadores no mapa não ficam todos iguais — o ícone reflete o nome
 // do tipo quando reconhecível (espécie/categoria) e, para nomes desconhecidos,
 // escolhe um ícone variado de forma DETERMINÍSTICA (mesmo nome → mesmo ícone).
 
-// Paleta de fallback: ícones naturais válidos no MaterialIcons.
+// Paleta de fallback: ícones naturais do design system (traço fino).
 export const FALLBACK_ICONS = [
-  'park',
+  'tree',
   'forest',
   'nature',
-  'eco',
+  'leaf',
   'grass',
-  'spa',
-  'local-florist',
-  'filter-vintage',
-  'yard',
-  'agriculture',
-] as const;
+  'sprout',
+  'flowerTulip',
+  'flower',
+  'garden',
+  'crop',
+] as const satisfies readonly IconName[];
 
 // Dicionário semântico: a primeira regra cujo padrão casar define o ícone.
 // Os padrões assumem o nome já normalizado (sem acentos, minúsculo).
-const KEYWORD_ICONS: ReadonlyArray<{ pattern: RegExp; icon: string }> = [
+const KEYWORD_ICONS: ReadonlyArray<{ pattern: RegExp; icon: IconName }> = [
   // Floríferas ornamentais → flor
   {
     pattern: /(ipe|flamboyant|jacaranda|cerejeira|sakura|quaresmeira|manaca|sibipiruna|acacia|flor)/,
-    icon: 'local-florist',
+    icon: 'flowerTulip',
   },
   // Coníferas e árvores de grande copa → floresta
   { pattern: /(pinhe|pinus|araucaria|cipreste|cedro|abeto|eucalipto)/, icon: 'forest' },
@@ -33,15 +35,15 @@ const KEYWORD_ICONS: ReadonlyArray<{ pattern: RegExp; icon: string }> = [
   {
     pattern:
       /(mangueira|manga|jabuticaba|goiaba|abacate|laranj|limao|citric|caju|fruta|frutif|cafe|coco|coqueiro|palmeira|acai|buriti|cultivo|plantio)/,
-    icon: 'agriculture',
+    icon: 'crop',
   },
   // Jardinagem e ornamentais de porte menor → jardim
-  { pattern: /(jardim|ornamental|arbusto|cerca viva|topiaria)/, icon: 'yard' },
+  { pattern: /(jardim|ornamental|arbusto|cerca viva|topiaria)/, icon: 'garden' },
   // Nativas de grande porte → árvore de parque
   {
     pattern:
       /(figueira|ficus|jatoba|jequitiba|peroba|aroeira|angico|pau-brasil|pau brasil|carvalho|nativa)/,
-    icon: 'park',
+    icon: 'tree',
   },
 ];
 
@@ -63,8 +65,8 @@ function hashString(value: string): number {
   return hash;
 }
 
-// iconForAssetType retorna o nome do ícone MaterialIcons para o tipo informado.
-export function iconForAssetType(name: string | null | undefined): string {
+// iconForAssetType retorna o ícone do design system para o tipo informado.
+export function iconForAssetType(name: string | null | undefined): IconName {
   const normalized = normalize(name ?? '');
 
   for (const { pattern, icon } of KEYWORD_ICONS) {

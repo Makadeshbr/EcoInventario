@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
 import { resolveQRCode } from '@/features/public/api';
+import { Icon } from '@/components/ui/icon';
 
 const { height: SCREEN_H, width: SCREEN_W } = Dimensions.get('window');
 const FRAME_SIZE = Math.min(SCREEN_W * 0.7, 280);
@@ -104,7 +104,7 @@ export default function ScannerVisitanteScreen() {
   if (!permission.granted) {
     return (
       <SafeAreaView style={styles.permissionScreen}>
-        <MaterialIcons name="camera-alt" size={56} color={colors.secondary} />
+        <Icon name="camera" size={56} color={colors.secondary} />
         <Text style={styles.permTitle}>Câmera necessária</Text>
         <Text style={styles.permBody}>
           O scanner precisa de acesso à câmera para ler QR Codes dos ativos.
@@ -167,7 +167,7 @@ export default function ScannerVisitanteScreen() {
         {/* Mensagem de feedback */}
         <View style={[styles.feedbackPill, { backgroundColor: feedbackBg }]}>
           {isBusy && (
-            <MaterialIcons name="hourglass-top" size={16} color={colors.onPrimary} />
+            <Icon name="pending" size={16} color={colors.onPrimary} />
           )}
           <Text style={[styles.feedbackText, { color: feedbackColor }]}>
             {feedbackMsg}

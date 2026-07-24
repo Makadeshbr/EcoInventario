@@ -6,18 +6,23 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
-  ActivityIndicator,
   Image,
   Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useHomeData } from '@/features/assets/hooks/use-home-data';
 import { useSyncStore } from '@/stores/sync-store';
 import { useAuthStore } from '@/stores/auth-store';
-import { colors, spacing, radius, typography } from '@/theme/tokens';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, radius, typography, gradients } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { GlassCard } from '@/components/ui/glass-card';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Asset } from '@/types/domain';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 const STATUS_LABELS: Record<Asset['status'], string> = {
   draft: 'Rascunho',
@@ -67,7 +72,7 @@ function SyncIndicator() {
 
   if (!visible && status.state === 'idle') return null;
 
-  type BannerInfo = { icon: keyof typeof MaterialIcons.glyphMap; color: string; label: string; bg: string };
+  type BannerInfo = { icon: IconName; color: string; label: string; bg: string };
 
   const map: Record<string, BannerInfo> = {
     syncing: {
@@ -77,7 +82,7 @@ function SyncIndicator() {
       bg: colors.surfaceContainerLow,
     },
     synced: {
-      icon: 'cloud-done',
+      icon: 'cloudDone',
       color: '#2e7d32',
       label: (() => {
         if (status.state !== 'synced') return 'Sincronizado';
@@ -88,13 +93,13 @@ function SyncIndicator() {
       bg: 'rgba(46,125,50,0.12)',
     },
     error: {
-      icon: 'sync-problem',
+      icon: 'syncProblem',
       color: colors.error,
       label: 'Erro na sincronização',
       bg: colors.errorContainer,
     },
     offline: {
-      icon: 'cloud-off',
+      icon: 'cloudOff',
       color: colors.outline,
       label: (() => {
         if (status.state !== 'offline') return 'Sem conexão';
@@ -116,7 +121,7 @@ function SyncIndicator() {
 
   return (
     <Animated.View style={[styles.syncBanner, { backgroundColor: info.bg, opacity }]}>
-      <MaterialIcons name={info.icon} size={16} color={info.color} />
+      <Icon name={info.icon} size={16} color={info.color} />
       <Text style={[styles.syncLabel, { color: info.color }]}>{info.label}</Text>
     </Animated.View>
   );
@@ -129,37 +134,41 @@ function StatCard({
   borderStyle,
   accent,
   onPress,
+  delay = 0,
 }: {
   count: number;
   label: string;
-  icon: keyof typeof MaterialIcons.glyphMap;
+  icon: IconName;
   borderStyle: object;
   accent: string;
   onPress: () => void;
+  delay?: number;
 }) {
   return (
-    <TouchableOpacity
-      style={[styles.statCard, borderStyle]}
-      onPress={onPress}
-      activeOpacity={0.85}
-    >
-      <MaterialIcons name={icon} size={32} color={accent} style={styles.statIcon} />
-      <Text style={styles.statCount}>{count}</Text>
-      <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
-    </TouchableOpacity>
+    <FadeInView delay={delay} style={styles.statCardWrap}>
+      <PressableScale onPress={onPress} style={styles.statCardWrap}>
+        <GlassCard style={[styles.statCard, borderStyle]}>
+          <View style={[styles.statIconRing, { backgroundColor: `${accent}22` }]}>
+            <Icon name={icon} size={24} color={accent} />
+          </View>
+          <Text style={styles.statCount}>{count}</Text>
+          <Text style={styles.statLabel}>{label.toUpperCase()}</Text>
+        </GlassCard>
+      </PressableScale>
+    </FadeInView>
   );
 }
 
-function AssetListItem({ asset }: { asset: Asset }) {
+function AssetListItem({ asset, index = 0 }: { asset: Asset; index?: number }) {
   const status = STATUS_COLORS[asset.status];
   return (
-    <TouchableOpacity
-      style={styles.listItem}
-      onPress={() => router.push(`/(app)/(assets)/${asset.id}`)}
-      activeOpacity={0.85}
-    >
+    <FadeInView delay={Math.min(index, 8) * 55}>
+      <PressableScale
+        style={styles.listItem}
+        onPress={() => router.push(`/(app)/(assets)/${asset.id}`)}
+      >
       <View style={styles.listItemThumb}>
-        <MaterialIcons name="park" size={32} color={colors.secondary} />
+        <Icon name="tree" size={32} color={colors.secondary} />
       </View>
       <View style={styles.listItemBody}>
         <Text style={styles.listItemTitle} numberOfLines={1}>{asset.assetTypeName}</Text>
@@ -177,7 +186,8 @@ function AssetListItem({ asset }: { asset: Asset }) {
         </View>
         <Text style={styles.listItemTime}>{formatRelativeTime(asset.createdAt)}</Text>
       </View>
-    </TouchableOpacity>
+      </PressableScale>
+    </FadeInView>
   );
 }
 
@@ -187,56 +197,76 @@ export default function HomeScreen() {
   const firstName = user?.name.split(' ')[0] ?? 'Profissional';
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['top']}>
-      {/* Header limpo: só o nome do app */}
-      <View style={styles.header}>
-        <Text style={styles.logoText}>EcoInventário</Text>
-      </View>
-
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Greeting */}
-        <View style={styles.greeting}>
-          <Text style={styles.greetingTitle}>Olá, {firstName}</Text>
-          <Text style={styles.greetingSubtitle}>Visão geral do sistema.</Text>
-        </View>
+        {/* Hero: bloco escuro que ancora o topo e dá profundidade ao canvas
+            claro. Os cards de estatística flutuam sobre a borda inferior. */}
+        <View style={styles.hero}>
+          <LinearGradient
+            colors={gradients.hero}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+          />
+          {/* Brilho neon difuso no canto, para o bloco não ficar chapado */}
+          <View style={styles.heroGlow} pointerEvents="none" />
 
-        <SyncIndicator />
+          <FadeInView from="up" style={styles.heroContent}>
+            <Text style={styles.heroBrand}>ECOINVENTÁRIO</Text>
+            <Text style={styles.heroTitle}>Olá, {firstName}</Text>
+            <Text style={styles.heroSubtitle}>Visão geral do sistema.</Text>
+            <SyncIndicator />
+          </FadeInView>
+        </View>
 
         {/* Stats 2×2 — duas linhas explícitas para evitar overflow com flexWrap */}
         {isLoading ? (
-          <ActivityIndicator color={colors.secondary} style={{ marginVertical: spacing.md }} />
+          <View style={styles.statsGrid}>
+            <View style={styles.statsRow}>
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+            </View>
+            <View style={styles.statsRow}>
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+              <Skeleton height={150} radius={28} style={styles.statCardWrap} />
+            </View>
+          </View>
         ) : (
           <View style={styles.statsGrid}>
             <View style={styles.statsRow}>
               <StatCard
                 count={counts.approved}
                 label="Aprovados"
-                icon="check-circle"
+                icon="success"
                 borderStyle={styles.cardOrganic1}
-                accent={colors.tertiaryFixedDim}
+                accent={colors.accentDim}
                 onPress={() => router.push('/(app)/(assets)?filter=approved')}
+                delay={40}
               />
               <StatCard
                 count={counts.pending}
                 label="Pendentes"
-                icon="pending-actions"
+                icon="pending"
                 borderStyle={styles.cardOrganic2}
                 accent={colors.secondary}
                 onPress={() => router.push('/(app)/(assets)?filter=pending')}
+                delay={100}
               />
             </View>
             <View style={styles.statsRow}>
               <StatCard
                 count={counts.draft}
                 label="Rascunhos"
-                icon="edit-note"
+                icon="notes"
                 borderStyle={styles.cardOrganic3}
                 accent={colors.outline}
                 onPress={() => router.push('/(app)/(assets)?filter=draft')}
+                delay={160}
               />
               <StatCard
                 count={counts.rejected}
@@ -245,6 +275,7 @@ export default function HomeScreen() {
                 borderStyle={styles.cardOrganic4}
                 accent={colors.error}
                 onPress={() => router.push('/(app)/(assets)?filter=rejected')}
+                delay={220}
               />
             </View>
           </View>
@@ -259,23 +290,24 @@ export default function HomeScreen() {
         </View>
 
         {recentAssets.length === 0 && !isLoading ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons name="park" size={48} color={colors.outlineVariant} />
+          <FadeInView style={styles.emptyState}>
+            <Icon name="tree" size={48} color={colors.outlineVariant} />
             <Text style={styles.emptyText}>Nenhum asset cadastrado</Text>
-            <TouchableOpacity
+            <PressableScale
               style={styles.emptyButton}
               onPress={() => router.push('/(app)/(assets)/new')}
             >
               <Text style={styles.emptyButtonText}>Criar primeiro asset</Text>
-            </TouchableOpacity>
-          </View>
+            </PressableScale>
+          </FadeInView>
         ) : (
-          recentAssets.map((asset) => <AssetListItem key={asset.id} asset={asset} />)
+          recentAssets.map((asset, i) => <AssetListItem key={asset.id} asset={asset} index={i} />)
         )}
 
         <View style={{ height: 120 }} />
       </ScrollView>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
@@ -286,7 +318,7 @@ const GLASS = {
 };
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   header: {
     paddingHorizontal: spacing.marginMobile,
     paddingVertical: spacing.gutter,
@@ -307,7 +339,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.4)',
   },
-  content: { paddingHorizontal: spacing.marginMobile, paddingBottom: 40 },
+  content: { paddingBottom: 40 },
+  hero: {
+    overflow: 'hidden',
+    borderBottomLeftRadius: 40,
+    borderBottomRightRadius: 40,
+    paddingHorizontal: spacing.marginMobile,
+    paddingTop: spacing.md,
+    // O bloco desce atrás dos cards; os cards sobem com margem negativa.
+    paddingBottom: 96,
+    marginBottom: -72,
+  },
+  heroGlow: {
+    position: 'absolute',
+    top: -70,
+    right: -50,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: 'rgba(183,245,105,0.18)',
+  },
+  heroContent: { gap: 2 },
+  heroBrand: {
+    ...typography.labelMd,
+    letterSpacing: 2.4,
+    color: 'rgba(183,245,105,0.85)',
+    marginBottom: spacing.base,
+  },
+  heroTitle: {
+    ...typography.headlineLg,
+    color: '#ffffff',
+  },
+  heroSubtitle: {
+    ...typography.bodyMd,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.75)',
+    marginBottom: spacing.base,
+  },
   greeting: { marginBottom: spacing.md },
   greetingTitle: {
     ...typography.headlineLg,
@@ -322,7 +390,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    marginBottom: spacing.sm,
+    marginTop: spacing.base,
+    marginBottom: spacing.xs,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: radius.default,
@@ -334,23 +403,28 @@ const styles = StyleSheet.create({
   statsGrid: {
     marginBottom: spacing.lg,
     gap: spacing.gutter,
+    paddingHorizontal: spacing.marginMobile,
   },
   statsRow: {
     flexDirection: 'row',
     gap: spacing.gutter,
     marginBottom: spacing.gutter,
   },
+  statCardWrap: { flex: 1 },
   statCard: {
     flex: 1,
-    ...GLASS,
     padding: spacing.md,
-    minHeight: 160,
+    minHeight: 150,
     justifyContent: 'center',
-    shadowColor: 'rgba(45,58,45,0.05)',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 1,
-    shadowRadius: 32,
-    elevation: 2,
+    alignItems: 'flex-start',
+  },
+  statIconRing: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   cardOrganic1: {
     borderTopLeftRadius: 40,
@@ -388,6 +462,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   sectionHeader: {
+    paddingHorizontal: spacing.marginMobile,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
@@ -397,6 +472,7 @@ const styles = StyleSheet.create({
   seeAll: { ...typography.labelLg, color: colors.secondary },
   listItem: {
     ...GLASS,
+    marginHorizontal: spacing.marginMobile,
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.gutter,
@@ -433,6 +509,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   emptyState: {
+    paddingHorizontal: spacing.marginMobile,
     alignItems: 'center',
     paddingVertical: spacing.xl,
     gap: spacing.sm,

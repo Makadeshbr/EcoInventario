@@ -8,7 +8,8 @@ export const GLASS_CARD = {
 } as const;
 
 export const wizardStyles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  // Fundo vem do GradientBackground na tela do wizard.
+  safe: { flex: 1, backgroundColor: 'transparent' },
 
   wizardHeader: {
     flexDirection: 'row',
@@ -32,17 +33,19 @@ export const wizardStyles = StyleSheet.create({
   stepTitle: { ...typography.headlineMd, color: colors.onBackground, marginTop: 2 },
 
   progressTrack: {
-    height: 4,
-    backgroundColor: colors.surfaceVariant,
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
     marginHorizontal: spacing.marginMobile,
-    borderRadius: 2,
+    borderRadius: radius.full,
     marginBottom: spacing.md,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: colors.tertiaryFixedDim,
-    borderRadius: 2,
+    backgroundColor: colors.accentDim,
+    borderRadius: radius.full,
   },
 
   stepContent: {
@@ -296,23 +299,30 @@ export const wizardStyles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingBottom: spacing.lg,
   },
+  // CTA neon: mesma linguagem do FAB da lista e do envio para aprovação.
   primaryButton: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
     paddingVertical: 16,
     borderRadius: 9999,
-    shadowColor: colors.primary,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+    shadowColor: colors.accentDim,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 5,
   },
   primaryButtonDisabled: { opacity: 0.4 },
-  primaryButtonText: { ...typography.labelLg, color: colors.onPrimary },
+  primaryButtonText: {
+    ...typography.labelLg,
+    color: colors.accentDeep,
+    fontFamily: 'PlusJakartaSans_700Bold',
+  },
   secondaryButton: {
     flex: 1,
     flexDirection: 'row',

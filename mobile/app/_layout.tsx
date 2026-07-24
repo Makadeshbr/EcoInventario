@@ -1,6 +1,7 @@
 // TODO: Sem teste — config/infra
 import { useEffect, useRef, useState } from 'react';
 import { Stack } from 'expo-router';
+import { rootStackScreenOptions } from '@/theme/navigation';
 import * as SplashScreen from 'expo-splash-screen';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
@@ -16,6 +17,7 @@ import {
   View,
   StatusBar,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { getDb } from '@/db/database';
 import { runMigrations } from '@/db/migrations';
 
@@ -104,10 +106,11 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) return null;
 
   return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
     <QueryClientProvider client={queryClient}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F0E8" translucent={false} />
 
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={rootStackScreenOptions}>
         <Stack.Screen name="index" />
         <Stack.Screen name="(welcome)" />
         <Stack.Screen name="(guest)" />
@@ -131,6 +134,7 @@ export default function RootLayout() {
         </View>
       )}
     </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 

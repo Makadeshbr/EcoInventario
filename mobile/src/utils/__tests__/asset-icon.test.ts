@@ -1,9 +1,10 @@
 import { iconForAssetType, FALLBACK_ICONS } from '../asset-icon';
+import { ICONS } from '@/components/ui/icon';
 
 describe('iconForAssetType', () => {
   test('mapeia floríferas (Ipê, com acento e maiúscula) para flor', () => {
-    expect(iconForAssetType('Ipê Amarelo')).toBe('local-florist');
-    expect(iconForAssetType('jacaranda')).toBe('local-florist');
+    expect(iconForAssetType('Ipê Amarelo')).toBe('flowerTulip');
+    expect(iconForAssetType('jacaranda')).toBe('flowerTulip');
   });
 
   test('mapeia coníferas para floresta', () => {
@@ -17,8 +18,8 @@ describe('iconForAssetType', () => {
   });
 
   test('mapeia frutíferas e palmeiras para agricultura', () => {
-    expect(iconForAssetType('Mangueira')).toBe('agriculture');
-    expect(iconForAssetType('Coqueiro')).toBe('agriculture');
+    expect(iconForAssetType('Mangueira')).toBe('crop');
+    expect(iconForAssetType('Coqueiro')).toBe('crop');
   });
 
   test('nome desconhecido cai num ícone da paleta de fallback', () => {
@@ -35,6 +36,12 @@ describe('iconForAssetType', () => {
     const nomes = ['Alfa', 'Beta', 'Gama', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Teta'];
     const icones = new Set(nomes.map(iconForAssetType));
     expect(icones.size).toBeGreaterThan(1);
+  });
+
+  test('todo ícone da paleta existe no registry do design system', () => {
+    for (const icon of FALLBACK_ICONS) {
+      expect(ICONS).toHaveProperty(icon);
+    }
   });
 
   test('entrada vazia ou nula não quebra e retorna um ícone válido', () => {

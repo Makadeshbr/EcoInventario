@@ -2,14 +2,14 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
 import { colors, spacing } from '@/theme/tokens';
 import type { WizardState } from './wizard-types';
+import { PressableScale } from '@/components/ui/pressable-scale';
 import { wizardStyles as styles } from './wizard-styles';
+import { Icon } from '@/components/ui/icon';
 
 interface Props {
   state: WizardState;
@@ -38,7 +38,7 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
 
         {statusMessage && (
           <View style={styles.reviewNotice}>
-            <MaterialIcons name="sync" size={16} color={colors.secondary} />
+            <Icon name="sync" size={16} color={colors.secondary} />
             <Text style={styles.reviewNoticeText}>{statusMessage}</Text>
           </View>
         )}
@@ -62,7 +62,7 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
 
         {!isConnected && (
           <View style={styles.reviewNotice}>
-            <MaterialIcons name="cloud-off" size={16} color={colors.secondary} />
+            <Icon name="cloudOff" size={16} color={colors.secondary} />
             <Text style={styles.reviewNoticeText}>
               O asset ficará aguardando conexão para ser enviado à revisão.
             </Text>
@@ -71,19 +71,19 @@ export function StepReview({ state, onSave, isSaving, isConnected, statusMessage
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity
+        <PressableScale
           style={[styles.primaryButton, isSaving && styles.primaryButtonDisabled]}
           onPress={onSave}
           disabled={isSaving}
-          activeOpacity={0.85}
+         
         >
           {isSaving
-            ? <ActivityIndicator color={colors.onPrimary} size="small" />
-            : <MaterialIcons name="send" size={18} color={colors.onPrimary} />}
+            ? <ActivityIndicator color={colors.accentDeep} size="small" />
+            : <Icon name="send" size={18} color={colors.accentDeep} />}
           <Text style={styles.primaryButtonText}>
             {isSaving ? 'Enviando...' : 'Enviar para revisão'}
           </Text>
-        </TouchableOpacity>
+        </PressableScale>
       </View>
     </View>
   );

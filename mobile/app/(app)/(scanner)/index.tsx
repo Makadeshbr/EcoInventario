@@ -1,16 +1,74 @@
-import { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
-import { MaterialIcons } from '@expo/vector-icons';
-import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
+import { colors, spacing, typography, radius, motion } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
+import { PressableScale } from '@/components/ui/pressable-scale';
+import { FadeInView } from '@/components/ui/fade-in-view';
 import { getAssetByQR } from '@/features/assets/repository';
 import { api } from '@/api/client';
 import { useAuthStore } from '@/stores/auth-store';
+import { Icon, type IconName } from '@/components/ui/icon';
 
 type ScanMode = 'idle' | 'scanning' | 'found' | 'notfound';
+
+const SCAN_SWEEP_MS = 2200;
+
+/** Linha de varredura: sinaliza que a câmera está ativa e procurando. */
+function ScanLine({ active }: { active: boolean }) {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    if (!active) {
+      cancelAnimation(progress);
+      progress.value = 0;
+      return;
+    }
+    progress.value = 0;
+    progress.value = withRepeat(
+      withTiming(1, { duration: SCAN_SWEEP_MS, easing: Easing.inOut(Easing.quad) }),
+      -1,
+      true,
+    );
+  }, [active, progress]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: progress.value * (WINDOW - SCAN_LINE_HEIGHT) }],
+    opacity: 0.35 + progress.value * 0.5,
+  }));
+
+  if (!active) return null;
+
+  return (
+    <Animated.View style={[styles.scanLine, animatedStyle]} pointerEvents="none">
+      <LinearGradient
+        colors={['transparent', colors.accent, 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={StyleSheet.absoluteFill}
+      />
+    </Animated.View>
+  );
+}
+
+const STATUS_ICON: Record<ScanMode, IconName> = {
+  idle: 'qrScan',
+  scanning: 'sync',
+  found: 'success',
+  notfound: 'error',
+};
 
 export default function ScannerProfissionalScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -88,46 +146,54 @@ export default function ScannerProfissionalScreen() {
   // ── Sem permissão ───────────────────────────────────────────────────────────
   if (!permission.granted) {
     return (
-      <SafeAreaView style={styles.permissionSafe}>
-        <View style={styles.centerBox}>
-          <MaterialIcons name="camera-alt" size={64} color={colors.outline} />
-          <Text style={styles.centerTitle}>Permissão de Câmera</Text>
-          <Text style={styles.centerText}>
-            Precisamos acessar a câmera para escanear QR codes dos ativos.
-          </Text>
-          <Pressable style={styles.primaryButton} onPress={requestPermission}>
-            <Text style={styles.primaryButtonText}>Permitir Câmera</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <GradientBackground>
+        <SafeAreaView style={styles.permissionSafe}>
+          <FadeInView from="up" style={styles.centerBox}>
+            <View style={styles.centerRing}>
+              <Icon name="camera" size={56} color={colors.secondary} />
+            </View>
+            <Text style={styles.centerTitle}>Permissão de Câmera</Text>
+            <Text style={styles.centerText}>
+              Precisamos acessar a câmera para escanear QR codes dos ativos.
+            </Text>
+            <PressableScale style={styles.primaryButton} onPress={requestPermission}>
+              <Text style={styles.primaryButtonText}>Permitir Câmera</Text>
+            </PressableScale>
+          </FadeInView>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   // ── Acesso restrito ─────────────────────────────────────────────────────────
   if (!isProfessional) {
     return (
-      <SafeAreaView style={styles.permissionSafe}>
-        <View style={styles.centerBox}>
-          <MaterialIcons name="lock" size={64} color={colors.outline} />
-          <Text style={styles.centerTitle}>Acesso Restrito</Text>
-          <Text style={styles.centerText}>
-            O scanner profissional está disponível apenas para técnicos e administradores.
-          </Text>
-        </View>
-      </SafeAreaView>
+      <GradientBackground>
+        <SafeAreaView style={styles.permissionSafe}>
+          <FadeInView from="up" style={styles.centerBox}>
+            <View style={styles.centerRing}>
+              <Icon name="lock" size={56} color={colors.outline} />
+            </View>
+            <Text style={styles.centerTitle}>Acesso Restrito</Text>
+            <Text style={styles.centerText}>
+              O scanner profissional está disponível apenas para técnicos e administradores.
+            </Text>
+          </FadeInView>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   // ── Status visual ───────────────────────────────────────────────────────────
   const statusColor =
-    mode === 'found' ? colors.secondary :
-    mode === 'notfound' ? colors.error :
+    mode === 'found' ? colors.accent :
+    mode === 'notfound' ? '#ff8a80' :
     colors.onPrimary;
 
   const statusLabel =
     mode === 'scanning' ? 'Buscando...' :
-    mode === 'found' ? '✓ Ativo encontrado!' :
-    mode === 'notfound' ? '✗ Ativo não encontrado' :
+    mode === 'found' ? 'Ativo encontrado!' :
+    mode === 'notfound' ? 'Ativo não encontrado' :
     'Aponte para o QR Code do ativo';
 
   const scanWindowStyle = [
@@ -153,6 +219,7 @@ export default function ScannerProfissionalScreen() {
         <View style={styles.overlayMiddle}>
           <View style={styles.overlaySide} />
           <View style={scanWindowStyle}>
+            <ScanLine active={mode === 'idle'} />
             <View style={[styles.corner, styles.cornerTL]} />
             <View style={[styles.corner, styles.cornerTR]} />
             <View style={[styles.corner, styles.cornerBL]} />
@@ -161,9 +228,13 @@ export default function ScannerProfissionalScreen() {
           <View style={styles.overlaySide} />
         </View>
         <View style={styles.overlayBottom}>
-          <Text style={[styles.statusLabel, { color: statusColor }]}>
-            {statusLabel}
-          </Text>
+          {/* key força a re-entrada da animação a cada mudança de estado */}
+          <FadeInView key={mode} from="up" duration={motion.duration.fast} style={styles.statusPill}>
+            <Icon name={STATUS_ICON[mode]} size={18} color={statusColor} />
+            <Text style={[styles.statusLabel, { color: statusColor }]}>
+              {statusLabel}
+            </Text>
+          </FadeInView>
           {scannedText ? (
             <Text style={styles.scannedCode} numberOfLines={1}>
               {scannedText}
@@ -178,6 +249,7 @@ export default function ScannerProfissionalScreen() {
 const WINDOW = 260;
 const CORNER = 24;
 const THICKNESS = 3;
+const SCAN_LINE_HEIGHT = 3;
 
 const styles = StyleSheet.create({
   container: {
@@ -188,13 +260,24 @@ const styles = StyleSheet.create({
   // Sem permissão / acesso restrito
   permissionSafe: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   centerBox: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
+  },
+  centerRing: {
+    width: 112,
+    height: 112,
+    borderRadius: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(183,245,105,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(183,245,105,0.5)',
+    marginBottom: spacing.sm,
   },
   centerTitle: {
     ...typography.headlineMd,
@@ -240,12 +323,19 @@ const styles = StyleSheet.create({
     width: WINDOW,
     height: WINDOW,
     backgroundColor: 'transparent',
+    overflow: 'hidden',
   },
   scanWindowSuccess: {
-    backgroundColor: 'rgba(77,100,77,0.2)',
+    backgroundColor: 'rgba(183,245,105,0.22)',
   },
   scanWindowError: {
     backgroundColor: 'rgba(186,26,26,0.2)',
+  },
+  scanLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: SCAN_LINE_HEIGHT,
   },
   overlayBottom: {
     flex: 1,
@@ -253,12 +343,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing.md,
   },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.base,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(16,32,0,0.55)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+  },
   statusLabel: {
     ...typography.titleMd,
     textAlign: 'center',
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
   },
   scannedCode: {
     ...typography.labelSm,
@@ -273,7 +371,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: CORNER,
     height: CORNER,
-    borderColor: '#fff',
+    borderColor: colors.accent,
   },
   cornerTL: { top: 0, left: 0, borderTopWidth: THICKNESS, borderLeftWidth: THICKNESS, borderTopLeftRadius: 4 },
   cornerTR: { top: 0, right: 0, borderTopWidth: THICKNESS, borderRightWidth: THICKNESS, borderTopRightRadius: 4 },

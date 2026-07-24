@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { colors, spacing, typography, radius } from '@/theme/tokens';
+import { GradientBackground } from '@/components/ui/gradient-background';
 import { Button } from '@/components/ui/button';
 
 export default function SettingsScreen() {
@@ -17,6 +18,7 @@ export default function SettingsScreen() {
   }
 
   return (
+    <GradientBackground>
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <Stack.Screen options={{ title: 'Configurações' }} />
       <View style={styles.content}>
@@ -55,11 +57,12 @@ export default function SettingsScreen() {
 
       </View>
     </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
+  safe: { flex: 1, backgroundColor: 'transparent' },
   content: {
     padding: spacing.marginMobile,
     gap: spacing.md,
